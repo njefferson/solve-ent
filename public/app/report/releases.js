@@ -32,9 +32,20 @@ export const NOTES_PAGE = '/whats-new';
  * it non-zero, which is also the first release on which that branch had ever
  * been reachable.
  */
-export const OLDER_THAN_SHOWN = 7;
+export const OLDER_THAN_SHOWN = 8;
 /** Newest first. */
 export const RELEASES = [
+    {
+        version: '0.12.0',
+        kind: 'CAPABILITY',
+        lines: [
+            'Codes are read a stack at a time. Paste the whole lot into the box — one per line — and press once. Each gets its own block, in the order they were pasted, headed by the number so it can be found against a list on paper.',
+            'A line that does not read stays where it is rather than being dropped, and says what was wrong with it and what was on the line. Underneath there are two counts: how many read and how many did not. Two numbers rather than one over the other, because one over the other reads like a mark out of something.',
+            'A number that turns up twice is pointed out and not decided about. It happens when a code is written down twice and it happens when two people were given the same number, and this cannot tell those apart, so it says which line the number appeared on before and leaves it there.',
+            'And the moves are added up across the whole stack, ordered by how much went wrong. That is the part worth taking back to the next lesson: it says what to teach again, not who to talk to.',
+        ],
+        stillMissing: 'the icon is still a simple drawing rather than a proper one, and nothing is deployed yet, so this runs from a device that already has it.',
+    },
     {
         version: '0.11.0',
         kind: 'CAPABILITY',
@@ -83,20 +94,5 @@ export const RELEASES = [
             'Two things were found while measuring all of this and both are fixed. A proportion question could ask you to work out a number that was already printed in the question, when a recipe took one mole of the first substance. And on a long conversion, turning one factor over and turning the whole chain over could come to the same answer, so being told which one happened would have been a guess.',
         ],
         stillMissing: 'nothing can be handed in and there is still no page for whoever set the work. Proportions has one kind of question because a second one means asking about two reactions in a row, and that is a question this has never posed — it is for whoever is teaching to ask for, not for this to decide. The icon is still a simple drawing rather than a proper one.',
-    },
-    {
-        version: '0.7.0',
-        kind: 'CAPABILITY',
-        lines: [
-            'You can practise one move on its own now, instead of working whole questions and walking past the step you want four times to reach it once.',
-            'Whole questions are what makes a move stick once you have it. A move you do not have yet is built the other way round: by doing that one thing again. So there is a second way in — pick one of six moves and get that move, over and over, with the question around it for context but only the one step to answer.',
-            'The six are choosing the move, isolating the unknown, scaling by a ratio, doing the arithmetic, carrying and cancelling units, and significant figures. Stop whenever you like; it tells you what happened and there is no number anywhere.',
-            'Nothing about a practice run is stored. There is no session, nothing to hand in, and nothing written to the device.',
-            'Three questions were asking for letters that were not in the equation. This is the one worth knowing about, and it had been there since the first release.',
-            'A question would show you PV = nRT and then ask you to rearrange it for ng. Another showed n × M = m and offered you n = m ÷ (Mm). A third showed T(K) = T(°C) + 273.15 and called them TK and TC. Those were names used inside the app, and they were never meant to reach anybody. All of them now show the letters that are actually in the equation.',
-            'And the answer choices could be read two ways. One option came out as V₁ = (P₁) ÷ P₂ × V₂, which could mean two different things depending on where you put the brackets — and neither of them was the mistake the option was supposed to represent. Brackets go where they change the meaning now, and nowhere else.',
-            'Both of those were found by building the practice screen, because it is the first thing that ever showed one of those steps on its own.',
-        ],
-        stillMissing: 'every question still arrives at the same difficulty when you work a whole set. Nothing can be handed in and there is no page for whoever set the work. The icon is still a simple drawing rather than a proper one.',
     },
 ];

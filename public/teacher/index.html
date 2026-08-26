@@ -23,7 +23,7 @@
 <main id="main" tabindex="-1">
 <section data-surface="teacher">
 <h2 tabindex="-1">Reading a code</h2>
-<p>Type in the set as you gave it out, then the code somebody handed you. Nothing here leaves this device and nothing is stored — the code is read on the spot by the same file that wrote it.</p>
+<p>Type in the set as you gave it out, then paste the codes — one per line, or a whole stack at once. Nothing here leaves this device and nothing is stored: they are read on the spot by the same file that wrote them.</p>
 
 <div class="entry">
   <label for="key" class="entry-label">The key for the set</label>
@@ -35,16 +35,22 @@
   <label for="tier" class="entry-label">The difficulty you set</label>
   <span class="select-holder"><select id="tier"></select></span>
 
-  <label for="code" class="entry-label">The code</label>
-  <input id="code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false">
+  <label for="code" class="entry-label">The codes — one per line, as many as you have</label>
+  <textarea id="code" rows="6" autocomplete="off" autocapitalize="characters" spellcheck="false"></textarea>
 
-  <button type="button" id="read" class="primary">Read it</button>
+  <button type="button" id="read" class="primary">Read them</button>
 </div>
 
 <div id="result" class="working" aria-live="polite" hidden>
-  <h3 id="result-title">What the code says</h3>
-  <ul id="result-list"></ul>
-  <p id="result-limits" class="aside" hidden></p>
+  <h3 id="result-title">What the codes say</h3>
+  <p id="result-tally" class="aside"></p>
+  <ol id="result-list" class="codes"></ol>
+</div>
+
+<div id="across" class="working" hidden>
+  <h3>Across the ones that read</h3>
+  <p class="aside">Which moves went wrong, added up over every code above. This is the part worth taking back to the next lesson: it says what to teach again, not who to talk to.</p>
+  <ul id="across-list"></ul>
 </div>
 
 <h3>What a code can and cannot tell you</h3>

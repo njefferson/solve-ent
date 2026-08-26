@@ -52,8 +52,26 @@ import { serve } from './serve.mjs';
 // student-facing may reach these; see `driveCorrect`.
 import { TOPIC_NAMES, solve } from '../src/engine/problem.ts';
 import { currentProblem, currentStage, startSession, submit } from '../src/engine/steps.ts';
-import { correctEntryFor } from '../src/engine/taxonomy.ts';
+import { COUNTER_SKILLS, correctEntryFor } from '../src/engine/taxonomy.ts';
 import { SCRATCH_SIG_FIGS } from '../src/engine/tolerance.ts';
+import { groupCode, writeCode } from '../src/report/code.ts';
+
+/**
+ * A stack of codes as whoever set the work would paste one: some that read, one
+ * number twice, and a line that is not a code at all.
+ *
+ * WRITTEN HERE rather than earned by driving three runs — this state is about
+ * what the PAGE does with a stack, and the run that earns a code end to end is
+ * walked in `tools/walk.mjs`.
+ */
+const noWrong = Object.fromEntries(COUNTER_SKILLS.map((s) => [s, 0]));
+const SET = { key: 'CHEM-7B', topic: 'REARRANGE', tier: 1 };
+const STACK = [
+  groupCode(writeCode({ rosterNumber: 17, attempted: 14, rightFirstTime: 11, wrongBySkill: { ...noWrong, SCALE: 2 }, elapsedMs: 420000 }, SET)),
+  groupCode(writeCode({ rosterNumber: 4, attempted: 15, rightFirstTime: 15, wrongBySkill: noWrong, elapsedMs: 300000 }, SET)),
+  groupCode(writeCode({ rosterNumber: 17, attempted: 9, rightFirstTime: 6, wrongBySkill: { ...noWrong, UNITS: 3 }, elapsedMs: 600000 }, SET)),
+  'ZZZZ-ZZZZ-ZZZZ-ZZZZ',
+];
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 const PUBLIC = join(REPO, 'public');
@@ -215,6 +233,21 @@ const STATES = [
     surface: 'teacher',
     path: '/teacher/',
     async reach() {},
+  },
+  {
+    // AND A STACK OF THEM, which is what reading a class's worth actually looks
+    // like: some read, some do not, and the totals underneath. A single code
+    // measures none of that — the refusal block, the tally and the across-the-
+    // stack list are all only on screen once more than one has been pasted.
+    name: 'teacher-stack',
+    surface: 'teacher',
+    path: '/teacher/',
+    async reach(page) {
+      await page.fill('#key', 'CHEM-7B');
+      await page.fill('#code', STACK.join('\n'));
+      await page.click('#read');
+    },
+    arrived: '#across',
   },
   {
     // AND A CODE THAT DID NOT READ, which is what whoever is reading them will

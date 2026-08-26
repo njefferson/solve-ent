@@ -1392,6 +1392,34 @@ and the day they disagreed the one on screen would be believed. Saturated fields
 are reported as a FLOOR — "seven or more" — rather than shown as a number that
 looks exact.
 
+### Reading a stack, which is what reading them actually is
+
+One code at a time meant a class of thirty was thirty pastes, so the box takes
+lines. Each is its own BLOCK rather than a row in a grid — this is read on a
+tablet with paper beside it, and columns are where that falls apart first, with
+the lost columns going silently.
+
+Three things fell out of doing it in bulk that a single code cannot show:
+
+- **A line that does not read stays in place.** Dropping it would make the list
+  shorter than the stack and the two would stop lining up.
+- **Two counts, never a fraction.** How many read and how many did not are two
+  facts about a pile of paper; one written over the other reads like a mark.
+- **A roster number twice is REPORTED, not resolved.** It happens when a code is
+  written down twice and it happens when two people were given the same number.
+  Nothing here can tell those apart, so it says which line it saw the number on
+  before and stops.
+
+And the moves are totalled across the stack, ordered by how much went wrong —
+the one view in this application that is about the group rather than a person,
+and the only one a teacher can act on before the next lesson.
+
+**One refactor worth recording.** The first version decoded every code twice —
+once to render it, once to total it — and told the two cases apart by reading a
+CSS class off the element it had just built. A second source of truth for a
+question the first source had already answered. `renderOne` returns the reading
+along with the node now.
+
 ### Two defects the gates found, and one they found late
 
 A `<select>` is painted by the browser until it is not: nineteen pixels tall,
@@ -1417,8 +1445,6 @@ Named here so nobody has to discover it by looking:
   their colours from the palette file rather than from taste.
 - **`tools/cli.ts` prints answers** and says so on every command that shows one.
 - **No resume**, nothing deployed, and no repository metadata.
-- **Codes are read one at a time.** A stack of thirty is thirty pastes. A list
-  that takes them in bulk is the obvious next thing and has not been asked for.
 - **Nothing is deployed and no Pages project exists.** That is the owner's to
   create — see below.
 

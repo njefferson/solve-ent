@@ -280,6 +280,33 @@ a.ghost { color: var(--accent); }
   margin: 0.3rem 0 0.6rem;
 }
 
+/* ---------- a stack of codes, read back ----------
+ *
+ * BLOCKS, NOT ROWS. This is read on a tablet with paper beside it, and a grid
+ * is where that falls apart first — the columns go off the edge and what is
+ * lost is silent. Each code is its own block with its number as the heading, so
+ * a finger can find one and the reading order is the paste order. */
+.codes { margin: 0.4rem 0 0; padding-left: 1.3rem; }
+.codes > li { margin-bottom: 1rem; }
+.codes > li:last-child { margin-bottom: 0; }
+.code-head { font-weight: 600; margin: 0 0 0.2rem; }
+.codes ul { margin: 0; padding-left: 1.1rem; color: var(--text-2); }
+/* A refusal is carried by the words, not by a colour — the heading says "did
+   not read" whether or not anybody can see the rail beside it. */
+.code-refused { border-left: 3px solid var(--rail); padding-left: 0.6rem; }
+
+textarea {
+  font: inherit;
+  letter-spacing: inherit;
+  padding: 0.55rem 0.7rem;
+  background: var(--surface-raised);
+  color: var(--text);
+  border: 1px solid var(--rail);
+  border-radius: var(--radius);
+  width: 100%;
+  resize: vertical;
+}
+
 /* ---------- answering ---------- */
 .entry { display: grid; gap: 0.55rem; margin: 1rem 0; }
 .entry-label { color: var(--text-2); font-size: 0.95em; }

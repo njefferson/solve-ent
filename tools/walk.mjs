@@ -32,7 +32,8 @@ import { serve } from './serve.mjs';
 import { TOPIC_NAMES } from '../src/engine/problem.ts';
 import { currentProblem, currentStage, startSession, submit } from '../src/engine/steps.ts';
 import { solve } from '../src/engine/problem.ts';
-import { correctEntryFor } from '../src/engine/taxonomy.ts';
+import { COUNTER_SKILLS, correctEntryFor } from '../src/engine/taxonomy.ts';
+import { groupCode, writeCode } from '../src/report/code.ts';
 import { SCRATCH_SIG_FIGS } from '../src/engine/tolerance.ts';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -436,7 +437,49 @@ check(!/\b(?:streak|badge|great job|well done)\b/i.test(drillClosing), 'and noth
   check(/Steps attempted: [1-9]/.test(said), 'and how far they got');
   check(!said.includes('CHEM-7B'), 'without echoing the key back as though it came out of the code');
 
+  /* ---- and a stack of them, which is how a class's worth is read ---- */
+  //
+  // A CODE NOBODY CAN READ IN BULK is thirty pastes, which is the friction this
+  // page exists to remove. Written here rather than earned by driving three
+  // runs: the run that earns one end to end is the block above.
+  {
+    const noWrong = Object.fromEntries(COUNTER_SKILLS.map((skill) => [skill, 0]));
+    const set = { key: 'CHEM-7B', topic: firstTopic, tier: 1 };
+    const stack = [
+      groupCode(writeCode({ rosterNumber: 17, attempted: 14, rightFirstTime: 11, wrongBySkill: { ...noWrong, SCALE: 2 }, elapsedMs: 420000 }, set)),
+      groupCode(writeCode({ rosterNumber: 4, attempted: 15, rightFirstTime: 15, wrongBySkill: noWrong, elapsedMs: 300000 }, set)),
+      groupCode(writeCode({ rosterNumber: 17, attempted: 9, rightFirstTime: 6, wrongBySkill: { ...noWrong, SCALE: 1, UNITS: 5 }, elapsedMs: 600000 }, set)),
+      'ZZZZ-ZZZZ-ZZZZ-ZZZZ',
+    ];
+    await page.fill('#key', 'CHEM-7B');
+    await page.fill('#code', stack.join('\n'));
+    await page.click('#read');
+    await page.waitForTimeout(80);
+
+    check((await page.locator('#result-list > li').count()) === 4, 'a stack is read in one go, a block per line');
+    const tally = await page.locator('#result-tally').innerText();
+    check(tally.includes('Read: 3'), 'with a count of the ones that read', tally);
+    check(tally.includes('Did not read: 1'), 'and of the ones that did not');
+    check(
+      (await page.locator('.code-refused').count()) === 1,
+      'the one that did not read stays in place rather than being dropped from the list',
+    );
+    const all = await page.locator('#result-list').innerText();
+    check(all.includes('also came up on line 1'), 'a number that appears twice is pointed out rather than merged');
+
+    // THE PART WORTH TAKING BACK TO A LESSON: what went wrong across everybody,
+    // rather than what each person did.
+    const across = await page.locator('#across-list').innerText();
+    check(!(await page.locator('#across').isHidden()), 'and the moves are added up across the stack');
+    check(across.includes('3 wrong'), 'with the totals added rather than counted per code', across.split('\n')[0] ?? '');
+    check(
+      across.indexOf('carrying and cancelling units') < across.indexOf('scaling by a ratio'),
+      'ordered by how much went wrong, so the first line is the one to teach again',
+    );
+  }
+
   /* ---- and a code that belongs to another set does not read ---- */
+  await page.fill('#code', code);
   await page.fill('#key', 'CHEM-7C');
   await page.click('#read');
   await page.waitForTimeout(60);
@@ -447,7 +490,11 @@ check(!/\b(?:streak|badge|great job|well done)\b/i.test(drillClosing), 'and noth
   );
   check(
     (await page.locator('#result-title').innerText()).toLowerCase().includes('did not read'),
-    'and the heading says so rather than showing a reading',
+    'and the heading says so rather than sitting over a list that said nothing',
+  );
+  check(
+    (await page.locator('#result-tally').innerText()).includes('Read: 0'),
+    'and the count agrees with the list under it',
   );
 }
 

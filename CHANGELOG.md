@@ -9,6 +9,29 @@ release changed something you can see or do, it is described below in the words
 you would use for it. If it changed something under the surface that you cannot
 see, it says that plainly rather than dressing it up.
 
+## 0.12.0 — CAPABILITY
+
+**Codes are read a stack at a time.** Paste the whole lot into the box — one per
+line — and press once. Each gets its own block, in the order they were pasted,
+headed by the number so it can be found against a list on paper.
+
+A line that does not read stays where it is rather than being dropped, and says
+what was wrong with it and what was on the line. Underneath there are two
+counts: how many read and how many did not. Two numbers rather than one over the
+other, because one over the other reads like a mark out of something.
+
+**A number that turns up twice is pointed out and not decided about.** It
+happens when a code is written down twice and it happens when two people were
+given the same number, and this cannot tell those apart, so it says which line
+the number appeared on before and leaves it there.
+
+**And the moves are added up across the whole stack**, ordered by how much went
+wrong. That is the part worth taking back to the next lesson: it says what to
+teach again, not who to talk to.
+
+**Still missing:** the icon is still a simple drawing rather than a proper one,
+and nothing is deployed yet, so this runs from a device that already has it.
+
 ## 0.11.0 — CAPABILITY
 
 **A set can be handed in now.** If somebody gave you a key and a number, there
