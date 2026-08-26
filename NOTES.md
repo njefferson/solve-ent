@@ -76,6 +76,123 @@ Both are printed by `npm test` and by `node tools/cli.ts scan`.
 Two more numbers are printed beside them, and both exist to keep the first two
 honest — see *What the collision sweep cannot see* below.
 
+## Validating the taxonomy without anybody handing over homework
+
+**The twenty-nine classes came from reasoning about what students do wrong — the
+same reasoning that predicts their values.** That is hub LESSONS 64, and the
+collision sweep is structurally unable to see it: the sweep checks that the
+invented classes are mutually distinguishable, never that they are the ones
+students actually hold. It is the largest open risk in this repository.
+
+**And the obvious fix is the wrong one.** Sending marked work anywhere — to a
+model, to this repository, to a session — is exactly what this app is built not
+to do. It has no field for a name and never will; a validation route that
+depends on collecting student papers would undo the whole posture to check it.
+
+Four routes that do not, in the order they should be tried:
+
+- **Published misconception catalogues, no student data at all.** Chemistry
+  education research has catalogued student misconceptions in the mole concept,
+  stoichiometry, significant figures and dimensional analysis for decades. Read
+  the catalogue and ask which of the twenty-nine appear in it, and — the more
+  useful direction — which catalogued misconceptions have NO class here. That is
+  a reading exercise, costs nothing, and is the only route that can find a
+  MISSING class rather than confirming the ones present.
+- **The Eedi misconception-labelled question set.** 1,857 K-12 mathematics
+  questions, each with four expert-written multiple-choice options mapped to a
+  named misconception; a larger benchmark carries roughly 21,000 real student
+  responses with the answer chosen and the student's own explanation. Public,
+  already de-identified, and the closest thing to ground truth that exists.
+  **What it can and cannot say, stated before anyone runs it:** it overlaps this
+  app on proportions, fractions and powers, and says nothing whatever about
+  significant figures or unit cancellation in a chemistry context. A high
+  agreement rate there is evidence about three topics, not seven.
+- **The PSLC DataShop algebra sets, including the KDD Cup 2010 release.**
+  Step-level interaction data from Cognitive Tutor algebra — one release is 575
+  students and 813,661 interactions across 1,084 questions. It carries what
+  students typed at each step, which is the shape `classify` eats. It is not
+  misconception-labelled, so it can measure the UNCLASSIFIED RATE against real
+  wrong answers without being able to say whether a diagnosis was right.
+- **The local route, which is the one that answers the objection directly.**
+  A validation harness that runs on the machine the marked work is already on,
+  and returns a HISTOGRAM BY CLASS and an unclassified rate — no answers, no
+  papers, no names, nothing transmitted. The answers never leave the device the
+  same way an accommodation never does. Whoever ran it reads three numbers and
+  can say them out loud without disclosing anything about anybody.
+
+**The number to watch is the unclassified rate against real wrong answers.** The
+sweep reports 10.16% against entries this repository generated. If real work
+comes back far above that, the taxonomy is describing an imagination — and that
+is a finding worth having early, while it is still cheap to change.
+
+## The instructional model is one of several, and not the best-evidenced one
+
+**This app teaches by attribution: name the misconception behind a specific
+wrong number, and say what fixes it.** That is a real model with a long
+research history, and it is not the one with the strongest evidence.
+
+The honest numbers, because a plan built on an assumed effect is a plan:
+
+- **Erroneous examples** — showing a worked wrong solution and asking what went
+  wrong — carry a measured effect of about **g = 0.136** across a meta-analysis
+  of 42 papers and 177 effect sizes. Statistically significant and weak.
+- **Worked examples**, especially paired with self-explanation prompts, are the
+  strongest thing in this family for novices, and stronger than problem-solving
+  practice alone.
+- **Contrasting cases** — two solution methods side by side, with the reader
+  asked which is better and why — work with self-explanation rather than
+  instead of it.
+- And there is published work finding that buggy-message feedback does not
+  always beat plain *wrong, try again*.
+
+**SO THE TAXONOMY IS THE SUBSTRATE AND THE TEACHING STRATEGY IS A LAYER ABOVE
+IT.** That is the architectural decision this section exists to record, and it
+is what makes a change of model cheap rather than a rewrite. A class that
+predicts the exact wrong value a misconception produces is the raw material for
+every alternative above:
+
+- an **erroneous example** is a worked solution that makes a predicted mistake —
+  the engine already computes the value; it needs the working
+- a **contrasting case** is the correct working beside that one
+- **which worked example to show** is a choice the diagnosis already made
+- a **self-explanation prompt** needs no taxonomy at all and is the cheapest
+  thing on this list
+
+Nothing above requires a different engine. It requires a different surface over
+the same engine, which is why the engine must not grow a screen's assumptions.
+
+### An app that fails to teach must not leave a reader concluding they cannot be taught
+
+This is the constraint that outranks the model choice, and it has concrete
+consequences rather than being a sentiment.
+
+- **The app is never the last word.** Every dead end has a route out to
+  something that is not another problem of the same kind.
+- **When attribution fails, SAY SO.** E-UNCLASSIFIED means the app could not
+  tell, and it is reported as the app's limit rather than as a verdict. The same
+  goes for the 9.30% of stages that can attribute nothing: *this one I cannot
+  read* is honest, and *you got it wrong* in its place is not.
+- **After repeated failure on one skill, CHANGE WHAT THE APP IS DOING** rather
+  than serving the next problem. The ladder, in order: attribute the mistake →
+  show a worked example of that move → show the erroneous example and ask what
+  went wrong → say plainly that this one is worth taking to a person. Serving
+  problem N+1 after N failures is the app asserting that the reader is the
+  variable.
+- **The copy never locates the failure in the reader**, and that is now a gate
+  rather than an intention. `tools/copy-check.mjs` refuses effort language,
+  capacity language, and the words that tell somebody what they could not do was
+  easy — "simply", "obviously", "of course". It is the mirror of the praise ban:
+  praise and blame are both statements about a person where a statement about a
+  move belongs. Bare "just" is deliberately NOT banned, because it usually means
+  *only* and a gate with false positives on ordinary copy teaches people to word
+  things around it.
+
+**What would make us change model.** Written down now so it is a trip-wire
+rather than a judgement call made under sunk cost: an unclassified rate against
+real work far above the 10.16% this sweep reports, or readers stalling on the
+same skill through repeated attributions. Either says attribution is not
+carrying the load on its own, and the ladder above is what it hands off to.
+
 ## Blocked practice, and what the engine owes it
 
 **A whole problem is interleaved practice, which makes a skill stick once you
@@ -513,6 +630,8 @@ call and not a session's.
   keep.
 - **A browser walk** of the primary journey, getting one step wrong on purpose,
   dropping the network, and reloading the page for real.
+- **The validation pass against real wrong answers**, by one of the four routes
+  above. Nothing about it requires anybody to send work anywhere.
 - **The single-skill drill, as its own screen, EARLY.** The engine half is
   built; the screen is not. See *Blocked practice* above.
 - **A five-minute opener path before an elaborate one.** The classroom feedback

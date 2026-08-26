@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * copy-check.mjs — the two rules about WORDS, held by a gate rather than by
+ * copy-check.mjs — the three rules about WORDS, held by a gate rather than by
  * whoever is editing the file at the time.
  *
  *   node tools/copy-check.mjs
@@ -16,7 +16,27 @@
  * an afternoon's work to add a streak counter and it feels like kindness. So it
  * is a gate.
  *
- * ## Rule two: do not assume a classroom
+ * ## Rule two: never tell a reader the fault is in them
+ *
+ * **An app that fails to teach must not leave a kid concluding they cannot be
+ * taught.** That is the failure this whole repository is aimed at, one level up
+ * — a student who has been told longest that they are bad at maths, using a
+ * tool that quietly agrees.
+ *
+ * So the copy never locates the problem in the person. Not their effort, not
+ * their attention, not their capacity. Every diagnosis this app makes is about
+ * a MOVE — *that went upside down* — and never about who made it. This is the
+ * mirror image of the praise ban rather than a separate idea: praise and blame
+ * are both statements about a person where a statement about a move belongs.
+ *
+ * Two words are banned that look harmless and are not. "Simply" and
+ * "obviously" tell a reader that what they could not do was easy, which means
+ * the only thing left to explain the failure is them. Bare "just" is NOT
+ * banned: it usually means *only* — "apply just that first conversion" — and a
+ * gate with false positives on ordinary copy teaches people to word things
+ * around it.
+ *
+ * ## Rule three: do not assume a classroom
  *
  * Homeschoolers are a real audience and the structure already serves them; the
  * WORDS are what excludes them. "Your teacher", "hand this to your teacher",
@@ -75,7 +95,25 @@ const PRAISE = [
   [/\bgoal\b|\btargets?\s+(?:of|is|reached)\b|\bmilestones?\b/i, 'a target makes stopping short of it a failure'],
 ];
 
-/** Rule two. Anchored on ADDRESS, never on the bare word. */
+/**
+ * Rule two. Never locate the failure in the reader.
+ *
+ * Narrow on purpose, and each of these is a sentence somebody writes in good
+ * faith while trying to be encouraging.
+ */
+const BLAME = [
+  [/\byou\s+should\s+(?:know|have|be\s+able\s+to)\b/i, 'tells a reader what they ought already to be'],
+  [/\btry\s+harder\b|\bpay\s+attention\b|\bconcentrate\b/i, 'makes it a question of effort'],
+  [/\b(?:this|that|it)(?:'|\u2019)?s?\s+(?:is\s+)?(?:easy|simple|straightforward|basic)\b/i,
+    'calling it easy leaves only the reader to explain why it was not'],
+  [/\byou\s+(?:always|never|keep)\b/i, 'a statement about a person where one about a move belongs'],
+  [/\byou(?:'|\u2019)?re\s+not\s+(?:getting|understanding|listening)\b/i, 'locates the failure in the reader'],
+  [/\bstill\s+(?:don'?t|do\s+not|can'?t|cannot)\s+(?:get|understand|see)\b/i, 'locates the failure in the reader'],
+  [/\bsimply\b|\bobviously\b|\bof\s+course\b|\beveryone\s+knows\b/i,
+    'tells a reader that what they could not do was easy'],
+];
+
+/** Rule three. Anchored on ADDRESS, never on the bare word. */
 const CLASSROOM = [
   [/\byour\s+teacher\b/i, 'assumes a teacher — a homeschooler has none'],
   [/\b(?:ask|tell|show|give|hand)\s+(?:it\s+|this\s+)?(?:to\s+)?your\s+teacher\b/i, 'assumes a teacher'],
@@ -126,7 +164,7 @@ for (const file of files) {
   scanned += 1;
   const lines = stripped.split('\n');
   lines.forEach((line, i) => {
-    for (const [pattern, why] of [...PRAISE, ...CLASSROOM]) {
+    for (const [pattern, why] of [...PRAISE, ...BLAME, ...CLASSROOM]) {
       if (pattern.test(line)) findings.push({ where, line: i + 1, why, text: line.trim().slice(0, 90) });
     }
   });
@@ -149,6 +187,7 @@ for (const root of missing) console.log(`  note  ${root}/ does not exist yet —
 if (findings.length === 0) {
   console.log(`  ok    ${scanned} file(s) scanned, comments stripped first`);
   console.log(`  ok    no score, no streak, no target, no congratulation`);
+  console.log(`  ok    nothing telling a reader the fault is in them`);
   console.log(`  ok    nothing addressed to a reader who is assumed to be in a classroom`);
   console.log('\nWhat replaces praise is change: say what happened, and say it stopped only where it did.\n');
   process.exit(0);
@@ -161,6 +200,8 @@ for (const finding of findings) {
 console.error(
   `\n${findings.length} finding(s). A streak is an afternoon's work and feels like kindness;\n` +
     'it teaches a student to chase the animation and makes stopping feel like failing.\n' +
-    'And a reader without a teacher is not a reader this app turns away.\n',
+    'An app that fails to teach must not leave a kid concluding they cannot be taught,\n' +
+    'so nothing here locates the failure in the reader. And a reader without a\n' +
+    'teacher is not a reader this app turns away.\n',
 );
 process.exit(1);

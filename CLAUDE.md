@@ -102,6 +102,18 @@ has the full version, including the risk that follows from it.
   first, since the comments are where the words that must not be built are
   written down. `DrillOutcome` also has no field for a count and must never gain
   one.
+- **NEVER TELL A READER THE FAULT IS IN THEM — same gate.** An app that fails
+  to teach must not leave a kid concluding they cannot be taught. No effort
+  language, no capacity language, and none of the words that tell somebody what
+  they could not do was easy. This is the mirror of the praise ban: praise and
+  blame are both statements about a person where a statement about a move
+  belongs. And when attribution fails, SAY SO — E-UNCLASSIFIED is the app's
+  limit, never a verdict.
+- **ATTRIBUTION IS ONE INSTRUCTIONAL MODEL AND NOT THE BEST-EVIDENCED ONE.** The
+  taxonomy is the substrate; the teaching strategy is a layer above it, and it
+  has to stay swappable. After repeated failure on one skill the app changes
+  what it is doing rather than serving the next problem — `NOTES.md` has the
+  ladder and the trip-wire that would say the model is not carrying the load.
 - **THE CADENCE IS EXACT.** Once is not a pattern and is never named. Twice goes
   in the closing summary. Three times is said during the run, once, with what
   fixes it, and never again.

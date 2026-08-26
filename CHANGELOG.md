@@ -2,6 +2,18 @@
 
 Written for whoever is reading it, not for whoever wrote it. Newest first.
 
+## 0.2.1 — ITERATION
+
+- **Nothing in the app tells a reader the fault is in them.** An app that fails
+  to teach must not leave a kid concluding they cannot be taught. The words gate
+  now refuses effort language, capacity language, and the words that tell
+  somebody what they could not do was easy. It is the mirror of the no-praise
+  rule: praise and blame are both statements about a person where a statement
+  about a move belongs.
+
+**Still missing, and it is most of the app:** there is no screen, so none of
+this is visible to anybody yet.
+
 ## 0.2.0 — CAPABILITY
 
 The engine can now read a run of attempts and say what happened, without ever
