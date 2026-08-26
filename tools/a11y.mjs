@@ -165,6 +165,71 @@ const STATES = [
     arrived: '#working',
   },
   {
+    // TAKING DOWN A SET SOMEBODY WAS GIVEN. Its own screen, and the only place
+    // in the application a roster number is ever typed.
+    name: 'assignment',
+    surface: 'assignment',
+    path: '/',
+    async reach(page) {
+      await page.click('#begin');
+      await page.click('#to-assignment');
+    },
+  },
+  {
+    // AND THE SAME SCREEN REFUSING. A number outside 1..4095 is the case that
+    // actually happens, and the line that says so is on screen only then.
+    name: 'assignment-refused',
+    surface: 'assignment',
+    path: '/',
+    async reach(page) {
+      await page.click('#begin');
+      await page.click('#to-assignment');
+      await page.fill('#assignment-key', 'CHEM-7B');
+      await page.fill('#roster-number', '99999');
+      await page.click('#assignment-next');
+    },
+    arrived: '#assignment-note',
+  },
+  {
+    // THE CODE AT THE END OF AN ASSIGNED SET, which is the whole point of one
+    // and is on screen for about ten seconds in the life of a run.
+    name: 'done-code',
+    surface: 'done',
+    path: '/',
+    async reach(page) {
+      await page.click('#begin');
+      await page.click('#to-assignment');
+      await page.fill('#assignment-key', 'practice');
+      await page.fill('#roster-number', '17');
+      await page.click('#assignment-next');
+      await page.locator('#topics button').first().click();
+      await page.locator('#difficulties button').first().click();
+      await driveCorrect(page);
+    },
+    arrived: '#code-block',
+  },
+  {
+    // READING A CODE BACK. Its own page, and the one surface in this
+    // application whose reader is not the student.
+    name: 'teacher',
+    surface: 'teacher',
+    path: '/teacher/',
+    async reach() {},
+  },
+  {
+    // AND A CODE THAT DID NOT READ, which is what whoever is reading them will
+    // actually meet — a character copied wrong, or last week's code.
+    name: 'teacher-refused',
+    surface: 'teacher',
+    path: '/teacher/',
+    async reach(page) {
+      await page.fill('#key', 'CHEM-7B');
+      await page.fill('#code', 'ZZZZ-ZZZZ-ZZZZ-ZZZZ');
+      await page.click('#read');
+    },
+    arrived: '#result',
+  },
+  {
     // WORKING IT OUT, open. The keypad is behind a control, so a resting sweep
     // never sees a single one of its keys — twenty targets and their contrast,
     // in both modes, invisible to this gate unless the control is pressed.

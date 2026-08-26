@@ -36,6 +36,7 @@ import { drillItem, type DrillItem } from '../engine/blocked.ts';
 import {
   MAX_ROSTER_NUMBER,
   SessionError,
+  completionCounts,
   currentProblem,
   currentStage,
   startSession,
@@ -58,6 +59,7 @@ import {
   type StudentEntry,
 } from '../engine/taxonomy.ts';
 import { evaluate } from '../num/arith.ts';
+import { groupCode, writeCode } from '../report/code.ts';
 import { readRun, type Attempt, type DrillNote } from '../report/drill.ts';
 import { MAX_SHOWN, NOTES_PAGE, OLDER_THAN_SHOWN, RELEASES } from '../report/releases.ts';
 import { APP_NAME, VERSION } from '../version.ts';
@@ -130,7 +132,15 @@ function make<K extends keyof HTMLElementTagNameMap>(
  * State
  * ------------------------------------------------------------------ */
 
-type SurfaceName = 'welcome' | 'start' | 'difficulty' | 'drill-pick' | 'drill' | 'work' | 'done';
+type SurfaceName =
+  | 'welcome'
+  | 'start'
+  | 'assignment'
+  | 'difficulty'
+  | 'drill-pick'
+  | 'drill'
+  | 'work'
+  | 'done';
 
 /** One step the reader has already finished, in the words they finished it in. */
 interface WorkingLine {
@@ -162,6 +172,14 @@ interface Run {
 }
 
 let run: Run | null = null;
+/**
+ * The set somebody was given, while they are working it.
+ *
+ * `null` in practice, which is most of the time — and a practice run cannot
+ * produce a code at all, because `completionCounts` throws rather than handing
+ * a screen counts it is trusted not to render.
+ */
+let assigned: { readonly key: string; readonly rosterNumber: number } | null = null;
 let prefs: Prefs = { mode: 'system', textSize: 'normal', spacing: 'normal', oneStepAtATime: false, readAloud: false };
 let store: Store;
 let voice: Voice | null = null;
@@ -200,7 +218,16 @@ function setPref<K extends keyof Prefs>(key: K, value: Prefs[K]): void {
  * mean the app noticed a new version, said so, and then silently took the words
  * away the next time the reader pressed anything.
  */
-const SCREENS: readonly string[] = ['welcome', 'start', 'difficulty', 'drill-pick', 'drill', 'work', 'done'];
+const SCREENS: readonly string[] = [
+  'welcome',
+  'start',
+  'assignment',
+  'difficulty',
+  'drill-pick',
+  'drill',
+  'work',
+  'done',
+];
 
 function show(surface: SurfaceName): void {
   for (const node of document.querySelectorAll<HTMLElement>('[data-surface]')) {
@@ -820,7 +847,36 @@ function renderDone(): void {
   $('#run-note').hidden = true;
   closingFrom = 'run';
   $('#again').textContent = 'Work on something else';
+  renderCompletionCode();
   show('done');
+}
+
+/**
+ * The code, on an assigned set and nowhere else.
+ *
+ * THE ENGINE IS THE WALL. `completionCounts` refuses a practice session rather
+ * than returning something this function is trusted to discard, so the branch
+ * here is about what to render and never about what is allowed.
+ */
+function renderCompletionCode(): void {
+  const block = $('#code-block');
+  if (run === null || run.session.config.mode !== 'assignment') {
+    block.hidden = true;
+    return;
+  }
+  try {
+    const counts = completionCounts(run.session, { now: () => Date.now() });
+    const code = writeCode(counts, {
+      key: run.session.config.assignmentKey,
+      topic: run.session.config.topic,
+      tier: run.session.config.tier,
+    });
+    $('#completion-code').textContent = groupCode(code);
+    block.hidden = false;
+  } catch (error) {
+    block.hidden = true;
+    say(error instanceof SessionError ? error.message : 'there is no code for this run');
+  }
 }
 
 /* ------------------------------------------------------------------ *
@@ -831,15 +887,17 @@ function begin(topic: Topic, tier: number, count: number, key: string): void {
   try {
     const session = startSession(
       {
-        assignmentKey: key,
+        // THE SET SOMEBODY WAS GIVEN, where there is one. `assigned` is null
+        // for practice, which is most of the time.
+        assignmentKey: assigned?.key ?? key,
         topic,
         tier,
         count,
-        mode: 'practice',
+        mode: assigned === null ? 'practice' : 'assignment',
         // Practice records nothing and reports to nobody, so there is no
         // identity to carry. The roster number exists for assigned work and is
         // the only identity this app has anywhere.
-        rosterNumber: null,
+        rosterNumber: assigned?.rosterNumber ?? null,
       },
       { now: () => Date.now() },
     );
@@ -861,6 +919,42 @@ function renderStart(): void {
     list.append(make('li', {}).appendChild(button).parentElement as HTMLLIElement);
   }
   show('start');
+}
+
+/**
+ * Taking down the key and the number for a set somebody was given.
+ *
+ * NOTHING IS STORED. Both live in memory for as long as the run does; a device
+ * that remembered a roster number would be a device that says who used it.
+ */
+function renderAssignment(): void {
+  const note = $('#assignment-note');
+  note.hidden = true;
+  ($('#assignment-key') as HTMLInputElement).value = '';
+  ($('#roster-number') as HTMLInputElement).value = '';
+  show('assignment');
+}
+
+function takeAssignment(): void {
+  const key = ($('#assignment-key') as HTMLInputElement).value.trim();
+  const roster = Number(($('#roster-number') as HTMLInputElement).value.trim());
+  const note = $('#assignment-note');
+  const complain = (what: string): void => {
+    note.textContent = what;
+    note.hidden = false;
+    say(what);
+  };
+  if (key === '') {
+    complain('The key is the part somebody wrote down for the whole group. It cannot be left out.');
+    return;
+  }
+  if (!Number.isInteger(roster) || roster < 1 || roster > MAX_ROSTER_NUMBER) {
+    complain(`A number from 1 to ${String(MAX_ROSTER_NUMBER)} — the one you were given.`);
+    return;
+  }
+  assigned = { key, rosterNumber: roster };
+  note.hidden = true;
+  renderStart();
 }
 
 /**
@@ -1065,12 +1159,33 @@ export function boot(storeForTests?: Store): void {
   });
   $('#again').addEventListener('click', () => {
     run = null;
+    assigned = null;
     if (closingFrom === 'drill') renderDrillPick();
     else renderStart();
   });
   $('#to-drill').addEventListener('click', () => {
     run = null;
     renderDrillPick();
+  });
+  $('#to-assignment').addEventListener('click', () => {
+    run = null;
+    renderAssignment();
+  });
+  $('#assignment-next').addEventListener('click', () => {
+    takeAssignment();
+  });
+  $('#assignment-back').addEventListener('click', () => {
+    // LEAVING THE SCREEN LEAVES THE SET. Otherwise a number typed and thought
+    // better of would still be attached to whatever was worked next.
+    assigned = null;
+    renderStart();
+  });
+  $('#copy-code').addEventListener('click', () => {
+    const code = $('#completion-code').textContent ?? '';
+    void navigator.clipboard?.writeText(code).then(
+      () => say('The code is copied.'),
+      () => say('Copying is not available here, so write it down instead.'),
+    );
   });
   $('#difficulty-back').addEventListener('click', () => {
     renderStart();

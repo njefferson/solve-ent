@@ -1344,6 +1344,69 @@ commit, which has to be looked up by that commit.
 log printed the working-log checks, the scratch-line checks, 66 walk steps and
 the update walk against a real second worker.
 
+## Session 7: the code, and the page that reads it
+
+### What a code carries, and where the wall is
+
+Sixteen Crockford base32 characters in four groups: a version, the roster
+number, steps attempted, steps right first time, six per-skill wrong counts, and
+minutes — 56 bits — with 24 check bits over the top.
+
+**There is no field for an accommodation and there must never be one.** Omitting
+it at the encoder would be a rule somebody has to remember; having nowhere to
+put it is a rule that holds. Same for a name, a device id, or anything the
+student typed. `code.test.ts` reads the decoded shape and asserts none of those
+words appear in it, because the type is the wall and a test that reads the wall
+is cheaper than trusting it.
+
+### The binding is the interesting part
+
+The check covers the payload AND the assignment as it was given out — key, topic
+and difficulty. That costs no bits and it is what makes a code mean something: a
+code earned on the easiest difficulty does not read against the one that was
+set. Whoever set the work supplies those three, because they are the ones who
+know.
+
+**And the check is a typo detector, not a signature, which the page says in
+those words.** There is no server, so there is no secret; a static site cannot
+hold one. What it does catch is what actually goes wrong in a room — a character
+copied wrong, last week's code, the wrong set. Implying more would be a lie the
+product could not back.
+
+`code.test.ts` bends every character of a code to every other character in the
+alphabet and asserts that every single one is refused. A 24-bit check misses
+about one in sixteen million by chance, so over a few hundred bendings, missing
+none is what is expected and what is asserted.
+
+### Crockford, because it is written by hand
+
+No I, L, O or U in the alphabet, and I/L decode as 1 and O as 0. The three
+confusions that actually happen resolve to the right thing instead of failing.
+Case and hyphens are ignored on the way in.
+
+### The teacher's page decodes rather than describes
+
+`readCode` is the same file that wrote it. A page that took the numbers from
+somewhere else and printed them beside a code would be two accounts of one run,
+and the day they disagreed the one on screen would be believed. Saturated fields
+are reported as a FLOOR — "seven or more" — rather than shown as a number that
+looks exact.
+
+### Two defects the gates found, and one they found late
+
+A `<select>` is painted by the browser until it is not: nineteen pixels tall,
+under half the tap floor, in system greys that reverse-map to no token in this
+palette and had therefore never been measured in either mode. Hub LESSONS §151
+is the same defect on a button. `appearance: none` hands it back, and the arrow
+has to be drawn again because removing the appearance removes that too.
+
+The other was mine and the gate caught it: an edit to `begin()` that would have
+made an assigned run actually assigned never landed — the script that carried it
+raised before writing the file, so the source kept `mode: 'practice'` while
+everything around it had changed. Every type check passed, the whole suite
+passed, and the run produced no code. **The arrival assertion added last session
+is what said so**, on a state whose whole job is to be the code on screen.
+
 ## What is NOT built, and it is most of the app
 
 Named here so nobody has to discover it by looking:
@@ -1352,17 +1415,10 @@ Named here so nobody has to discover it by looking:
   palette's own night page and accent. They are honest placeholders, and an icon
   is the one surface the accessibility gate cannot reach, which is why they take
   their colours from the palette file rather than from taste.
-- **No assignment key on screen**, so nothing can be handed in and there is no
-  page for whoever set the work. `completionCounts` produces what a code would
-  carry and refuses to do it in practice mode, which is the only mode a screen
-  can currently start.
 - **`tools/cli.ts` prints answers** and says so on every command that shows one.
-- **No completion code.** `completionCounts` produces what a code would carry;
-  there is no codec, no MAC and no readout yet. When there is one, the readout
-  must DECODE the code the student is holding rather than describe it, so it
-  cannot drift from the truth.
-- **No teacher's page**, no resume, nothing deployed, and no repository
-  metadata.
+- **No resume**, nothing deployed, and no repository metadata.
+- **Codes are read one at a time.** A stack of thirty is thirty pastes. A list
+  that takes them in bulk is the obvious next thing and has not been asked for.
 - **Nothing is deployed and no Pages project exists.** That is the owner's to
   create — see below.
 

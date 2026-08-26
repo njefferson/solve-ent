@@ -267,11 +267,32 @@ a.ghost { color: var(--accent); }
 }
 .scratch-key:active { background: var(--surface-pressed); }
 
+/* ---------- the completion code ----------
+ *
+ * BIG, SPACED AND GROUPED, because it is copied by hand onto paper and read
+ * back by somebody else. The grouping is in the text rather than in the layout
+ * so that copying it takes the dashes with it. */
+.completion-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1.5rem;
+  letter-spacing: 0.08em;
+  word-break: break-all;
+  margin: 0.3rem 0 0.6rem;
+}
+
 /* ---------- answering ---------- */
 .entry { display: grid; gap: 0.55rem; margin: 1rem 0; }
 .entry-label { color: var(--text-2); font-size: 0.95em; }
 
-input[type='text'] {
+/* A SELECT IS PAINTED BY THE BROWSER UNTIL IT IS NOT.
+ *
+ * Left alone it arrives 19px tall — under half the tap floor — in the system's
+ * own greys, which map to no token in this palette and were therefore never
+ * measured for contrast in either mode. `appearance: none` is what hands it
+ * back, and the arrow has to be drawn again because removing the appearance
+ * removes that too. Hub LESSONS §151 is the same defect on a button. */
+input[type='text'],
+select {
   font: inherit;
   letter-spacing: inherit;
   min-height: var(--tap);
@@ -281,6 +302,27 @@ input[type='text'] {
   border: 1px solid var(--rail);
   border-radius: var(--radius);
   width: 100%;
+}
+select {
+  appearance: none;
+  /* The arrow, in the ink colour rather than the browser's. `currentColor`
+     cannot be used inside a data URI, so this is drawn with a border trick that
+     inherits the text colour and therefore both modes. */
+  padding-right: 2.2rem;
+  background-image: none;
+}
+.select-holder { position: relative; display: block; }
+.select-holder::after {
+  content: '';
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-right: 2px solid var(--text-2);
+  border-bottom: 2px solid var(--text-2);
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
 }
 
 .choices { display: grid; gap: 0.6rem; }

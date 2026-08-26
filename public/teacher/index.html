@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reading a code — Solve-ent</title>
+<meta name="description" content="Read back a Solve-ent completion code: which number handed it in, how far they got, and where the wrong steps were.">
+<meta name="theme-color" content="#1a1a1a">
+<link rel="stylesheet" href="/css/tokens.css">
+<link rel="stylesheet" href="/css/app.css">
+<!-- A PAGE IN THIS APP, not a service. Nothing here is sent anywhere: the code
+     is read on this device by the same file that wrote it, which is why it
+     works with no connection and why there is nothing to sign in to. -->
+<script src="/js/theme.js"></script>
+<script type="module" src="/app/ui/teacher.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the form</a>
+<header class="bar">
+  <h1 class="wordmark">Solve-ent</h1>
+  <a class="ghost" href="/">Back to the questions</a>
+</header>
+<main id="main" tabindex="-1">
+<section data-surface="teacher">
+<h2 tabindex="-1">Reading a code</h2>
+<p>Type in the set as you gave it out, then the code somebody handed you. Nothing here leaves this device and nothing is stored — the code is read on the spot by the same file that wrote it.</p>
+
+<div class="entry">
+  <label for="key" class="entry-label">The key for the set</label>
+  <input id="key" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false">
+
+  <label for="topic" class="entry-label">The topic you set</label>
+  <span class="select-holder"><select id="topic"></select></span>
+
+  <label for="tier" class="entry-label">The difficulty you set</label>
+  <span class="select-holder"><select id="tier"></select></span>
+
+  <label for="code" class="entry-label">The code</label>
+  <input id="code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false">
+
+  <button type="button" id="read" class="primary">Read it</button>
+</div>
+
+<div id="result" class="working" aria-live="polite" hidden>
+  <h3 id="result-title">What the code says</h3>
+  <ul id="result-list"></ul>
+  <p id="result-limits" class="aside" hidden></p>
+</div>
+
+<h3>What a code can and cannot tell you</h3>
+<p>It carries the number the student was given, how many steps they attempted, how many they got right first time, how many went wrong in each kind of move, and roughly how long it took. That is everything in it.</p>
+<p><strong>It carries nothing about who they are</strong> beyond that number — no name, no device, nothing they typed. It also carries nothing about the accommodations they were using, and there is nowhere in it for that to go: text size, spacing, one step at a time and read-aloud stay on the device, so nobody has to disclose a thing by handing a code back.</p>
+<p><strong>The check is a typo detector, not a signature.</strong> It catches a character copied wrong, a code from a different set, a different topic, or an easier difficulty than the one you set — which is what actually goes wrong in a room. It cannot stop somebody who reads the source of this page and writes their own: there is no server here, so there is no secret to keep one out. It would be easy to imply otherwise and it would not be true.</p>
+</section>
+</main>
+</body>
+</html>

@@ -354,6 +354,103 @@ check(drillClosing.trim().length > 0, 'in words', drillClosing.slice(0, 60).repl
 check(!/\b\d+\s*(?:\/|out of)\s*\d+\b/.test(drillClosing), 'with no fraction of right moves');
 check(!/\b(?:streak|badge|great job|well done)\b/i.test(drillClosing), 'and nothing congratulating anybody');
 
+/* ---- an assigned set, the code it produces, and reading it back ---- */
+//
+// THE WHOLE LOOP, in one place: a set given out, worked to the end, a code
+// written down, and that code read back on the other page. Each half is
+// worthless without the other — a code nobody can read is a dead end, and a
+// reader that accepts anything is worse than no reader.
+{
+  await page.goto(`${server.origin}/`);
+  await page.waitForTimeout(150);
+  // THE WELCOME IS ONLY THERE ONCE. By this point in the walk it has been seen
+  // and stored, so pressing through it unconditionally waits thirty seconds for
+  // a button that will never come back.
+  if (await page.locator('[data-surface="welcome"]').isVisible()) await page.click('#begin');
+  await page.click('#to-assignment');
+  check((await visibleSurface(page)).join() === 'assignment', 'a set somebody was given has its own screen');
+
+  await page.fill('#assignment-key', 'CHEM-7B');
+  await page.fill('#roster-number', '99999');
+  await page.click('#assignment-next');
+  await page.waitForTimeout(60);
+  check(
+    !(await page.locator('#assignment-note').isHidden()),
+    'a number outside the roster range is refused, and the screen says so rather than starting a run',
+  );
+  check((await visibleSurface(page)).join() === 'assignment', 'and it does not go anywhere');
+
+  await page.fill('#roster-number', '17');
+  await page.click('#assignment-next');
+  await page.waitForTimeout(60);
+  check((await visibleSurface(page)).join() === 'start', 'a key and a number in range carry on to the topics');
+
+  await page.locator('#topics button').first().click();
+  await page.waitForTimeout(80);
+  await page.locator('#difficulties button').first().click();
+  await page.waitForTimeout(80);
+
+  // Driven with a second session worked out here, exactly as the run above is.
+  let assignedShadow = startSession(
+    { assignmentKey: 'CHEM-7B', topic: firstTopic, tier: 1, count: 5, mode: 'assignment', rosterNumber: 17 },
+    { now: () => 0 },
+  );
+  for (let guard = 0; guard < 200; guard += 1) {
+    if (assignedShadow.finished) break;
+    if (await page.locator('[data-surface="done"]').isVisible()) break;
+    const problem = currentProblem(assignedShadow);
+    const stage = currentStage(assignedShadow);
+    const entry = correctEntryFor(problem, solve(problem), stage, SCRATCH_SIG_FIGS);
+    if (entry.kind === 'choice') {
+      const choices = page.locator('.choice');
+      if ((await choices.count()) === 0) break;
+      await choices.nth(entry.option).click();
+    } else {
+      if ((await page.locator('#answer').count()) === 0) break;
+      await page.fill('#answer', entry.text);
+      await page.locator('#entry .primary').click();
+    }
+    await page.waitForTimeout(20);
+    assignedShadow = submit(assignedShadow, entry, { now: () => 0 }).session;
+  }
+
+  check(!(await page.locator('#code-block').isHidden()), 'an assigned set ends with a code');
+  const code = ((await page.locator('#completion-code').innerText()) ?? '').trim();
+  check(/^[0-9A-Z]{4}(-[0-9A-Z]{4}){3}$/.test(code), 'written in groups a hand can copy', code);
+
+  /* ---- and read back on the page for whoever set it ---- */
+  await page.goto(`${server.origin}/teacher/`);
+  await page.waitForTimeout(150);
+  check((await visibleSurface(page)).join() === 'teacher', 'reading a code is a page in this app');
+  check(
+    (await page.locator('a[href*="github"]').count()) === 0,
+    'and it links to no code host either',
+  );
+
+  await page.fill('#key', 'CHEM-7B');
+  await page.fill('#code', code);
+  await page.click('#read');
+  await page.waitForTimeout(60);
+  const said = await page.locator('#result-list').innerText();
+  check(said.includes('Number 17'), 'the code reads back the number that was entered', said.split('\n')[0] ?? '');
+  check(/Steps attempted: [1-9]/.test(said), 'and how far they got');
+  check(!said.includes('CHEM-7B'), 'without echoing the key back as though it came out of the code');
+
+  /* ---- and a code that belongs to another set does not read ---- */
+  await page.fill('#key', 'CHEM-7C');
+  await page.click('#read');
+  await page.waitForTimeout(60);
+  const refused = await page.locator('#result-list').innerText();
+  check(
+    refused.toLowerCase().includes('does not read against this set'),
+    'a code from a different set is refused, and says which way it is wrong',
+  );
+  check(
+    (await page.locator('#result-title').innerText()).toLowerCase().includes('did not read'),
+    'and the heading says so rather than showing a reading',
+  );
+}
+
 /* ---- the release notes page, reached the way a reader reaches it ---- */
 await page.goto(`${server.origin}/whats-new`);
 await page.waitForTimeout(150);

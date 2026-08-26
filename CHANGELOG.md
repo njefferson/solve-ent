@@ -9,6 +9,46 @@ release changed something you can see or do, it is described below in the words
 you would use for it. If it changed something under the surface that you cannot
 see, it says that plainly rather than dressing it up.
 
+## 0.11.0 — CAPABILITY
+
+**A set can be handed in now.** If somebody gave you a key and a number, there
+is a way in from the front screen, and at the end you get a code — sixteen
+characters in four groups — to give back.
+
+The code says which number you are, how many steps you did, how many were right
+first time, which kinds of move went wrong and how many times, and roughly how
+long it took. **That is everything in it.** No name, nothing you typed, and
+nothing about the settings you were using: text size, spacing, one step at a
+time and read-aloud stay on the device, and there is nowhere in a code for them
+to go. Nobody should have to tell a room something about themselves just by
+handing work back.
+
+**And there is a page for reading them.** Whoever set the work opens
+`/teacher`, types in the set as they gave it out, and pastes the code. It reads
+on the device, with no connection and nothing to sign in to, because the page
+doing the reading is the same code that did the writing.
+
+The characters are chosen for handwriting: there is no I, L, O or U in a code,
+and if you write O for zero or l for one it still reads. A code from a different
+key, a different topic or an easier difficulty than the one that was set does
+not read at all, and the page says which way it is wrong rather than just
+refusing.
+
+**One thing said plainly, because it would be easy to imply otherwise:** the
+check on a code catches a character copied wrong, or last week's code, or the
+wrong set. It cannot stop somebody who reads the source of the page and writes
+their own — there is no server here, so there is no secret to keep one out. The
+page says so itself.
+
+A drop-down list on the new page turned out to be painted by the browser rather
+than by this app: nineteen pixels tall, in system greys that had never been
+checked for readability in either light or dark. Both are fixed, and the sweep
+that checks every screen now covers twenty of them rather than fifteen.
+
+**Still missing:** the icon is still a simple drawing rather than a proper one.
+Codes are read one at a time, so a stack of thirty is thirty pastes. Nothing is
+deployed yet, so this all runs from a device that already has it.
+
 ## 0.10.0 — CAPABILITY
 
 **You can do the arithmetic without leaving the question.** Every step that asks

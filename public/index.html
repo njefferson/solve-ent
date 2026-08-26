@@ -65,9 +65,27 @@
     <h2 tabindex="-1">What do you want to work on?</h2>
     <p>Pick one. Five questions, one step at a time. Nothing is recorded and nothing is scored.</p>
     <ul id="topics" class="topics"></ul>
+    <h3>Or do a set somebody has given you</h3>
+    <p>If you were given a key and a number, this is where they go. At the end you get a code to hand back, and that code is the only thing that leaves the device.</p>
+    <button type="button" id="to-assignment" class="primary">I was given a set</button>
     <h3>Or practise one move on its own</h3>
     <p>If one particular step is the one going wrong, doing whole questions makes you walk past it four times to reach it once.</p>
     <button type="button" id="to-drill" class="primary">Practise one move</button>
+  </section>
+
+  <!-- ============ a set somebody gave you ============ -->
+  <section data-surface="assignment" hidden>
+    <h2 tabindex="-1">A set somebody has given you</h2>
+    <p>The key decides which questions you get, so everybody working from the same key gets the same set. The number is the one you were given — it is the only thing about you this app ever holds, and it is not a name.</p>
+    <div class="entry">
+      <label for="assignment-key" class="entry-label">The key for the set</label>
+      <input id="assignment-key" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false">
+      <label for="roster-number" class="entry-label">Your number</label>
+      <input id="roster-number" type="text" inputmode="numeric" autocomplete="off" spellcheck="false">
+      <p id="assignment-note" class="unit-hint" hidden></p>
+      <button type="button" id="assignment-next" class="primary">Next: pick the topic you were set</button>
+      <button type="button" id="assignment-back" class="ghost">Go back</button>
+    </div>
   </section>
 
   <!-- ============ choosing how the questions are set ============ -->
@@ -148,6 +166,15 @@
   <section data-surface="done" hidden>
     <h2 tabindex="-1">That is the end of the set</h2>
     <ul id="closing" class="closing"></ul>
+    <!-- THE CODE, on an assigned set only. A practice run cannot produce one —
+         `completionCounts` throws rather than returning counts a screen is
+         trusted to discard, because practice shows answers on request. -->
+    <section id="code-block" class="working" aria-labelledby="code-title" hidden>
+      <h3 id="code-title">The code for this set</h3>
+      <p id="completion-code" class="completion-code"></p>
+      <p class="aside">Write it down exactly as it is, including the dashes. It says which number you are, how many steps you did, how many were right first time, and where the wrong ones were — and nothing else about you.</p>
+      <button type="button" id="copy-code" class="ghost">Copy it</button>
+    </section>
     <button type="button" id="again" class="primary">Work on something else</button>
   </section>
 

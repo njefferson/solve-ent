@@ -48,10 +48,23 @@ export const NOTES_PAGE = '/whats-new';
  * it non-zero, which is also the first release on which that branch had ever
  * been reachable.
  */
-export const OLDER_THAN_SHOWN: number = 6;
+export const OLDER_THAN_SHOWN: number = 7;
 
 /** Newest first. */
 export const RELEASES: readonly Release[] = [
+  {
+    version: '0.11.0',
+    kind: 'CAPABILITY',
+    lines: [
+      'A set can be handed in now. If somebody gave you a key and a number, there is a way in from the front screen, and at the end you get a code — sixteen characters in four groups — to give back.',
+      'The code says which number you are, how many steps you did, how many were right first time, which kinds of move went wrong and how many times, and roughly how long it took. That is everything in it. No name, nothing you typed, and nothing about the settings you were using: text size, spacing, one step at a time and read-aloud stay on the device, and there is nowhere in a code for them to go. Nobody should have to tell a room something about themselves just by handing work back.',
+      'And there is a page for reading them. Whoever set the work opens /teacher, types in the set as they gave it out, and pastes the code. It reads on the device, with no connection and nothing to sign in to, because the page doing the reading is the same code that did the writing.',
+      'The characters are chosen for handwriting: there is no I, L, O or U in a code, and if you write O for zero or l for one it still reads. A code from a different key, a different topic or an easier difficulty than the one that was set does not read at all, and the page says which way it is wrong rather than just refusing.',
+      'One thing said plainly, because it would be easy to imply otherwise: the check on a code catches a character copied wrong, or last week\'s code, or the wrong set. It cannot stop somebody who reads the source of the page and writes their own — there is no server here, so there is no secret to keep one out. The page says so itself.',
+      'A drop-down list on the new page turned out to be painted by the browser rather than by this app: nineteen pixels tall, in system greys that had never been checked for readability in either light or dark. Both are fixed, and the sweep that checks every screen now covers twenty of them rather than fifteen.',
+    ],
+    stillMissing: 'the icon is still a simple drawing rather than a proper one. Codes are read one at a time, so a stack of thirty is thirty pastes. Nothing is deployed yet, so this all runs from a device that already has it.',
+  },
   {
     version: '0.10.0',
     kind: 'CAPABILITY',
@@ -102,19 +115,5 @@ export const RELEASES: readonly Release[] = [
       'Both of those were found by building the practice screen, because it is the first thing that ever showed one of those steps on its own.',
     ],
     stillMissing: 'every question still arrives at the same difficulty when you work a whole set. Nothing can be handed in and there is no page for whoever set the work. The icon is still a simple drawing rather than a proper one.',
-  },
-  {
-    version: '0.6.0',
-    kind: 'CAPABILITY',
-    lines: [
-      'It works with no connection now, which is the one that matters most for whoever is doing this on a bus, in a car, or somewhere the signal gives out halfway through.',
-      'Open it once with a connection and it keeps a copy on the device. After that it opens whether or not there is any network at all — the questions, the marking, the explanations and the list of what changed. Nothing is ever fetched while you work, because nothing ever was: the questions are worked out on the device.',
-      'And when a newer version arrives, it waits for you. This is the part most apps get wrong, so it is worth saying what happens instead.',
-      'A newer version does not replace what you have while you are using it. You get a line at the top of the screen saying one is ready, with a button to switch to it and a button to leave it for later. Nothing reloads on its own, nothing is lost part-way through a question, and if you ignore it entirely you get the new one next time you open the app.',
-      'If you have never opened this before, you are told none of that. There is nothing you missed.',
-      'You can keep it on your home screen, and the information button now lists how to do that on each kind of device.',
-      'Also: the panel that tells you which copy of the app is on the device now says so exactly, which matters because the version number on screen is reported by the code that is running — on an out-of-date copy, that is the old code reporting itself perfectly accurately.',
-    ],
-    stillMissing: 'there is still no way to practise a single move over and over, which is the thing most worth having when one particular step is the one going wrong. Every question still arrives at the same difficulty. Nothing can be handed in and there is no page for whoever set the work. And the icon is a simple drawing rather than a proper one.',
   },
 ];
