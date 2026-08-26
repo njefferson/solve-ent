@@ -105,6 +105,9 @@ test('a store that throws on every access does not take the app down with it', (
     set(): void {
       throw new Error('this browser blocks site data');
     },
+    remove(): void {
+      throw new Error('this browser blocks site data');
+    },
   };
   // readPrefs does not catch — browserStore does, which is the layer that knows
   // it is talking to a browser. So this asserts the CONTRACT: a store handed in

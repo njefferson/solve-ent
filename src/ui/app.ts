@@ -38,6 +38,7 @@ import {
   SessionError,
   completionCounts,
   currentProblem,
+  resumeSession,
   currentStage,
   startSession,
   submit,
@@ -59,6 +60,7 @@ import {
   type StudentEntry,
 } from '../engine/taxonomy.ts';
 import { evaluate } from '../num/arith.ts';
+import { clearRun, readRun as readUnfinished, saveRun } from './resume.ts';
 import { groupCode, writeCode } from '../report/code.ts';
 import { readRun, type Attempt, type DrillNote } from '../report/drill.ts';
 import { MAX_SHOWN, NOTES_PAGE, OLDER_THAN_SHOWN, RELEASES } from '../report/releases.ts';
@@ -134,6 +136,7 @@ function make<K extends keyof HTMLElementTagNameMap>(
 
 type SurfaceName =
   | 'welcome'
+  | 'resume'
   | 'start'
   | 'assignment'
   | 'difficulty'
@@ -180,6 +183,8 @@ let run: Run | null = null;
  * a screen counts it is trusted not to render.
  */
 let assigned: { readonly key: string; readonly rosterNumber: number } | null = null;
+/** An unfinished set found on the device, while the reader decides about it. */
+let pendingResume: { readonly session: Session; readonly savedAtMs: number } | null = null;
 let prefs: Prefs = { mode: 'system', textSize: 'normal', spacing: 'normal', oneStepAtATime: false, readAloud: false };
 let store: Store;
 let voice: Voice | null = null;
@@ -220,6 +225,7 @@ function setPref<K extends keyof Prefs>(key: K, value: Prefs[K]): void {
  */
 const SCREENS: readonly string[] = [
   'welcome',
+  'resume',
   'start',
   'assignment',
   'difficulty',
@@ -506,6 +512,11 @@ function answer(entry: Parameters<typeof submit>[1]): void {
   const result = submit(run.session, entry, { now: () => Date.now() });
   run.session = result.session;
   run.attempts.push({ skill: stage.counter, errorClass: result.classification.errorClass });
+  // EVERY STEP, RIGHT OR WRONG. A set is lost by a tab closing rather than by a
+  // reader deciding to stop, so there is no moment to save at other than all of
+  // them. `saveRun` stores nothing for practice and REMOVES what it has the
+  // moment a set finishes, so this one line is also what forgets it.
+  saveRun(store, run.session, { now: () => Date.now() });
 
   if (result.classification.correct) {
     // WHAT THEY WROTE, kept so the next step does not ask them to remember it.
@@ -910,6 +921,71 @@ function begin(topic: Topic, tier: number, count: number, key: string): void {
   }
 }
 
+/**
+ * Offering back a set that was not finished.
+ *
+ * IT NAMES THE NUMBER. Hiding it would be worse than showing it on a shared
+ * device: somebody else would carry on and finish a set under a number that was
+ * not theirs, which is the same disclosure plus a wrong record.
+ */
+function renderResume(session: Session, savedAtMs: number): void {
+  const topic = TOPIC_NAMES[session.config.topic];
+  const left = session.config.count - session.problemIndex;
+  $('#resume-what').textContent =
+    `Number ${String(session.config.rosterNumber ?? 0)}, on ${topic}, from the set keyed ` +
+    `${session.config.assignmentKey}. ${String(left)} question${left === 1 ? '' : 's'} of ` +
+    `${String(session.config.count)} left to do.`;
+  pendingResume = { session, savedAtMs };
+  show('resume');
+}
+
+/** Pick it up, folding the break into the time rather than counting it. */
+function takeResume(): void {
+  if (pendingResume === null) {
+    renderStart();
+    return;
+  }
+  const { session, savedAtMs } = pendingResume;
+  pendingResume = null;
+  assigned = {
+    key: session.config.assignmentKey,
+    rosterNumber: session.config.rosterNumber ?? 0,
+  };
+  run = {
+    session: resumeSession(session, { now: () => Date.now() }, savedAtMs),
+    attempts: [],
+    saidNotes: new Set(),
+    // THE WORKING STARTS EMPTY. It is what the reader wrote on the question in
+    // front of them, and they wrote it in a session that is over — carrying a
+    // remembered list of their own answers back would be this application
+    // handing them work it says it never keeps.
+    working: [],
+  };
+  $('#run-note').hidden = true;
+  renderWork();
+}
+
+/**
+ * The topics, or an unfinished set if one is waiting.
+ *
+ * **EVERY WAY IN GOES THROUGH HERE.** It was written into the router only, and
+ * pressing through the welcome screen called `renderStart` directly — so a
+ * reader arriving that way was never offered the set they had left, on the one
+ * path a reader who had lost their place is most likely to take. The
+ * accessibility gate found it by failing to reach the screen.
+ *
+ * An unfinished set comes BEFORE the topics: somebody who came back for it
+ * should not have to go looking, and somebody who did not is one press away.
+ */
+function openOrResume(): void {
+  const waiting = readUnfinished(store, { now: () => Date.now() });
+  if (waiting.kind === 'run') {
+    renderResume(waiting.session, waiting.savedAtMs);
+    return;
+  }
+  renderStart();
+}
+
 function renderStart(): void {
   const list = $('#topics');
   clear(list);
@@ -1045,7 +1121,8 @@ function route(): void {
     renderDrillPick();
     return;
   }
-  if (run === null) renderStart();
+  if (run !== null) return;
+  openOrResume();
 }
 
 /* ------------------------------------------------------------------ *
@@ -1155,7 +1232,7 @@ export function boot(storeForTests?: Store): void {
     // is MOVED into the (i) panel rather than copied, so there is one copy of
     // those words and it is permanently reachable.
     $('#info-orientation-slot').append($('#orientation'));
-    renderStart();
+    openOrResume();
   });
   $('#again').addEventListener('click', () => {
     run = null;
@@ -1166,6 +1243,14 @@ export function boot(storeForTests?: Store): void {
   $('#to-drill').addEventListener('click', () => {
     run = null;
     renderDrillPick();
+  });
+  $('#resume-go').addEventListener('click', () => {
+    takeResume();
+  });
+  $('#resume-drop').addEventListener('click', () => {
+    pendingResume = null;
+    clearRun(store);
+    renderStart();
   });
   $('#to-assignment').addEventListener('click', () => {
     run = null;

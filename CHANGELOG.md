@@ -9,6 +9,39 @@ release changed something you can see or do, it is described below in the words
 you would use for it. If it changed something under the surface that you cannot
 see, it says that plainly rather than dressing it up.
 
+## 0.14.0 — CAPABILITY
+
+**A set you were given is still there if you close it.** Shut the tab, let the
+device sleep, come back later — the app offers to pick it up at the step it
+stopped on, with everything already done still counted.
+
+Only a set somebody gave you is remembered. Practice is not, because practice
+records nothing, and there is nothing in a practice run to lose.
+
+**It says whose set it is.** The offer names the number, which matters most on a
+shared device: if it is not your number, you can see that before carrying on and
+finishing somebody else's work under it. Hiding the number would have been the
+same disclosure with a wrong record on the end of it.
+
+**It does not sit there forever.** An unfinished set is forgotten after twelve
+hours — long enough for a lesson, a break, a bus and a battery, short enough
+that yesterday's set does not surface for whoever picks the device up tomorrow.
+It is also forgotten the moment a set finishes and its code exists, and one
+button forgets it on the spot. Forgotten means gone rather than blank.
+
+A set that was left across an update is not picked up. The questions come from
+the key, the topic and the difficulty, so a release that changes how a question
+is built changes what sits at that place in the set — and carrying on would mean
+counting answers to questions that no longer exist.
+
+**One thing that was quietly broken and is fixed:** pressing through the opening
+screen went straight to the topics without checking for an unfinished set. The
+one route a person who had lost their place is most likely to take was the one
+route that never offered it back. Everything goes through the same check now.
+
+**Still missing:** nothing is deployed yet, so this all runs from a device that
+already has it.
+
 ## 0.13.0 — ITERATION
 
 **There is a real icon now.** A conical flask, with the liquid in it drawn as an

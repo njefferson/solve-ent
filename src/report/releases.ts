@@ -48,10 +48,23 @@ export const NOTES_PAGE = '/whats-new';
  * it non-zero, which is also the first release on which that branch had ever
  * been reachable.
  */
-export const OLDER_THAN_SHOWN: number = 9;
+export const OLDER_THAN_SHOWN: number = 10;
 
 /** Newest first. */
 export const RELEASES: readonly Release[] = [
+  {
+    version: '0.14.0',
+    kind: 'CAPABILITY',
+    lines: [
+      'A set you were given is still there if you close it. Shut the tab, let the device sleep, come back later — the app offers to pick it up at the step it stopped on, with everything already done still counted.',
+      'Only a set somebody gave you is remembered. Practice is not, because practice records nothing, and there is nothing in a practice run to lose.',
+      'It says whose set it is. The offer names the number, which matters most on a shared device: if it is not your number, you can see that before carrying on and finishing somebody else\'s work under it. Hiding the number would have been the same disclosure with a wrong record on the end of it.',
+      'It does not sit there forever. An unfinished set is forgotten after twelve hours — long enough for a lesson, a break, a bus and a battery, short enough that yesterday\'s set does not surface for whoever picks the device up tomorrow. It is also forgotten the moment a set finishes and its code exists, and one button forgets it on the spot. Forgotten means gone rather than blank.',
+      'A set that was left across an update is not picked up. The questions come from the key, the topic and the difficulty, so a release that changes how a question is built changes what sits at that place in the set — and carrying on would mean counting answers to questions that no longer exist.',
+      'One thing that was quietly broken and is fixed: pressing through the opening screen went straight to the topics without checking for an unfinished set. The one route a person who had lost their place is most likely to take was the one route that never offered it back. Everything goes through the same check now.',
+    ],
+    stillMissing: 'nothing is deployed yet, so this all runs from a device that already has it.',
+  },
   {
     version: '0.13.0',
     kind: 'ITERATION',
@@ -97,16 +110,5 @@ export const RELEASES: readonly Release[] = [
       'It also never sees the question. It multiplies the numbers you chose in the order you chose them — deciding what to multiply, and which way up, is the whole of what this is for and the scratch line has no part in it. The description in the ⓘ panel used to say this is not a calculator; it now says what is actually true, which is that it does not solve the question for you.',
     ],
     stillMissing: 'nothing can be handed in and there is still no page for whoever set the work. The icon is still a simple drawing rather than a proper one.',
-  },
-  {
-    version: '0.9.0',
-    kind: 'CAPABILITY',
-    lines: [
-      'What you have already worked out stays on the screen. Each step you finish is kept in front of you, in the words you wrote it in, until the question is over.',
-      'This matters most where one step feeds the next. A proportion asks how many times the recipe you have, and then asks you to use that number. A rate given upside down asks you to turn it over, and then asks you to divide by what you turned over. Both of those used to ask you to remember a number you could no longer see, or to write it on something else — and needing anything other than this app in front of you is friction that has nothing to do with the algebra.',
-      'It is your own work, not the app\'s: a line appears only once you have got that step right, and it shows what you typed rather than a number worked out for you. It clears when the next question starts, because working from one question sitting beside another question\'s numbers is worse than showing nothing.',
-      'And the closing screen had never been checked for readability. The accessibility sweep is supposed to walk every screen in both light and dark and measure the contrast, the tap targets and the focus outlines. The part of it that drives a set to the end could not actually finish one, so it sat on the question screen and reported everything it measured under the name of the closing screen — for every release there has been. It reaches the end properly now, and the closing screen passed the first time it was really looked at.',
-    ],
-    stillMissing: 'there is no way to do the arithmetic inside the app yet, so a calculator is still a second thing to have in front of you. Nothing can be handed in and there is no page for whoever set the work. The icon is still a simple drawing rather than a proper one.',
   },
 ];

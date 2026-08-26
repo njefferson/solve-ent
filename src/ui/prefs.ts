@@ -91,6 +91,14 @@ const SPACINGS: readonly Spacing[] = ['normal', 'open'];
 export interface Store {
   get(key: string): string | null;
   set(key: string, value: string): void;
+  /**
+   * FORGET IT, rather than write an empty value over it.
+   *
+   * An unfinished set is remembered on the device while it is unfinished, and
+   * has to be genuinely gone afterwards. A key left behind holding an empty
+   * string is still a key on a shared device saying somebody was here.
+   */
+  remove(key: string): void;
 }
 
 /** The browser's own storage, or a store that forgets, where it is unavailable. */
@@ -111,6 +119,14 @@ export function browserStore(): Store {
         // visit. Losing them on reload is worse than nothing; it is not a crash.
       }
     },
+    remove(key) {
+      try {
+        globalThis.localStorage.removeItem(key);
+      } catch {
+        // Nothing to do: a store that cannot be written to cannot be holding
+        // anything that needed removing.
+      }
+    },
   };
 }
 
@@ -120,6 +136,7 @@ export function memoryStore(initial: Readonly<Record<string, string>> = {}): Sto
   return {
     get: (key) => map.get(key) ?? null,
     set: (key, value) => void map.set(key, value),
+    remove: (key) => void map.delete(key),
   };
 }
 

@@ -8,6 +8,6 @@
  * after a defect that was fixed two releases ago.
  */
 /** `version.capability.iteration`. */
-export const VERSION = '0.13.0';
+export const VERSION = '0.14.0';
 /** What the app is called, in one place, for anything that has to say it. */
 export const APP_NAME = 'Solve-ent';

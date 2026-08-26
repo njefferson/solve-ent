@@ -183,6 +183,31 @@ const STATES = [
     arrived: '#working',
   },
   {
+    // A SET LEFT UNFINISHED, offered back. Only ever on screen after an assigned
+    // set was stopped part-way, which a resting sweep never produces.
+    name: 'resume',
+    surface: 'resume',
+    path: '/',
+    async reach(page) {
+      await page.click('#begin');
+      await page.click('#to-assignment');
+      await page.fill('#assignment-key', 'practice');
+      await page.fill('#roster-number', '17');
+      await page.click('#assignment-next');
+      await page.locator('#topics button').first().click();
+      await page.locator('#difficulties button').first().click();
+      // One step, so there is something to lose, and then a real reload.
+      await driveCorrect(page, 1);
+      await page.reload();
+      await page.waitForTimeout(150);
+      // THE INIT SCRIPT PUTS THE WELCOME BACK on every navigation in this
+      // sweep, so pressing through it is what a returning reader does here —
+      // and that is the path where the offer was missing until this state was
+      // written, since it called the topics directly.
+      await page.click('#begin');
+    },
+  },
+  {
     // TAKING DOWN A SET SOMEBODY WAS GIVEN. Its own screen, and the only place
     // in the application a roster number is ever typed.
     name: 'assignment',

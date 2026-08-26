@@ -32,9 +32,10 @@
  */
 import { TOPIC_NAMES, laddersFor, solve } from '../engine/problem.js';
 import { drillItem } from '../engine/blocked.js';
-import { MAX_ROSTER_NUMBER, SessionError, completionCounts, currentProblem, currentStage, startSession, submit, } from '../engine/steps.js';
+import { MAX_ROSTER_NUMBER, SessionError, completionCounts, currentProblem, resumeSession, currentStage, startSession, submit, } from '../engine/steps.js';
 import { CLASS_MEANINGS, COUNTER_SKILLS, REMEDIES, SKILL_NAMES, choiceItemsFor, classify, formatUnit, readEntry, remediesFor, } from '../engine/taxonomy.js';
 import { evaluate } from '../num/arith.js';
+import { clearRun, readRun as readUnfinished, saveRun } from './resume.js';
 import { groupCode, writeCode } from '../report/code.js';
 import { readRun } from '../report/drill.js';
 import { MAX_SHOWN, NOTES_PAGE, OLDER_THAN_SHOWN, RELEASES } from '../report/releases.js';
@@ -96,6 +97,8 @@ let run = null;
  * a screen counts it is trusted not to render.
  */
 let assigned = null;
+/** An unfinished set found on the device, while the reader decides about it. */
+let pendingResume = null;
 let prefs = { mode: 'system', textSize: 'normal', spacing: 'normal', oneStepAtATime: false, readAloud: false };
 let store;
 let voice = null;
@@ -134,6 +137,7 @@ function setPref(key, value) {
  */
 const SCREENS = [
     'welcome',
+    'resume',
     'start',
     'assignment',
     'difficulty',
@@ -402,6 +406,11 @@ function answer(entry) {
     const result = submit(run.session, entry, { now: () => Date.now() });
     run.session = result.session;
     run.attempts.push({ skill: stage.counter, errorClass: result.classification.errorClass });
+    // EVERY STEP, RIGHT OR WRONG. A set is lost by a tab closing rather than by a
+    // reader deciding to stop, so there is no moment to save at other than all of
+    // them. `saveRun` stores nothing for practice and REMOVES what it has the
+    // moment a set finishes, so this one line is also what forgets it.
+    saveRun(store, run.session, { now: () => Date.now() });
     if (result.classification.correct) {
         // WHAT THEY WROTE, kept so the next step does not ask them to remember it.
         // A choice is recorded as the option they pressed rather than its number,
@@ -754,6 +763,68 @@ function begin(topic, tier, count, key) {
         say(`This run did not start: ${why}`);
     }
 }
+/**
+ * Offering back a set that was not finished.
+ *
+ * IT NAMES THE NUMBER. Hiding it would be worse than showing it on a shared
+ * device: somebody else would carry on and finish a set under a number that was
+ * not theirs, which is the same disclosure plus a wrong record.
+ */
+function renderResume(session, savedAtMs) {
+    const topic = TOPIC_NAMES[session.config.topic];
+    const left = session.config.count - session.problemIndex;
+    $('#resume-what').textContent =
+        `Number ${String(session.config.rosterNumber ?? 0)}, on ${topic}, from the set keyed ` +
+            `${session.config.assignmentKey}. ${String(left)} question${left === 1 ? '' : 's'} of ` +
+            `${String(session.config.count)} left to do.`;
+    pendingResume = { session, savedAtMs };
+    show('resume');
+}
+/** Pick it up, folding the break into the time rather than counting it. */
+function takeResume() {
+    if (pendingResume === null) {
+        renderStart();
+        return;
+    }
+    const { session, savedAtMs } = pendingResume;
+    pendingResume = null;
+    assigned = {
+        key: session.config.assignmentKey,
+        rosterNumber: session.config.rosterNumber ?? 0,
+    };
+    run = {
+        session: resumeSession(session, { now: () => Date.now() }, savedAtMs),
+        attempts: [],
+        saidNotes: new Set(),
+        // THE WORKING STARTS EMPTY. It is what the reader wrote on the question in
+        // front of them, and they wrote it in a session that is over — carrying a
+        // remembered list of their own answers back would be this application
+        // handing them work it says it never keeps.
+        working: [],
+    };
+    $('#run-note').hidden = true;
+    renderWork();
+}
+/**
+ * The topics, or an unfinished set if one is waiting.
+ *
+ * **EVERY WAY IN GOES THROUGH HERE.** It was written into the router only, and
+ * pressing through the welcome screen called `renderStart` directly — so a
+ * reader arriving that way was never offered the set they had left, on the one
+ * path a reader who had lost their place is most likely to take. The
+ * accessibility gate found it by failing to reach the screen.
+ *
+ * An unfinished set comes BEFORE the topics: somebody who came back for it
+ * should not have to go looking, and somebody who did not is one press away.
+ */
+function openOrResume() {
+    const waiting = readUnfinished(store, { now: () => Date.now() });
+    if (waiting.kind === 'run') {
+        renderResume(waiting.session, waiting.savedAtMs);
+        return;
+    }
+    renderStart();
+}
 function renderStart() {
     const list = $('#topics');
     clear(list);
@@ -885,8 +956,9 @@ function route() {
         renderDrillPick();
         return;
     }
-    if (run === null)
-        renderStart();
+    if (run !== null)
+        return;
+    openOrResume();
 }
 /* ------------------------------------------------------------------ *
  * Preference controls
@@ -998,7 +1070,7 @@ export function boot(storeForTests) {
         // is MOVED into the (i) panel rather than copied, so there is one copy of
         // those words and it is permanently reachable.
         $('#info-orientation-slot').append($('#orientation'));
-        renderStart();
+        openOrResume();
     });
     $('#again').addEventListener('click', () => {
         run = null;
@@ -1011,6 +1083,14 @@ export function boot(storeForTests) {
     $('#to-drill').addEventListener('click', () => {
         run = null;
         renderDrillPick();
+    });
+    $('#resume-go').addEventListener('click', () => {
+        takeResume();
+    });
+    $('#resume-drop').addEventListener('click', () => {
+        pendingResume = null;
+        clearRun(store);
+        renderStart();
     });
     $('#to-assignment').addEventListener('click', () => {
         run = null;

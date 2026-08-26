@@ -1464,12 +1464,61 @@ going for it, since its colours were typed with a comment saying where they came
 from. `tools/icon-check.mjs` runs on every commit and was watched going red on a
 planted `#ff0000`.
 
+## Picking up a set that was closed part-way
+
+`src/ui/resume.ts`. The engine already had the half that matters —
+`resumeSession` folds the break into `elapsedBeforeMs` so a student who stops
+for forty minutes does not have forty minutes added to what their code reports.
+What was missing was storing the session and offering it back.
+
+**Only an assigned set.** Practice records nothing, has no code at the end and
+nothing to lose; remembering it would be storing something about somebody for no
+reason, which is the thing most of this repository's rules are about.
+
+### The tension, and where the bounds are
+
+Picking a set back up means remembering the roster number, and **a device that
+remembers a roster number is a device that says who used it.** That is not
+solvable, only bounded:
+
+- Stored only while the set is unfinished, and removed the moment a code exists.
+- Twelve hours, then forgotten. A lesson, a break, a bus and a battery — not a
+  week. The window is a bound on how long a number sits on a device.
+- The offer NAMES the number. Hiding it is worse: somebody else carries on and
+  finishes a set under a number that is not theirs, which is the same disclosure
+  plus a wrong record.
+- `Store.remove` exists for this. Clearing by writing an empty string leaves a
+  key on a shared device saying somebody was here.
+
+### It refuses to cross a release
+
+Problems are a pure function of key, topic, difficulty and index, so a release
+that changes generation changes the question at that index. Resuming across a
+version would count answers against questions that no longer exist. The version
+is stored and a mismatch is refused — and refused LOUDLY enough to be a named
+reason rather than a silent absence, so the four ways there can be nothing
+(`NONE`, `UNREADABLE`, `STALE`, `OTHER_VERSION`) are told apart.
+
+Everything that comes back off the device is READ rather than trusted: every
+field checked, and anything that does not read dropped rather than repaired. A
+value that cannot be used is also removed on the way out, so it cannot sit there
+being refused on every load.
+
+### The defect the gate found
+
+`openOrResume` exists because the check was written into the router only, and
+pressing through the welcome screen called `renderStart` directly. **The one
+route a reader who had lost their place is most likely to take was the one route
+that never offered it back.** Nothing failed; the screen was simply never
+reached. The a11y gate said so, by not arriving at a state it had been told to
+measure — the assertion added two sessions ago, earning its keep a third time.
+
 ## What is NOT built, and it is most of the app
 
 Named here so nobody has to discover it by looking:
 
 - **`tools/cli.ts` prints answers** and says so on every command that shows one.
-- **No resume**, nothing deployed, and no repository metadata.
+- **Nothing deployed, and no repository metadata.**
 - **Nothing is deployed and no Pages project exists.** That is the owner's to
   create — see below.
 

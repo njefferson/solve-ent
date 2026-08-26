@@ -59,6 +59,15 @@ export function browserStore() {
                 // visit. Losing them on reload is worse than nothing; it is not a crash.
             }
         },
+        remove(key) {
+            try {
+                globalThis.localStorage.removeItem(key);
+            }
+            catch {
+                // Nothing to do: a store that cannot be written to cannot be holding
+                // anything that needed removing.
+            }
+        },
     };
 }
 /** A store held in memory. For tests, and for a browser that refuses storage. */
@@ -67,6 +76,7 @@ export function memoryStore(initial = {}) {
     return {
         get: (key) => map.get(key) ?? null,
         set: (key, value) => void map.set(key, value),
+        remove: (key) => void map.delete(key),
     };
 }
 const oneOf = (allowed, raw, fallback) => allowed.includes(raw) ? raw : fallback;

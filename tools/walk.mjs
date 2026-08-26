@@ -419,6 +419,75 @@ check(!/\b(?:streak|badge|great job|well done)\b/i.test(drillClosing), 'and noth
   const code = ((await page.locator('#completion-code').innerText()) ?? '').trim();
   check(/^[0-9A-Z]{4}(-[0-9A-Z]{4}){3}$/.test(code), 'written in groups a hand can copy', code);
 
+  /* ---- a set closed part-way through is still there ---- */
+  //
+  // THE REAL FAILURE THIS IS ABOUT: a tab closed, a device asleep, a browser
+  // reclaiming memory. The code only exists at the end, so a set lost part-way
+  // through is work that cannot be handed in at all.
+  {
+    await page.goto(`${server.origin}/`);
+    await page.waitForTimeout(150);
+    if (await page.locator('[data-surface="welcome"]').isVisible()) await page.click('#begin');
+    await page.click('#to-assignment');
+    await page.fill('#assignment-key', 'CHEM-9A');
+    await page.fill('#roster-number', '23');
+    await page.click('#assignment-next');
+    await page.locator('#topics button').first().click();
+    await page.waitForTimeout(80);
+    await page.locator('#difficulties button').first().click();
+    await page.waitForTimeout(80);
+
+    let side = startSession(
+      { assignmentKey: 'CHEM-9A', topic: firstTopic, tier: 1, count: 5, mode: 'assignment', rosterNumber: 23 },
+      { now: () => 0 },
+    );
+    for (let i = 0; i < 3; i += 1) {
+      const problem = currentProblem(side);
+      const stage = currentStage(side);
+      const entry = correctEntryFor(problem, solve(problem), stage, SCRATCH_SIG_FIGS);
+      if (entry.kind === 'choice') await page.locator('.choice').nth(entry.option).click();
+      else {
+        await page.fill('#answer', entry.text);
+        await page.locator('#entry .primary').click();
+      }
+      await page.waitForTimeout(20);
+      side = submit(side, entry, { now: () => 0 }).session;
+    }
+    const wasOn = await page.locator('#step-prompt').innerText();
+
+    // A REAL RELOAD, not a state reset.
+    await page.reload();
+    await page.waitForTimeout(200);
+    if (await page.locator('[data-surface="welcome"]').isVisible()) await page.click('#begin');
+    await page.waitForTimeout(120);
+    check((await visibleSurface(page)).join() === 'resume', 'a set closed part-way through is offered back');
+    const what = await page.locator('#resume-what').innerText();
+    check(what.includes('23'), 'and it says whose it is, so nobody finishes somebody else’s set', what);
+    check(what.includes('CHEM-9A'), 'and which set it was');
+
+    await page.click('#resume-go');
+    await page.waitForTimeout(150);
+    check((await visibleSurface(page)).join() === 'work', 'carrying on goes back to the questions');
+    check(
+      (await page.locator('#step-prompt').innerText()) === wasOn,
+      'at the step it stopped on rather than the start of the set',
+    );
+
+    /* ---- and forgetting it means forgetting it ---- */
+    await page.reload();
+    await page.waitForTimeout(200);
+    if (await page.locator('[data-surface="welcome"]').isVisible()) await page.click('#begin');
+    await page.waitForTimeout(120);
+    check((await visibleSurface(page)).join() === 'resume', 'it is still there on the next visit');
+    await page.click('#resume-drop');
+    await page.waitForTimeout(100);
+    check((await visibleSurface(page)).join() === 'start', 'and forgetting it goes to the topics');
+    check(
+      await page.evaluate(() => globalThis.localStorage.getItem('solvent.unfinished') === null),
+      'with nothing left on the device — not an empty value, gone',
+    );
+  }
+
   /* ---- and read back on the page for whoever set it ---- */
   await page.goto(`${server.origin}/teacher/`);
   await page.waitForTimeout(150);
