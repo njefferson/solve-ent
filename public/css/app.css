@@ -234,6 +234,39 @@ a.ghost { color: var(--accent); }
 .step { font-weight: 600; margin-bottom: 0.35rem; }
 .unit-hint { color: var(--text-2); font-size: 0.95em; }
 
+/* ---------- working it out, without leaving the question ----------
+ *
+ * A KEYPAD RATHER THAN THE SYSTEM KEYBOARD ALONE. This is used on a tablet, by
+ * finger, and × and ÷ are two keyboard layers away on most of them — far enough
+ * that a reader picks up a phone instead, which is the thing this exists to
+ * stop. Every key is on the same `--tap` floor as everything else a finger has
+ * to hit, and the field still takes typed input for whoever has a keyboard. */
+.scratch { margin: 0.25rem 0 1rem; }
+.scratch-body { display: grid; gap: 0.55rem; }
+.scratch-result {
+  margin: 0.5rem 0;
+  min-height: 1.4em;
+  color: var(--text-2);
+  font-weight: 600;
+}
+.scratch-keys {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.4rem;
+  margin: 0.6rem 0;
+}
+.scratch-key {
+  font: inherit;
+  min-height: var(--tap);
+  min-width: var(--tap);
+  border: 1px solid var(--rail);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+  color: var(--text);
+  cursor: pointer;
+}
+.scratch-key:active { background: var(--surface-pressed); }
+
 /* ---------- answering ---------- */
 .entry { display: grid; gap: 0.55rem; margin: 1rem 0; }
 .entry-label { color: var(--text-2); font-size: 0.95em; }

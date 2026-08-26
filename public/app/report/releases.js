@@ -32,9 +32,20 @@ export const NOTES_PAGE = '/whats-new';
  * it non-zero, which is also the first release on which that branch had ever
  * been reachable.
  */
-export const OLDER_THAN_SHOWN = 5;
+export const OLDER_THAN_SHOWN = 6;
 /** Newest first. */
 export const RELEASES = [
+    {
+        version: '0.10.0',
+        kind: 'CAPABILITY',
+        lines: [
+            'You can do the arithmetic without leaving the question. Every step that asks for a number now has a scratch line under the answer box, with a keypad, and a button that puts what it worked out straight into the answer.',
+            'The keypad is there because this gets used on a tablet by finger, and × and ÷ are two keyboard layers away on most of them — far enough that you would reach for a phone instead, which is exactly the thing worth avoiding. There is an EE key for the powers of ten, since a mole is 6.022 × 10²³ and nobody types twenty-three zeros. It takes typed input too if you have a keyboard.',
+            'It does not round, and that is deliberate. Working out how many figures an answer is entitled to is one of the seven things this teaches. A scratch line that quietly handed back 90.3 would be doing that step for you at the exact moment you were being asked to do it, so it hands back the whole number and says to round it yourself.',
+            'It also never sees the question. It multiplies the numbers you chose in the order you chose them — deciding what to multiply, and which way up, is the whole of what this is for and the scratch line has no part in it. The description in the ⓘ panel used to say this is not a calculator; it now says what is actually true, which is that it does not solve the question for you.',
+        ],
+        stillMissing: 'nothing can be handed in and there is still no page for whoever set the work. The icon is still a simple drawing rather than a proper one.',
+    },
     {
         version: '0.9.0',
         kind: 'CAPABILITY',
@@ -88,18 +99,5 @@ export const RELEASES = [
             'Also: the panel that tells you which copy of the app is on the device now says so exactly, which matters because the version number on screen is reported by the code that is running — on an out-of-date copy, that is the old code reporting itself perfectly accurately.',
         ],
         stillMissing: 'there is still no way to practise a single move over and over, which is the thing most worth having when one particular step is the one going wrong. Every question still arrives at the same difficulty. Nothing can be handed in and there is no page for whoever set the work. And the icon is a simple drawing rather than a proper one.',
-    },
-    {
-        version: '0.5.0',
-        kind: 'CAPABILITY',
-        lines: [
-            'There is something to open. Until now everything in here worked and none of it could be seen.',
-            'You get a short page saying what this is and what it is not, and then you pick one of the seven kinds of question and work through five of them, one step at a time. Get a step wrong and it tells you which mistake produces that exact number — and the step stays where it is until you get it, because a step you can walk past is just another question.',
-            'It can be made easier to read, and those settings never leave your device. Bigger text, more space between letters and lines, showing one thing at a time, and reading the question aloud where the device can do that. None of them is written into anything you hand in and none of them is sent anywhere. That is deliberate rather than an oversight: what somebody needs in order to read something is nobody else\'s business, and a tool that quietly passed it on would make them disclose it every time they used it.',
-            'Day and night colours, following the device unless you say otherwise. The colours were measured against a contrast standard before anything was drawn, in both, on every screen — including the ones that only appear after a wrong answer, which is where this kind of thing usually goes unchecked.',
-            'An information button in the corner, with what this is, how to keep it on your home screen on each kind of device, where the questions come from, what it stores, what changed, the accessibility statement and the licence. The page you see first is moved in there when you press Start, so it is still reachable rather than gone.',
-            'And a page listing every release, which the panel above links to. The panel itself never shows more than five, and says how many it is not showing.',
-        ],
-        stillMissing: 'it does not work offline yet — close the connection and it will not open, which is worst for exactly the people who need it on a bus. There is still no way to practise a single move over and over, which is the thing most worth having when one particular step is the one going wrong. Nothing can be handed in and there is no page for whoever set the work. Every question arrives at the same difficulty for now. And there is no way to be told when a newer version is waiting.',
     },
 ];

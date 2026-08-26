@@ -9,6 +9,34 @@ release changed something you can see or do, it is described below in the words
 you would use for it. If it changed something under the surface that you cannot
 see, it says that plainly rather than dressing it up.
 
+## 0.10.0 — CAPABILITY
+
+**You can do the arithmetic without leaving the question.** Every step that asks
+for a number now has a scratch line under the answer box, with a keypad, and a
+button that puts what it worked out straight into the answer.
+
+The keypad is there because this gets used on a tablet by finger, and × and ÷
+are two keyboard layers away on most of them — far enough that you would reach
+for a phone instead, which is exactly the thing worth avoiding. There is an EE
+key for the powers of ten, since a mole is 6.022 × 10²³ and nobody types
+twenty-three zeros. It takes typed input too if you have a keyboard.
+
+**It does not round, and that is deliberate.** Working out how many figures an
+answer is entitled to is one of the seven things this teaches. A scratch line
+that quietly handed back 90.3 would be doing that step for you at the exact
+moment you were being asked to do it, so it hands back the whole number and
+says to round it yourself.
+
+It also never sees the question. It multiplies the numbers you chose in the
+order you chose them — deciding what to multiply, and which way up, is the whole
+of what this is for and the scratch line has no part in it. The description in
+the ⓘ panel used to say this is not a calculator; it now says what is actually
+true, which is that it does not solve the question for you.
+
+**Still missing:** nothing can be handed in and there is still no page for
+whoever set the work. The icon is still a simple drawing rather than a proper
+one.
+
 ## 0.9.0 — CAPABILITY
 
 **What you have already worked out stays on the screen.** Each step you finish

@@ -1276,6 +1276,45 @@ targets against 176, which is the size of the screen that had been missing.
 that navigates before it measures needs to assert that it arrived.** The
 readings are the easy part.
 
+### The scratch line, and why it is not a solver
+
+The other half of the same requirement: the arithmetic has to be doable in the
+app. `src/num/arith.ts` reads a typed line as arithmetic and returns a number,
+`empty`, or `unreadable` with the position it stopped making sense.
+
+**No `eval` and no `new Function`**, which would run whatever arrived as a
+PROGRAM in the page that also holds the grader. This grammar can produce nothing
+but a number because there is nothing else in it.
+
+**It never rounds.** Significant figures are one of the seven topics. A scratch
+line that handed back 90.3 would be doing that step for the reader at the moment
+they are asked to do it — so it returns the whole value and the screen says to
+round it.
+
+**It never sees the question.** It multiplies the numbers the reader chose in
+the order they chose them. Choosing what to multiply and which way up is the
+entire thing being taught, and the scratch line has no part in it — which is
+what makes a calculator here different from a solver.
+
+Two things the parser had to get right and one it got wrong first. `-2^2` is
+−4: the exponent binds tighter than the sign, so the sign sits ABOVE the power
+in the grammar rather than inside the base. Written the other way round it came
+to 4, and the test caught it on the first run. And `3 4` is UNREADABLE rather
+than 3 — a parser that stops at the first thing it understands is wrong in the
+one way this application cannot afford.
+
+The keypad exists because this is used by finger on a tablet, where × and ÷ are
+two keyboard layers away — far enough that a reader picks up a phone, which is
+the thing the requirement is about. Twenty keys, all on the `--tap` floor, and
+the a11y gate could not see a single one of them until `work-scratch` was added
+as a state: the sweep went from 180 targets to 240.
+
+**One markup note worth keeping.** The scratch block was a `<section>` with a
+visually-hidden heading, and the inset check went red on every `work` state: a
+clipped box sits at its own inset, so the surface read as though its own styles
+were not applying. It is a `<div>` now — the control already carries the name,
+and one more landmark per step is noise.
+
 ## What is NOT built, and it is most of the app
 
 Named here so nobody has to discover it by looking:

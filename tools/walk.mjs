@@ -234,6 +234,28 @@ for (let guard = 0; guard < 200; guard += 1) {
       (await page.locator('#working-list li').count()) === stepsDriven,
       'with a line for each step done and none for a step nobody has answered',
     );
+
+    /* ---- and the arithmetic can be done without leaving the question ---- */
+    if ((await page.locator('#answer').count()) > 0) {
+      check(await page.locator('#scratch-keys').isHidden(), 'the keypad is put away until it is asked for');
+      await page.click('#scratch-toggle');
+      await page.fill('#scratch-line', '3.975×1000÷44.01');
+      await page.waitForTimeout(30);
+      const worked = (await page.locator('#scratch-result').innerText()).trim();
+      const byHand = (3.975 * 1000) / 44.01;
+      check(worked === `= ${String(byHand)}`, 'a sum typed on the scratch line is worked out in the app', worked);
+      check(
+        !worked.includes('90.32') || String(byHand).startsWith(worked.slice(2, 7)),
+        'and it is not rounded — significant figures are a step the reader is asked to do',
+      );
+      await page.click('#scratch-use');
+      await page.waitForTimeout(30);
+      const carried = await page.locator('#answer').inputValue();
+      check(carried === String(byHand), 'and it lands in the answer box rather than being copied by hand', carried);
+      // Put it back, so the run carries on from where it was.
+      await page.fill('#answer', '');
+      await page.click('#scratch-toggle');
+    }
   }
   if (shadow.problemIndex !== wasOn && !shadow.finished) {
     check(

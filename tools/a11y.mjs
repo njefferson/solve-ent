@@ -165,6 +165,26 @@ const STATES = [
     arrived: '#working',
   },
   {
+    // WORKING IT OUT, open. The keypad is behind a control, so a resting sweep
+    // never sees a single one of its keys — twenty targets and their contrast,
+    // in both modes, invisible to this gate unless the control is pressed.
+    name: 'work-scratch',
+    surface: 'work',
+    path: '/',
+    async reach(page) {
+      await page.click('#begin');
+      await page.locator('#topics button').first().click();
+      await page.locator('#difficulties button').first().click();
+      // Past the choice, so the step is one where a worked-out number has
+      // somewhere to go.
+      await driveCorrect(page, 1);
+      await page.click('#scratch-toggle');
+      await page.fill('#scratch-line', '3.975×1000÷44.01');
+      await page.locator('#scratch-line').press('End');
+    },
+    arrived: '#scratch-keys',
+  },
+  {
     name: 'done',
     surface: 'done',
     path: '/',

@@ -34,6 +34,7 @@ import { TOPIC_NAMES, laddersFor, solve } from "../engine/problem.js";
 import { drillItem } from "../engine/blocked.js";
 import { MAX_ROSTER_NUMBER, SessionError, currentProblem, currentStage, startSession, submit, } from "../engine/steps.js";
 import { CLASS_MEANINGS, COUNTER_SKILLS, REMEDIES, SKILL_NAMES, choiceItemsFor, classify, formatUnit, readEntry, remediesFor, } from "../engine/taxonomy.js";
+import { evaluate } from "../num/arith.js";
 import { readRun } from "../report/drill.js";
 import { MAX_SHOWN, NOTES_PAGE, OLDER_THAN_SHOWN, RELEASES } from "../report/releases.js";
 import { APP_NAME, VERSION } from "../version.js";
@@ -233,6 +234,112 @@ function renderWorking() {
         list.append(item);
     }
 }
+/**
+ * The keys, in the order a hand expects them.
+ *
+ * `EE` is here because this application's readers meet 6.022 × 10²³ on the
+ * first day and nobody types twenty-three zeros. `C` clears and `⌫` deletes,
+ * both spelled as the words a screen reader should say rather than left as
+ * punctuation nobody can hear.
+ */
+const SCRATCH_KEYS = [
+    { key: '7', says: '7', puts: '7' },
+    { key: '8', says: '8', puts: '8' },
+    { key: '9', says: '9', puts: '9' },
+    { key: '÷', says: 'divided by', puts: '÷' },
+    { key: 'C', says: 'clear', puts: '' },
+    { key: '4', says: '4', puts: '4' },
+    { key: '5', says: '5', puts: '5' },
+    { key: '6', says: '6', puts: '6' },
+    { key: '×', says: 'times', puts: '×' },
+    { key: '⌫', says: 'delete', puts: '' },
+    { key: '1', says: '1', puts: '1' },
+    { key: '2', says: '2', puts: '2' },
+    { key: '3', says: '3', puts: '3' },
+    { key: '−', says: 'minus', puts: '−' },
+    { key: '(', says: 'open bracket', puts: '(' },
+    { key: '0', says: '0', puts: '0' },
+    { key: '.', says: 'point', puts: '.' },
+    { key: 'EE', says: 'times ten to the', puts: 'e' },
+    { key: '+', says: 'plus', puts: '+' },
+    { key: ')', says: 'close bracket', puts: ')' },
+];
+/**
+ * Working it out, in the app, without being handed anything.
+ *
+ * **IT NEVER ROUNDS AND IT NEVER SEES THE QUESTION.** It multiplies the numbers
+ * the reader chose in the order they chose them, which is what a calculator on
+ * the desk beside them would do — and the reason that is not a solver is that
+ * choosing what to multiply is the entire thing being taught.
+ */
+function wireScratch() {
+    const line = $('#scratch-line');
+    const result = $('#scratch-result');
+    const use = $('#scratch-use');
+    const body = $('#scratch-body');
+    const toggle = $('#scratch-toggle');
+    const show = () => {
+        const worked = evaluate(line.value);
+        if (worked.kind === 'value') {
+            result.textContent = `= ${String(worked.value)}`;
+            use.disabled = false;
+            return;
+        }
+        // A LINE BEING TYPED IS NOT AN ERROR. This runs on every keystroke, so half
+        // a sum is the ordinary case and saying so on each character would be a
+        // screen telling somebody off for typing.
+        result.textContent = worked.kind === 'empty' ? '' : '…';
+        use.disabled = true;
+    };
+    toggle.addEventListener('click', () => {
+        const open = body.hidden;
+        body.hidden = !open;
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open)
+            line.focus();
+    });
+    line.addEventListener('input', show);
+    for (const { key, says, puts } of SCRATCH_KEYS) {
+        const button = make('button', { type: 'button', class: 'scratch-key', 'aria-label': says }, key);
+        button.addEventListener('click', () => {
+            if (key === 'C')
+                line.value = '';
+            else if (key === '⌫')
+                line.value = line.value.slice(0, -1);
+            else
+                line.value += puts;
+            show();
+            line.focus();
+        });
+        $('#scratch-keys').append(button);
+    }
+    use.addEventListener('click', () => {
+        const worked = evaluate(line.value);
+        if (worked.kind !== 'value')
+            return;
+        const field = document.querySelector('#answer');
+        if (field === null) {
+            say('This step is a choice rather than a number, so there is nothing to put it in.');
+            return;
+        }
+        // THE VALUE, NOT A ROUNDED ONE. What the step asks for is a number written
+        // to so many significant figures, and rounding it here would do that part
+        // of the question — which is a topic in its own right — without saying so.
+        field.value = String(worked.value);
+        field.focus();
+        say('That is in the answer box. Round it to the figures the step asks for.');
+    });
+    show();
+}
+/** Put the scratch line away between steps, and empty it. */
+function resetScratch() {
+    const line = $('#scratch-line');
+    line.value = '';
+    $('#scratch-result').textContent = '';
+    $('#scratch-use').disabled = true;
+    $('#scratch-body').hidden = true;
+    $('#scratch-toggle').setAttribute('aria-expanded', 'false');
+}
 function renderWork() {
     if (run === null)
         return;
@@ -241,6 +348,7 @@ function renderWork() {
     renderQuestion(problem, stage);
     renderWorking();
     renderEntry(problem, stage);
+    resetScratch();
     $('#diagnosis').hidden = true;
     renderReadAloud(problem, stage);
     show('work');
@@ -869,6 +977,7 @@ export function boot(storeForTests) {
             $('#update-strip').hidden = true;
         },
     });
+    wireScratch();
     globalThis.addEventListener('hashchange', route);
     const seenWelcome = store.get('solvent.welcomed') === VERSION || store.get('solvent.welcomed') === 'yes';
     if (seenWelcome) {
