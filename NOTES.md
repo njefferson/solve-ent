@@ -357,7 +357,16 @@ call and not a session's.
   presses to begin, patch notes from one source, a text diagnostic, and the
   stale-app offer. None of it applies yet and all of it is owed the moment a
   surface exists.
-- **A palette**, measured by the hub's gate before anything is drawn.
+- **A palette**, measured by the hub's gate before anything is drawn, and the
+  hub's `PALETTES.md` recipe followed rather than improvised. Three things from
+  it are worth deciding EARLY, because they are cheap now and expensive later:
+  the token declarations must be consolidated to ONE source before any second
+  palette exists, or adding families multiplies the blocks that must never
+  drift; palette and mode are INDEPENDENT axes, so the day/night toggle stays
+  as it is and a `data-palette` attribute sits beside it; and the picker labels
+  each option by NAME, because a swatch alone is colour as the sole carrier.
+  **Instrument is the recommended default family** — the only one whose worst
+  text pairing clears 4.87 across all four palettes.
 - **An accessibility gate** covering every state in both modes, measured from
   resolved pixels, with the role invariant that reverse-maps every rendered
   colour to its token — copied from MoleBridge, which is where it earned its
