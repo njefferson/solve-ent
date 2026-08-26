@@ -372,6 +372,32 @@ const COLLECT = `(() => {
     });
   }
 
+  // WHERE THE WORDS START. Not contrast, not target size, not a landmark — just
+  // whether the text on this surface is inset like the rest of the page.
+  //
+  // A surface whose stylesheet block is simply MISSING renders flush to both
+  // screen edges, and every other check here is perfectly happy with it: the
+  // contrast is fine, the targets are big, axe has no complaint, the colours all
+  // map to tokens. That happened — a no-op edit dropped the update strip's rules
+  // and the gate went green on text touching the bezel.
+  const insets = [...document.querySelectorAll('[data-surface]')]
+    .filter((node) => !node.hidden && node.getBoundingClientRect().width > 0)
+    .map((node) => {
+      const words = [...node.querySelectorAll('p, li, h2, h3, label')].filter((el) => {
+        const r = el.getBoundingClientRect();
+        return r.width > 0 && (el.textContent ?? '').trim() !== '';
+      });
+      const lefts = words.map((el) => el.getBoundingClientRect().left);
+      return { surface: node.dataset.surface, left: lefts.length > 0 ? Math.min(...lefts) : null };
+    })
+    .filter((entry) => entry.left !== null);
+
+  const main = document.querySelector('main');
+  const mainInset =
+    main === null
+      ? null
+      : main.getBoundingClientRect().left + parseFloat(getComputedStyle(main).paddingLeft);
+
   const rootStyle = getComputedStyle(document.documentElement);
   const token = (name) => rootStyle.getPropertyValue(name).trim();
   return {
@@ -398,6 +424,8 @@ const COLLECT = `(() => {
       h2: [...document.querySelectorAll('h2')].filter((h) => h.offsetParent !== null || h.closest('dialog[open]')).length,
     },
     themeColor: document.querySelector('meta[name="theme-color"]')?.getAttribute('content') ?? null,
+    insets,
+    mainInset,
   };
 })()`;
 
@@ -606,6 +634,22 @@ function checkState(state, mode, data, findings) {
     findings.push(`${where}: ${colour} on ${node} maps to no token — the palette gate has never measured it`);
   }
 
+  /* ---- the words are inset like the rest of the page ----
+   *
+   * A tolerance of 1px, because a sub-pixel difference is a rounding artefact
+   * and not a layout defect: the strip measures 14.390625 against main's 14.4.
+   * Anything beyond that is a surface whose rules are not applying. */
+  if (data.mainInset !== null) {
+    for (const entry of data.insets) {
+      if (Math.abs(entry.left - data.mainInset) > 1) {
+        findings.push(
+          `${where}: the words on [data-surface="${entry.surface}"] start at ${entry.left.toFixed(1)}px and ` +
+            `the rest of the page starts at ${data.mainInset.toFixed(1)}px — that surface's rules are not applying`,
+        );
+      }
+    }
+  }
+
   /* ---- landmarks and headings ---- */
   if (data.landmarks.main !== 1) findings.push(`${where}: ${data.landmarks.main} <main> landmark(s)`);
   if (data.landmarks.h2 < 1) findings.push(`${where}: no visible level-2 heading`);
@@ -771,6 +815,7 @@ if (findings.length === 0) {
   console.log(`  ok    ${totalText} text reading(s) at or above the floor, gradient stops enumerated`);
   console.log(`  ok    ${totalTaps} interactive target(s), inline-in-a-sentence links exempt and named`);
   console.log('  ok    every rendered colour reverse-maps to a token');
+  console.log('  ok    every surface insets its words like the rest of the page');
   console.log(`  ok    axe-core clean on every state (${axeViolations} violation(s))`);
   console.log('  ok    a real Tab reveals a focus ring on every state');
   console.log(`  ok    every [data-surface] in the document is measured here (${surfacesSeen.size} found)`);

@@ -5,6 +5,7 @@
     "--text on --accent-soft over --page",
     "--text on --accent-soft over --page-alt",
     "--text on --accent-soft over --surface-1",
+    "--text on --accent-soft over --surface-2",
     "--text on --page",
     "--text on --page-alt",
     "--text on --surface-1",

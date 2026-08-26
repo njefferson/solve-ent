@@ -1015,6 +1015,32 @@ one of the mutually exclusive screens — hiding it on the next screen change
 would mean the app noticed a new version, said so, and then quietly took the
 words away.
 
+### And the gate that went green on a surface with no styles at all
+
+The update strip was added with its stylesheet block, and the edit meant to add
+the CSS matched no anchor and did nothing — a scripted replace with no assertion
+on a file whose section headers had changed since.
+
+**Every gate went green.** Contrast was fine, because an unstyled element
+inherits the body's measured colours. Targets were fine, landmarks were fine,
+axe had no complaint, and every rendered colour still reverse-mapped to a token
+because none had been introduced. The only difference between the shipped page
+and the intended one was that the strip ran flush to both screen edges with its
+text on the bezel, while every other word on the page was indented — and not one
+check in the suite asked where a word starts.
+
+It was caught by looking at a screenshot.
+
+`tools/a11y.mjs` measures the inset now: the first words of every visible
+surface against `main`'s content edge, within a pixel — a real surface reads
+14.390625 against 14.4, and one whose rules are not applying reads 0. Planted on
+the exact defect the whole prior suite had passed. Hub LESSONS §158.
+
+**The general shape is worth carrying to the next surface:** accessibility checks
+measure whether an element is USABLE and never whether it belongs to the page it
+is on. Something can be perfectly legible, clickable and announced, and obviously
+broken to anybody looking at it.
+
 ## What is NOT built, and it is most of the app
 
 Named here so nobody has to discover it by looking:

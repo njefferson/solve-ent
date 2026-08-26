@@ -105,6 +105,26 @@ main:focus { outline: none; }
 .icon:hover { background: var(--surface-raised); }
 .icon:active { background: var(--surface-pressed); }
 
+/* ---------- a newer version is ready ----------
+ * A STRIP, not a dialog. It sits under the bar and pushes the page down rather
+ * than covering it, so nothing a reader is part-way through is hidden behind it
+ * and nothing has to be dismissed before answering a question.
+ *
+ * The inset matches `main`. It has to: this block was omitted once by a silent
+ * no-op edit and the strip rendered flush to both screen edges while every other
+ * word on the page was indented — and every gate stayed green, because contrast,
+ * target size, landmarks and axe are all perfectly happy with text touching the
+ * bezel. `tools/a11y.mjs` measures the inset now. */
+.update-strip {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 0.85rem 0.9rem;
+  background: var(--surface-raised);
+  border-bottom: 1px solid var(--rail);
+}
+.update-strip p { margin: 0 0 0.6rem; }
+.update-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
 /* ---------- layout ---------- */
 main {
   max-width: var(--measure);
