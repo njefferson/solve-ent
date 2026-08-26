@@ -48,10 +48,21 @@ export const NOTES_PAGE = '/whats-new';
  * it non-zero, which is also the first release on which that branch had ever
  * been reachable.
  */
-export const OLDER_THAN_SHOWN: number = 4;
+export const OLDER_THAN_SHOWN: number = 5;
 
 /** Newest first. */
 export const RELEASES: readonly Release[] = [
+  {
+    version: '0.9.0',
+    kind: 'CAPABILITY',
+    lines: [
+      'What you have already worked out stays on the screen. Each step you finish is kept in front of you, in the words you wrote it in, until the question is over.',
+      'This matters most where one step feeds the next. A proportion asks how many times the recipe you have, and then asks you to use that number. A rate given upside down asks you to turn it over, and then asks you to divide by what you turned over. Both of those used to ask you to remember a number you could no longer see, or to write it on something else — and needing anything other than this app in front of you is friction that has nothing to do with the algebra.',
+      'It is your own work, not the app\'s: a line appears only once you have got that step right, and it shows what you typed rather than a number worked out for you. It clears when the next question starts, because working from one question sitting beside another question\'s numbers is worse than showing nothing.',
+      'And the closing screen had never been checked for readability. The accessibility sweep is supposed to walk every screen in both light and dark and measure the contrast, the tap targets and the focus outlines. The part of it that drives a set to the end could not actually finish one, so it sat on the question screen and reported everything it measured under the name of the closing screen — for every release there has been. It reaches the end properly now, and the closing screen passed the first time it was really looked at.',
+    ],
+    stillMissing: 'there is no way to do the arithmetic inside the app yet, so a calculator is still a second thing to have in front of you. Nothing can be handed in and there is no page for whoever set the work. The icon is still a simple drawing rather than a proper one.',
+  },
   {
     version: '0.8.0',
     kind: 'CAPABILITY',
@@ -107,16 +118,5 @@ export const RELEASES: readonly Release[] = [
       'And a page listing every release, which the panel above links to. The panel itself never shows more than five, and says how many it is not showing.',
     ],
     stillMissing: 'it does not work offline yet — close the connection and it will not open, which is worst for exactly the people who need it on a bus. There is still no way to practise a single move over and over, which is the thing most worth having when one particular step is the one going wrong. Nothing can be handed in and there is no page for whoever set the work. Every question arrives at the same difficulty for now. And there is no way to be told when a newer version is waiting.',
-  },
-  {
-    version: '0.4.0',
-    kind: 'CAPABILITY',
-    lines: [
-      'When a new version arrives, this will be able to tell you what changed — and it will not be an endless list.',
-      'Every app should say what is different since last time, in the place you already are, rather than sending you off to a website meant for programmers. This release builds the part that holds those words: the newest release plus four before it, and nothing older than that. Everything further back lives on a page inside the app itself.',
-      'Five is a decision and not a number that happened. A list that grows by accumulation eventually becomes longer than the thing it is describing, and nobody opening a maths trainer wants to scroll through two years of it. The app also knows how many releases it is NOT showing, so it can say so, instead of leaving an impression that five is all there has ever been.',
-      'The words are now written in one place and only one place. Until now, what a reader would see and what was kept alongside the working parts were two separate lists — and two lists drift, so an app ends up describing a change that is not in the version somebody is actually running. There is one set of words now, and a check refuses any change that lets the two disagree.',
-    ],
-    stillMissing: 'there is still no screen, so the panel that would appear on a new version, and the page it would open, do not exist yet. What exists is the list of words and the rule about how long it is allowed to be. Nothing here can be opened and read.',
   },
 ];

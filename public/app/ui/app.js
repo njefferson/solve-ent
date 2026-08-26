@@ -221,12 +221,25 @@ function say(text) {
     const live = $('#said');
     live.textContent = text;
 }
+function renderWorking() {
+    const holder = $('#working');
+    const list = $('#working-list');
+    clear(list);
+    const lines = run?.working ?? [];
+    holder.hidden = lines.length === 0;
+    for (const line of lines) {
+        const item = make('li', {});
+        item.append(make('span', { class: 'what' }, `${line.what}: `), make('span', { class: 'wrote' }, line.wrote));
+        list.append(item);
+    }
+}
 function renderWork() {
     if (run === null)
         return;
     const problem = currentProblem(run.session);
     const stage = currentStage(run.session);
     renderQuestion(problem, stage);
+    renderWorking();
     renderEntry(problem, stage);
     $('#diagnosis').hidden = true;
     renderReadAloud(problem, stage);
@@ -258,10 +271,25 @@ function answer(entry) {
     if (run === null)
         return;
     const stage = currentStage(run.session);
+    const problem = currentProblem(run.session);
+    const wasOn = run.session.problemIndex;
     const result = submit(run.session, entry, { now: () => Date.now() });
     run.session = result.session;
     run.attempts.push({ skill: stage.counter, errorClass: result.classification.errorClass });
     if (result.classification.correct) {
+        // WHAT THEY WROTE, kept so the next step does not ask them to remember it.
+        // A choice is recorded as the option they pressed rather than its number,
+        // because "n ÷ r" is the thing worth having in front of you and "2" is not.
+        const wrote = entry.kind === 'choice'
+            ? ((stage.options ?? choiceItemsFor(problem))[entry.option] ?? '')
+            : entry.text.trim();
+        if (wrote !== '')
+            run.working.push({ what: SKILL_NAMES[stage.counter], wrote });
+        // A NEW QUESTION STARTS AN EMPTY LIST. The working belongs to the question
+        // it was done on; carrying it forward would put one question's numbers
+        // beside another question's prompt, which is worse than showing nothing.
+        if (result.session.problemIndex !== wasOn)
+            run.working = [];
         say('That step is right. Next one.');
         if (run.session.finished) {
             renderDone();
@@ -560,7 +588,7 @@ function begin(topic, tier, count, key) {
             // the only identity this app has anywhere.
             rosterNumber: null,
         }, { now: () => Date.now() });
-        run = { session, attempts: [], saidNotes: new Set() };
+        run = { session, attempts: [], saidNotes: new Set(), working: [] };
         $('#run-note').hidden = true;
         renderWork();
     }

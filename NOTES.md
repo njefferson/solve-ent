@@ -1224,6 +1224,58 @@ the same verdict from the other side. A topic with a single difficulty shows no
 picker at all, because a screen asking somebody to agree with the only option
 there was is worse than no screen.
 
+## Session 6: nothing the reader has to hold in their head
+
+The requirement, stated for a sibling app and applied here: **a reader should
+need nothing in front of them but this app.** Two questions came with it — does
+a calculator hand its result to the place the work is being done, and is there a
+log of previous steps beside the question. The answers here were no and no, and
+the second had just got worse: the difficulty work added a stage that asks for
+the rate turned over and then asks for a division by it, so the newest question
+in the app was the one that most needed a number the reader could no longer see.
+
+### The working is built from what the reader wrote
+
+`Run.working` is a list of `{ what, wrote }`, pushed only where the grader
+accepted the entry, cleared when the question changes, and **never read off the
+`Solution`**. That is what makes it safe rather than careful: there is no future
+entry in it to leak, because a step only lands in it after somebody answered it,
+and a wrong step never advances. The same rule that keeps `Problem` free of
+answers keeps this free of them, structurally, with nothing to remember.
+
+`what` comes from the stage's own `SKILL_NAMES[counter]` rather than a table
+typed here — the walk-trap this repository already carries, applied before it
+could bite. A choice records the OPTION rather than its index, because `n ÷ r`
+is the thing worth having in front of you and `2` is not.
+
+It sits between the question and the step: read what is being asked, see what
+you have established, then answer the next thing.
+
+### The closing screen had never been measured
+
+Adding a state meant adding a way to reach it, and the reach for one state
+could not silently fail without something noticing — so `tools/a11y.mjs` now
+ASSERTS that the state was reached before it measures anything. It went red
+immediately, on `done`, in both modes.
+
+`finishRun` typed 1, 2, 3… and hoped. Only a correct entry advances a step, so
+it never once reached the end of a run: the sweep sat on `work` and reported
+every contrast reading, every target, every focus outline and every axe pass
+**under the name `done`**, from the day the file was written. Each reading was
+real; the sentence over them was false — hub LESSONS §153's shape, in the one
+place where being wrong is invisible.
+
+It drives a shadow session now, exactly as `tools/walk.mjs` does: the screen is
+never told the answer, so a harness that must answer correctly works it out
+separately, and the browser's session and an independent one have to agree at
+every stage for the run to move at all. The closing screen passed on the first
+sweep that actually looked at it — 1,008 text readings against 944, and 180
+targets against 176, which is the size of the screen that had been missing.
+
+**The general shape, and it is the third time this family has met it: a check
+that navigates before it measures needs to assert that it arrived.** The
+readings are the easy part.
+
 ## What is NOT built, and it is most of the app
 
 Named here so nobody has to discover it by looking:

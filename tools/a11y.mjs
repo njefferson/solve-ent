@@ -48,6 +48,12 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { serve } from './serve.mjs';
+// The grader's, used to DRIVE the screen rather than to check it. Nothing
+// student-facing may reach these; see `driveCorrect`.
+import { TOPIC_NAMES, solve } from '../src/engine/problem.ts';
+import { currentProblem, currentStage, startSession, submit } from '../src/engine/steps.ts';
+import { correctEntryFor } from '../src/engine/taxonomy.ts';
+import { SCRATCH_SIG_FIGS } from '../src/engine/tolerance.ts';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 const PUBLIC = join(REPO, 'public');
@@ -141,6 +147,24 @@ const STATES = [
     },
   },
   {
+    // WHAT THE READER HAS ALREADY WRITTEN, which is on screen only from the
+    // second step of a question onwards — so the resting `work` state never
+    // shows it, exactly like the diagnosis panel one entry up.
+    name: 'work-working',
+    surface: 'work',
+    path: '/',
+    async reach(page) {
+      await page.click('#begin');
+      await page.locator('#topics button').first().click();
+      await page.locator('#difficulties button').first().click();
+      // ONE. A tier-1 rearrangement has two stages, so driving two finishes the
+      // question — and the working belongs to the question, so it would be
+      // empty again by the time anything was measured.
+      await driveCorrect(page, 1);
+    },
+    arrived: '#working',
+  },
+  {
     name: 'done',
     surface: 'done',
     path: '/',
@@ -150,7 +174,7 @@ const STATES = [
       // AND THEN A DIFFICULTY. The first topic has three, so pressing it opens
       // the picker rather than starting a run.
       await page.locator('#difficulties button').first().click();
-      await finishRun(page);
+      await driveCorrect(page);
     },
   },
   {
@@ -210,6 +234,7 @@ const STATES = [
       await page.click('#begin');
       await page.click('#open-info');
     },
+    arrived: '#info[open]',
   },
   {
     name: 'whats-new-dialog',
@@ -221,6 +246,7 @@ const STATES = [
         if (dialog instanceof HTMLDialogElement && !dialog.open) dialog.showModal();
       });
     },
+    arrived: '#whats-new[open]',
   },
   {
     // A NEWER VERSION IS READY. Its own state, because it is only ever on screen
@@ -279,23 +305,50 @@ async function wrongDrillStep(page) {
   }
 }
 
-/** Answer until the run finishes, getting a couple wrong along the way. */
-async function finishRun(page) {
-  for (let guard = 0; guard < 400; guard += 1) {
-    if (await page.locator('[data-surface="done"]').isVisible()) return;
-    const typed = await page.locator('#answer').count();
-    if (typed > 0) {
-      // No access to the answer from here — by design, since this harness drives
-      // the same screen a reader uses and that screen has never been told it.
-      // So: exhaust the step by trying, and move the run on by pressing on.
-      await page.fill('#answer', String(guard + 1));
-      await page.locator('#entry .primary').click();
-    } else if ((await page.locator('.choice').count()) > 0) {
-      await page.locator('.choice').first().click();
+/**
+ * Answer correctly, for as many steps as asked, by working the run out HERE.
+ *
+ * A SHADOW SESSION, exactly as `tools/walk.mjs` drives one. The screen is never
+ * told the answer, so a harness that has to answer correctly must work it out
+ * separately — and that is a stronger check than guessing, because the browser's
+ * session and an independent one have to agree at every stage for the run to
+ * move at all.
+ *
+ * THIS REPLACED A LOOP THAT TYPED 1, 2, 3… AND HOPED. It could not reach the
+ * end of a run, so `done` — the screen every reader sees last — was never once
+ * measured: the sweep sat on `work` and reported every reading under the name
+ * `done`, in both modes, from the day this file was written. What found it was
+ * asserting that a state had been reached before measuring it.
+ */
+async function driveCorrect(page, steps = Number.POSITIVE_INFINITY, tier = 1) {
+  // THE SHADOW HAS TO BE THE RUN THE SCREEN IS ON — same key, same topic, same
+  // difficulty, same count — or the entries it works out are correct answers to
+  // a different question and the run stops dead. Every state that calls this
+  // presses the first topic and the first difficulty.
+  const firstTopic = Object.keys(TOPIC_NAMES)[0];
+  let shadow = startSession(
+    { assignmentKey: 'practice', topic: firstTopic, tier, count: 5, mode: 'practice', rosterNumber: null },
+    { now: () => 0 },
+  );
+  let done = 0;
+  for (let guard = 0; guard < 200 && done < steps; guard += 1) {
+    if (shadow.finished) break;
+    if (await page.locator('[data-surface="done"]').isVisible()) break;
+    const problem = currentProblem(shadow);
+    const stage = currentStage(shadow);
+    const entry = correctEntryFor(problem, solve(problem), stage, SCRATCH_SIG_FIGS);
+    if (entry.kind === 'choice') {
+      const choices = page.locator('.choice');
+      if ((await choices.count()) === 0) break;
+      await choices.nth(entry.option).click();
     } else {
-      return;
+      if ((await page.locator('#answer').count()) === 0) break;
+      await page.fill('#answer', entry.text);
+      await page.locator('#entry .primary').click();
     }
-    await page.waitForTimeout(10);
+    await page.waitForTimeout(20);
+    shadow = submit(shadow, entry, { now: () => 0 }).session;
+    done += 1;
   }
 }
 
@@ -788,6 +841,22 @@ for (const mode of MODES) {
     await page.waitForTimeout(120);
     await state.reach(page);
     await page.waitForTimeout(120);
+
+    // THE STATE HAS TO HAVE BEEN REACHED, and nothing here checked it. Every
+    // measurement below runs on whatever is on screen and is reported under
+    // this state's NAME, so a `reach` that quietly stopped short — a control
+    // renamed, a screen that now needs one more press — measured some other
+    // surface and called it this one. Every reading would be real and the
+    // sentence over them would be false, which is the one thing worse than a
+    // gate that does not run (hub LESSONS 153).
+    //
+    // The selector defaults to the declared surface. Dialogs declare their own,
+    // because a dialog is not a `[data-surface]` and `null` there means "this
+    // state is a thing on top of a screen" rather than "do not check".
+    const arrived = state.arrived ?? (state.surface === null ? null : `[data-surface="${state.surface}"]`);
+    if (arrived !== null && !(await page.locator(arrived).first().isVisible())) {
+      findings.push(`${state.name} · ${mode}: never got there — ${arrived} is not on screen after reach()`);
+    }
 
     const data = await page.evaluate(COLLECT);
     for (const surface of data.surfaces) surfacesSeen.add(surface);

@@ -193,9 +193,13 @@ for (let guard = 0; guard < 200; guard += 1) {
   const stage = currentStage(shadow);
   const entry = correctEntryFor(problem, solve(problem), stage, SCRATCH_SIG_FIGS);
 
+  // What the reader is about to write, in the words they write it in — so the
+  // working can be checked for THAT rather than for something like it.
+  let wrote = entry.kind === 'text' ? entry.text : '';
   if (entry.kind === 'choice') {
     const choices = page.locator('.choice');
     if ((await choices.count()) === 0) break;
+    wrote = (await choices.nth(entry.option).innerText()).trim();
     await choices.nth(entry.option).click();
   } else {
     if ((await page.locator('#answer').count()) === 0) break;
@@ -210,8 +214,33 @@ for (let guard = 0; guard < 200; guard += 1) {
     check(false, 'a correct entry was marked wrong by the screen', `${stage.id}: "${entry.kind === 'text' ? entry.text : String(entry.option)}"`);
     break;
   }
+  const wasOn = shadow.problemIndex;
   shadow = submit(shadow, entry, { now: () => 0 }).session;
   stepsDriven += 1;
+
+  /* ---- what the reader has already written stays in front of them ---- */
+  //
+  // THE POINT OF IT: nothing a step needs should have to be held in the
+  // reader's head or fetched from outside the app. A proportion asks for the
+  // scale and then asks you to use it; a rate stated upside down asks you to
+  // turn it over and then divide by what you turned over. Both of those used to
+  // ask the reader to remember a number they could no longer see.
+  if (!shadow.finished && shadow.problemIndex === wasOn && stepsDriven === 1) {
+    const visible = await page.locator('#working').isVisible();
+    check(visible, 'the step just answered is still on screen for the next one');
+    const shown = visible ? await page.locator('#working-list').innerText() : '';
+    check(shown.includes(wrote), 'and it is what the reader wrote, not a value the app worked out', wrote.slice(0, 40));
+    check(
+      (await page.locator('#working-list li').count()) === stepsDriven,
+      'with a line for each step done and none for a step nobody has answered',
+    );
+  }
+  if (shadow.problemIndex !== wasOn && !shadow.finished) {
+    check(
+      await page.locator('#working').isHidden(),
+      'and a new question starts with an empty one, since the working belongs to the question',
+    );
+  }
 }
 check(stepsDriven > 0, 'correct answers are accepted and carry the run forward', `${String(stepsDriven)} step(s)`);
 check((await visibleSurface(page)).join() === 'done', 'the run finishes');

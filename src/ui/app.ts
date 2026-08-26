@@ -131,11 +131,33 @@ function make<K extends keyof HTMLElementTagNameMap>(
 
 type SurfaceName = 'welcome' | 'start' | 'difficulty' | 'drill-pick' | 'drill' | 'work' | 'done';
 
+/** One step the reader has already finished, in the words they finished it in. */
+interface WorkingLine {
+  /** What the step was, from the stage's own skill. Never typed out here. */
+  readonly what: string;
+  /** What the READER wrote, exactly. Never a value read off the solution. */
+  readonly wrote: string;
+}
+
 interface Run {
   session: Session;
   readonly attempts: Attempt[];
   /** Notes already said during the run, so the once-only cadence holds across renders. */
   readonly saidNotes: Set<string>;
+  /**
+   * The steps already done on the question in front of the reader.
+   *
+   * **BUILT FROM WHAT THEY WROTE, never from the solution**, and that is the
+   * reason it is safe rather than a thing to be careful about: there is no
+   * future entry to show, so no arrangement of this list can reach a step
+   * nobody has answered yet. A step only lands here once the grader has
+   * accepted it, and a wrong step never advances, so every line is the reader's
+   * own correct work.
+   *
+   * Cleared when the question changes. It is in memory for as long as the
+   * screen is, and is written nowhere — practice records nothing.
+   */
+  working: WorkingLine[];
 }
 
 let run: Run | null = null;
@@ -292,11 +314,25 @@ function say(text: string): void {
   live.textContent = text;
 }
 
+function renderWorking(): void {
+  const holder = $('#working');
+  const list = $('#working-list');
+  clear(list);
+  const lines = run?.working ?? [];
+  holder.hidden = lines.length === 0;
+  for (const line of lines) {
+    const item = make('li', {});
+    item.append(make('span', { class: 'what' }, `${line.what}: `), make('span', { class: 'wrote' }, line.wrote));
+    list.append(item);
+  }
+}
+
 function renderWork(): void {
   if (run === null) return;
   const problem = currentProblem(run.session);
   const stage = currentStage(run.session);
   renderQuestion(problem, stage);
+  renderWorking();
   renderEntry(problem, stage);
   $('#diagnosis').hidden = true;
   renderReadAloud(problem, stage);
@@ -330,11 +366,25 @@ function renderReadAloud(problem: Problem, stage: Stage): void {
 function answer(entry: Parameters<typeof submit>[1]): void {
   if (run === null) return;
   const stage = currentStage(run.session);
+  const problem = currentProblem(run.session);
+  const wasOn = run.session.problemIndex;
   const result = submit(run.session, entry, { now: () => Date.now() });
   run.session = result.session;
   run.attempts.push({ skill: stage.counter, errorClass: result.classification.errorClass });
 
   if (result.classification.correct) {
+    // WHAT THEY WROTE, kept so the next step does not ask them to remember it.
+    // A choice is recorded as the option they pressed rather than its number,
+    // because "n ÷ r" is the thing worth having in front of you and "2" is not.
+    const wrote =
+      entry.kind === 'choice'
+        ? ((stage.options ?? choiceItemsFor(problem))[entry.option] ?? '')
+        : entry.text.trim();
+    if (wrote !== '') run.working.push({ what: SKILL_NAMES[stage.counter], wrote });
+    // A NEW QUESTION STARTS AN EMPTY LIST. The working belongs to the question
+    // it was done on; carrying it forward would put one question's numbers
+    // beside another question's prompt, which is worse than showing nothing.
+    if (result.session.problemIndex !== wasOn) run.working = [];
     say('That step is right. Next one.');
     if (run.session.finished) {
       renderDone();
@@ -685,7 +735,7 @@ function begin(topic: Topic, tier: number, count: number, key: string): void {
       },
       { now: () => Date.now() },
     );
-    run = { session, attempts: [], saidNotes: new Set() };
+    run = { session, attempts: [], saidNotes: new Set(), working: [] };
     $('#run-note').hidden = true;
     renderWork();
   } catch (error) {

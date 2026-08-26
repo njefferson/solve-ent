@@ -210,6 +210,27 @@ a.ghost { color: var(--accent); }
 .question-body { margin: 0; }
 .question .ghost { margin-top: 0.25rem; }
 
+/* ---------- what the reader has already written on this question ----------
+ *
+ * A RAIL AND A HEADING, like the diagnosis, and for the same reason: what this
+ * block is has to be readable to somebody who sees no colour at all. Every
+ * value in it is something the reader typed and the grader accepted, so it is a
+ * record of their own work rather than anything the app is handing them. */
+.working {
+  background: var(--surface);
+  border: 1px solid var(--rail);
+  border-left-width: 4px;
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+.working h3 { font-size: 0.95em; color: var(--text-2); margin: 0 0 0.4rem; font-weight: 600; }
+.working ol { margin: 0; padding-left: 1.2rem; }
+.working li { margin-bottom: 0.25rem; }
+.working li:last-child { margin-bottom: 0; }
+.working .what { color: var(--text-2); }
+.working .wrote { font-weight: 600; }
+
 .step { font-weight: 600; margin-bottom: 0.35rem; }
 .unit-hint { color: var(--text-2); font-size: 0.95em; }
 

@@ -9,6 +9,37 @@ release changed something you can see or do, it is described below in the words
 you would use for it. If it changed something under the surface that you cannot
 see, it says that plainly rather than dressing it up.
 
+## 0.9.0 — CAPABILITY
+
+**What you have already worked out stays on the screen.** Each step you finish
+is kept in front of you, in the words you wrote it in, until the question is
+over.
+
+This matters most where one step feeds the next. A proportion asks how many
+times the recipe you have, and then asks you to use that number. A rate given
+upside down asks you to turn it over, and then asks you to divide by what you
+turned over. Both of those used to ask you to remember a number you could no
+longer see, or to write it on something else — and needing anything other than
+this app in front of you is friction that has nothing to do with the algebra.
+
+It is your own work, not the app's: a line appears only once you have got that
+step right, and it shows what you typed rather than a number worked out for you.
+It clears when the next question starts, because working from one question
+sitting beside another question's numbers is worse than showing nothing.
+
+**And the closing screen had never been checked for readability.** The
+accessibility sweep is supposed to walk every screen in both light and dark and
+measure the contrast, the tap targets and the focus outlines. The part of it
+that drives a set to the end could not actually finish one, so it sat on the
+question screen and reported everything it measured under the name of the
+closing screen — for every release there has been. It reaches the end properly
+now, and the closing screen passed the first time it was really looked at.
+
+**Still missing:** there is no way to do the arithmetic inside the app yet, so a
+calculator is still a second thing to have in front of you. Nothing can be
+handed in and there is no page for whoever set the work. The icon is still a
+simple drawing rather than a proper one.
+
 ## 0.8.0 — CAPABILITY
 
 **You can choose how the questions are set now.** Pick a topic and it asks which

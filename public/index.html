@@ -103,6 +103,15 @@
   <section data-surface="work" hidden>
     <h2 tabindex="-1"><span id="topic-label"></span></h2>
     <div id="question" class="question"></div>
+    <!-- WHAT THE READER HAS ALREADY WRITTEN on this question, in the order they
+         wrote it. Between the question and the step on purpose: read what is
+         being asked, see what you have established, then answer the next thing.
+         It carries the reader's OWN accepted entries and never touches the
+         solution, so there is nothing in it a future step could leak. -->
+    <section id="working" class="working" aria-labelledby="working-title" hidden>
+      <h3 id="working-title">What you have so far on this question</h3>
+      <ol id="working-list"></ol>
+    </section>
     <p id="step-prompt" class="step"></p>
     <p id="unit-hint" class="unit-hint" hidden></p>
     <div id="read-aloud" hidden></div>
