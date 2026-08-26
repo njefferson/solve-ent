@@ -104,6 +104,14 @@ jobs:
       - name: The release triplet is written once
         run: npm run version:check
 
+      # No score, no streak, no target, no congratulation — and no copy that
+      # assumes a classroom. Comments are stripped before matching, because the
+      # comments are exactly where the words that must NOT be built are written
+      # down. It also runs on every commit through `.branch-guard`; here it
+      # covers the case where somebody committed without the hook installed.
+      - name: The words
+        run: npm run copy
+
       # Prints the two numbers this project is measured by: the taxonomy
       # collision count, which must be zero, and the unclassified rate.
       - name: Tests

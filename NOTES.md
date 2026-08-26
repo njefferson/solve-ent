@@ -10,10 +10,39 @@ at maths" — they have never been shown how the specific moves work. This app
 teaches exactly those moves and nothing else.
 
 **Attribution is the product. Do not build a solver.** Free tools already solve
-these and already explain the procedure. What none of them do is attribute a
-specific wrong answer to a specific conceptual failure and report that to the
-teacher. Every decision below follows from that, and the one thing this must
-never become is a solver.
+these and already explain the procedure. What this adds is attributing a
+specific wrong answer to a specific conceptual failure. Every decision below
+follows from that, and the one thing this must never become is a solver.
+
+**AND THE CLAIM HAS TO BE STATED HONESTLY, because the first version of this
+paragraph was not.** It read *what none of them do*, and that is false. Brown
+and Burton's BUGGY did exactly this for subtraction in 1978, building a
+catalogue of buggy procedures — the correct execution of an incorrect procedure
+— from real student answer sheets. Algebra tutors have used mal-rules the same
+way ever since, and Carnegie Learning's MATHia ships model tracing over a bug
+library today. The uncomfortable specific: the canonical textbook example of a
+buggy rule in that literature is *forgetting to change the sign when moving a
+term across the equals sign*, which is `E-REARR-SIGN`, one of the twenty-nine
+here, almost word for word. It was re-derived, not invented.
+
+**What IS true, and is the defensible claim:** the platforms a chemistry
+teacher can actually buy diagnose at the TOPIC level, not the misconception
+level. Get a dilution wrong in ALEKS and it re-serves molarity and solution
+prep — *you are shaky on this* rather than *you used the ratio upside down*. So
+the sentence is not "nobody has thought of this". It is "the research solved it,
+the products shipped something coarser, and this one refuses to guess when it
+cannot tell".
+
+**And the biggest open risk follows directly from that history.** BUGGY's
+catalogue came from thousands of real student answer sheets. These
+twenty-nine came from reasoning about what students do wrong — the same
+reasoning that predicts their values. That is hub LESSONS 64 exactly, and the
+collision sweep cannot see it: the sweep checks that the invented classes are
+mutually distinguishable, never that they are the ones students actually hold.
+The fix is cheap and somebody already has the material: run real marked work
+through `classify` and read what comes back. An unclassified rate against real
+answers that is far above the 10.16% this sweep reports would mean the taxonomy
+is describing an imagination.
 
 The audience is one classroom, and this is a sibling to MoleBridge: the same
 teacher, the same students, the same board at the front of the room. Static, no
@@ -27,9 +56,9 @@ one, said once and never explained again.
 ## Where this stands
 
 **Session 1 is complete. There is no user interface, on purpose.** The domain
-engine, the error taxonomy, the step machine and the test suite are built and
-green: 49 tests, a clean strict type check with no `any` in the tree, and no
-runtime dependencies at all.
+engine, the error taxonomy, the step machine, the run reader and the test suite
+are built and green: 61 tests, a clean strict type check with no `any` in the
+tree, and no runtime dependencies at all.
 
 **The two numbers session 1 exists to produce:**
 
@@ -46,6 +75,93 @@ Both are printed by `npm test` and by `node tools/cli.ts scan`.
 
 Two more numbers are printed beside them, and both exist to keep the first two
 honest — see *What the collision sweep cannot see* below.
+
+## Blocked practice, and what the engine owes it
+
+**A whole problem is interleaved practice, which makes a skill stick once you
+have it. A skill you do not have yet is built by BLOCKED practice** — the same
+move again until it is yours. An app with only whole problems makes the student
+who inverts a ratio walk five steps they can already do to reach the one they
+cannot. The single-skill drill is its own screen and it is owed early, not late.
+
+**It costs almost nothing because the classifier is a pure function of
+(problem, stage, entry).** A drill is a loop around that and `readRun`: no
+session, no completion code, nothing recorded. That purity is a load-bearing
+property now rather than a testing convenience, and `taxonomy.test.ts` holds it.
+
+**One thing had to change to make that true.** `generateProblem` kept a
+module-level map of which guarantee refused which candidate, and it grew
+forever — 2.8 MB over two thousand problems. Diagnostic data, read by the sweep
+immediately after generating, and utterly invisible until a loop runs the
+generator thousands of times, which is precisely what a drill is. It is bounded
+at `MAX_REPORTS` now and plateaus: four thousand problems cost 5.6 MB, and eight
+thousand more added 0.2.
+
+## What the app says about a run, and what it never says
+
+**NO SCORE, NO STREAK, NO TARGET, NO CONGRATULATION.** Streaks and badges teach
+a student to chase the animation and make stopping feel like failing, which is
+exactly wrong for the person who most needs to do twenty of these — usually the
+one who has been told longest that they are bad at it.
+
+**What replaces praise is CHANGE.** A good tutor does not read out a fraction;
+they say *that went upside down again, here is why*, and at the end *you were
+getting these wrong the same way and now you are not*.
+
+The cadence, exactly, in `src/report/drill.ts`:
+
+- **Once** is not a pattern and is never named.
+- **Twice** goes in the closing summary.
+- **Three times** is said during the run, once, with what fixes it, and never
+  again.
+
+**The change sentence is said only where it is true**, and "true" needed a
+threshold rather than a condition buried in an `if`. `STOPPED_AFTER_CLEAN` is 2:
+one clean attempt after a run of wrong ones is as likely to be a guess as a
+change, and telling somebody they have stopped doing something is a claim about
+a person that has to be earned. Clean attempts at a DIFFERENT skill earn
+nothing — the claim is about one move.
+
+**E-ARITH and E-UNCLASSIFIED are never called patterns.** One is a slip with the
+right method and the other means the app could not tell; telling somebody they
+keep making a mistake nobody identified is telling them nothing they can act on.
+
+**The all-wrong case is a branch written by hand.** The general sentence renders
+it as *four of them, and none right* — accurate, and the exact reading that
+person does not need. That branch carries no number at all, and a test asserts
+it: `!/\d/.test(text)`. Assume every generated sentence has a degenerate case
+and go looking for it.
+
+**Two gates hold this, and they cover different halves.** `DrillOutcome` has no
+field for a count, a total or a score and must never gain one — the same
+argument as the missing accommodation field on a `Session`, and the reason it is
+a type rather than a rule to remember. And `tools/copy-check.mjs` covers the
+WORDS: streak, badge, points, a fraction like 3/7, every variant of "Great job",
+and copy addressed to a reader assumed to be in a classroom. **It runs on every
+commit** through `.branch-guard`, because this is the rule a later session undoes
+in one well-meaning commit — a streak counter is an afternoon's work and feels
+like kindness.
+
+**Comments are stripped before matching, and that is load-bearing.** The
+comments are exactly where the words that must NOT be built are written down —
+this repository's own drill module has four paragraphs of them. A gate that read
+comments would fail on the prose explaining the rule, which teaches people to
+word things around it. Planted four ways: a streak counter, a fraction, copy
+assuming a teacher, and the same words inside a comment, which correctly did NOT
+fire.
+
+## Nobody is assumed to be in a classroom
+
+Homeschoolers are a real audience and the structure already serves them; the
+WORDS are the only thing that would have excluded them. So the neutral version
+is written from the start rather than retrofitted — same code, same features, no
+second mode.
+
+**What is banned is second-person ADDRESS assuming a room** — "your teacher",
+"ask your teacher", "hand it in", a named gradebook or learning-management
+system. Not the word *teacher* on its own: this repository is built for one, the
+documentation says so, and a rule firing on that would push people into writing
+around it.
 
 ## The scope, and the fence around it
 
@@ -202,6 +318,30 @@ caught by reading the harness's output — 3.975 kg printed as
 session. `tools/verify-algebra.mjs` recomputes that intermediate by hand now;
 planting the defect back makes it report 900 failures while `npm test` stays
 entirely green.
+
+## A third defect every test agreed with
+
+**A choice question graded the FIRST option correct when the grader did not
+recognise the stage.** `optionsFor` was a hand-typed map from (topic, stage id)
+to a builder, with a fallback returning an empty set — so a stage whose id it
+did not know reported `correct: 0` with zero predictions, while the screen
+showed the real options. On a rearrangement problem, option 0 is the
+upside-down answer.
+
+Nothing failed, because `correctEntryFor` submitted option 0 and `classify`
+compared against the same broken lookup: the engine agreeing with itself about a
+wrong answer, which is the third time that exact shape has appeared here.
+
+The fix is DERIVATION rather than a bigger map. Options are keyed on the TOPIC
+alone — a topic has at most one choice stage, so there is no id to get wrong —
+and `taxonomy.test.ts` asserts that "at most one" holds, because it is the
+assumption the keying rests on.
+
+**And the first test written for it could not have caught it.** Asserting that
+the two readers agree today is satisfied by every stage in the tree, since every
+id is one the old map already knew; re-planting the map changed nothing. The
+check that goes red exercises the failure mode directly — a choice stage
+carrying an id nothing recognises — and it does.
 
 ## What `npm test` cannot tell you, and what does
 
@@ -373,3 +513,19 @@ call and not a session's.
   keep.
 - **A browser walk** of the primary journey, getting one step wrong on purpose,
   dropping the network, and reloading the page for real.
+- **The single-skill drill, as its own screen, EARLY.** The engine half is
+  built; the screen is not. See *Blocked practice* above.
+- **A five-minute opener path before an elaborate one.** The classroom feedback
+  on the sibling app was not about practice or reports — it was that a short
+  opener at the start of a lesson is what would actually get used. A link that
+  goes straight into two short problems, no menu, no setup.
+  **And the trap that comes with it: a hash-only URL change is same-document**,
+  so a link like that does nothing in an already-open tab unless something
+  listens for `hashchange`. That is a silent failure — the link looks fine and
+  the page simply does not move.
+- **Two walk traps to avoid rather than discover.** Scope every count in a
+  browser walk to its own screen: an unscoped row count went from 8 to 16 in the
+  sibling app the moment a second screen used the same class. And any map from a
+  content id to a step must be DERIVED from the id rather than typed by hand,
+  with the deliberate exclusions named in a test — the hand-typed version of
+  exactly that shape is what silently graded the first option correct here.

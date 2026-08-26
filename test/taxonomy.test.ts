@@ -39,6 +39,7 @@ import {
   CLASS_MEANINGS,
   COUNTER_SKILLS,
   ERROR_CLASSES,
+  choiceOptionsFor,
   classify,
   collisionsFor,
   correctEntryFor,
@@ -566,6 +567,106 @@ test('a stage that grades figures is the last one, and only one does', () => {
         }
       }
     }
+  }
+});
+
+test('a choice stage and the grader read ONE derivation of the options', () => {
+  // THE HAND-TYPED MAP THAT WAS A COIN TOSS. `optionsFor` used to dispatch on
+  // (topic, stage id) with a fallback returning an empty set, so a choice stage
+  // whose id it did not recognise reported `correct: 0` while the screen showed
+  // the real options — the FIRST option graded correct whatever it said, which
+  // on a rearrangement is the upside-down answer. Nothing failed, because
+  // `correctEntryFor` submitted option 0 and `classify` compared against the
+  // same broken lookup.
+  //
+  // The derivation is keyed on the TOPIC now, so there is no id to get wrong.
+  // This checks the assumption that keying rests on, and checks the two readers
+  // agree.
+  for (const topic of TOPICS) {
+    for (const tier of TIERS) {
+      for (let index = 0; index < 40; index += 1) {
+        const problem = generateProblem('ONE-DERIVATION', topic, tier, index);
+        const solution = solve(problem);
+        const choices = stagesFor(problem).filter((stage) => stage.kind === 'CHOICE');
+
+        // AT MOST ONE. The day a topic gains a second choice stage, keying on
+        // the topic silently answers about the first — so the assumption fails
+        // here rather than in a student's session.
+        assert.ok(choices.length <= 1, `${topic} has ${choices.length} choice stages, and the options are keyed by topic`);
+
+        const derived = choiceOptionsFor(problem);
+        if (choices.length === 0) {
+          assert.equal(derived, null, `${topic} declares options for a choice stage it does not build`);
+          continue;
+        }
+        const stage = choices[0] as Stage;
+        assert.ok(derived !== null, `${topic} builds a choice stage and declares no options`);
+        assert.deepEqual(
+          [...(stage.options ?? [])],
+          [...derived.items],
+          `${topic}: the options shown are not the options graded`,
+        );
+
+        // And the correct one is a real index into what is shown — not 0 by
+        // default, which is what the old fallback returned.
+        const predicted = predictionsFor(problem, solution, stage);
+        assert.ok(
+          predicted.correctChoice !== null &&
+            predicted.correctChoice >= 0 &&
+            predicted.correctChoice < (stage.options ?? []).length,
+          `${topic}: correctChoice is ${predicted.correctChoice} of ${(stage.options ?? []).length}`,
+        );
+        // Every wrong option attributes to exactly one class. An option nobody
+        // predicts is an option a student can pick and be told nothing about.
+        const attributed = new Set(predicted.predictions.map((p) => p.choice));
+        for (let option = 0; option < (stage.options ?? []).length; option += 1) {
+          if (option === predicted.correctChoice) continue;
+          assert.ok(attributed.has(option), `${topic}: option ${option + 1} is shown and attributes to nothing`);
+        }
+      }
+    }
+  }
+});
+
+test('a choice stage the grader has never heard of still resolves to the right options', () => {
+  // THE CHECK THAT WOULD HAVE GONE RED, and the first version of it was not.
+  //
+  // Asserting that the two readers agree today cannot catch this, because the
+  // defect only exists once somebody ADDS a stage — every id in the tree is one
+  // the old map already knew. Re-planting the id-keyed map changed nothing in a
+  // test that drives only real stages.
+  //
+  // So the failure mode is exercised directly: a choice stage carrying an id
+  // nothing recognises. Under the old map that reported `correct: 0` with zero
+  // predictions, and `classify` accepted option 0 — the upside-down
+  // rearrangement — as correct. Keyed on the topic there is no id to miss.
+  for (const topic of ['REARRANGE', 'POWERS', 'FRACTIONS', 'UNITS'] as const) {
+    const problem = generateProblem('ORPHAN', topic, 2, 0);
+    const solution = solve(problem);
+    const real = stagesFor(problem).find((stage) => stage.kind === 'CHOICE') as Stage;
+    const orphan: Stage = { ...real, id: `${real.id}-NEVER-SEEN` };
+
+    const asReal = predictionsFor(problem, solution, real);
+    const asOrphan = predictionsFor(problem, solution, orphan);
+    assert.equal(
+      asOrphan.correctChoice,
+      asReal.correctChoice,
+      `${topic}: an unfamiliar stage id changed which option is correct`,
+    );
+    assert.equal(
+      asOrphan.predictions.length,
+      asReal.predictions.length,
+      `${topic}: an unfamiliar stage id lost every prediction`,
+    );
+
+    // And the wrong option is still refused. Under the old map, option 0 on a
+    // rearrangement was the upside-down answer and came back correct.
+    const wrong = asReal.correctChoice === 0 ? 1 : 0;
+    assert.equal(
+      classify(problem, solution, orphan, { kind: 'choice', option: wrong }).correct,
+      false,
+      `${topic}: option ${wrong + 1} was graded correct on a stage the grader did not recognise`,
+    );
   }
 });
 

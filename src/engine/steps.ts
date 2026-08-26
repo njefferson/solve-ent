@@ -94,15 +94,22 @@ export type SessionMode = 'assignment' | 'practice';
 
 /** What a session was started with. */
 export interface SessionConfig {
-  /** What a teacher wrote on the board. The problems are a pure function of it. */
+  /**
+   * The key the set is generated from — written on a board, in a message, or
+   * at the top of a worksheet. The problems are a pure function of it, which is
+   * what lets one key produce the same set for everybody working from it.
+   */
   readonly assignmentKey: string;
   readonly topic: Topic;
   readonly tier: number;
   readonly count: number;
   readonly mode: SessionMode;
   /**
-   * A teacher-assigned number from 1 to 4095, and the ONLY identity in this
+   * An assigned number from 1 to 4095, and the ONLY identity in this
    * application. Never a name. `null` in practice, where nothing is reported.
+   *
+   * Assigned by whoever set the work — which is a teacher in a classroom and is
+   * not always a teacher. The words a reader sees never assume one.
    */
   readonly rosterNumber: number | null;
 }
@@ -122,7 +129,7 @@ export interface Session {
   readonly rightFirstTime: number;
   /** Whether the current step has already been attempted once. */
   readonly stageAttempted: boolean;
-  /** Wrong steps by skill, which is what a teacher's report reads. */
+  /** Wrong steps by skill, which is what a report reads. */
   readonly wrongBySkill: SkillCounts;
   /** Wrong steps by class, which is what says whether the taxonomy is working. */
   readonly wrongByClass: Readonly<Record<string, number>>;
@@ -157,7 +164,7 @@ export class SessionError extends Error {
   }
 }
 
-/** The largest roster number a teacher may assign. Twelve bits, and no name. */
+/** The largest roster number that can be assigned. Twelve bits, and no name. */
 export const MAX_ROSTER_NUMBER = 4095;
 
 /**

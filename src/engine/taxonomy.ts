@@ -180,8 +180,8 @@ export const CLASS_MEANINGS: { readonly [K in ErrorClass]: string } = {
  * Which of six skill counters a stage reports into.
  *
  * BY SKILL RATHER THAN BY STAGE NUMBER, and that is the decision worth
- * keeping. A teacher looking at a class's results wants to know which MOVE
- * a student cannot make, and "everybody fails step three" means nothing when
+ * keeping. Whoever reads the results wants to know which MOVE a student
+ * cannot make, and "everybody fails step three" means nothing when
  * step three is a different thing in each of seven topics. These six are the
  * same move wherever it appears, so a count is comparable across topics.
  */
@@ -197,7 +197,7 @@ export const COUNTER_SKILLS: readonly CounterSkill[] = [
   'PRECISION',
 ];
 
-/** What each counter is, for a teacher's page. */
+/** What each counter is, for whoever reads the report. */
 export const SKILL_NAMES: { readonly [K in CounterSkill]: string } = {
   SETUP: 'choosing the move',
   REARRANGE: 'isolating the unknown',
@@ -273,7 +273,7 @@ export function stagesFor(problem: Problem): Stage[] {
             needsUnit: false,
             gradesSigFigs: false,
             prompt: `Which rearrangement of ${relation.written} gives you ${problem.solveFor}?`,
-            options: rearrangeOptions(problem).items,
+            options: choiceItemsFor(problem),
           },
           {
             id: 'R3',
@@ -296,7 +296,7 @@ export function stagesFor(problem: Problem): Stage[] {
           needsUnit: false,
           gradesSigFigs: false,
           prompt: `Which rearrangement of ${relation.written} gives you ${problem.solveFor}?`,
-          options: rearrangeOptions(problem).items,
+          options: choiceItemsFor(problem),
         },
       ];
       if (rest.length >= 2) {
@@ -411,7 +411,7 @@ export function stagesFor(problem: Problem): Stage[] {
             problem.direction === 'POWER'
               ? `Which of these is what rate = k[A]^${problem.exponent} tells you to work out?`
               : `K = [A]^${problem.exponent}. Which of these gets you [A]?`,
-          options: powerOptions(problem).items,
+          options: choiceItemsFor(problem),
         },
       ];
       if (problem.direction === 'POWER') {
@@ -447,7 +447,7 @@ export function stagesFor(problem: Problem): Stage[] {
           needsUnit: false,
           gradesSigFigs: false,
           prompt: `${problem.rateName} is a rate. Which of these gets you the answer?`,
-          options: fractionOptions(problem).items,
+          options: choiceItemsFor(problem),
         },
         {
           id: 'F2',
@@ -473,7 +473,7 @@ export function stagesFor(problem: Problem): Stage[] {
           prompt:
             `The first conversion is: ${first?.label ?? ''}. ` +
             `Which way up does it have to go for the unit you are starting with to cancel?`,
-          options: unitOptions(problem).items,
+          options: choiceItemsFor(problem),
         },
         {
           id: 'U2',
@@ -812,7 +812,14 @@ export function predictionsFor(problem: Problem, solution: Solution, stage: Stag
   let correctChoice: number | null = null;
 
   if (stage.kind === 'CHOICE') {
-    const set = optionsFor(problem, stage);
+    const set = choiceOptionsFor(problem);
+    if (set === null) {
+      // A choice stage on a topic that declares no options is a defect in
+      // `stagesFor`, not a student's mistake. It comes back with nothing
+      // predicted and no correct answer, so the stage is visibly broken rather
+      // than quietly grading the first option as right.
+      return { stage: stage.id, correctValue: null, correctChoice: null, predictions: [], dropped: [] };
+    }
     correctChoice = set.correct;
     for (const [errorClass, index] of set.byClass) {
       raw.push({ errorClass, choice: index, why: CLASS_MEANINGS[errorClass] });
@@ -849,12 +856,56 @@ export function predictionsFor(problem: Problem, solution: Solution, stage: Stag
   return { stage: stage.id, correctValue, correctChoice, predictions, dropped };
 }
 
-function optionsFor(problem: Problem, stage: Stage): OptionSet {
-  if (problem.topic === 'REARRANGE' && stage.id === 'R1') return rearrangeOptions(problem);
-  if (problem.topic === 'POWERS' && stage.id === 'W0') return powerOptions(problem);
-  if (problem.topic === 'FRACTIONS' && stage.id === 'F1') return fractionOptions(problem);
-  if (problem.topic === 'UNITS' && stage.id === 'U1') return unitOptions(problem);
-  return { items: [], correct: 0, byClass: new Map() };
+/**
+ * The options for a problem's choice stage, or null where it has none.
+ *
+ * KEYED ON THE TOPIC ALONE, and that is the whole point of this function.
+ *
+ * It used to be a hand-typed map from (topic, stage id) to a builder, with a
+ * fallback returning an empty set — and a hand-typed map is a silent coin toss
+ * the day somebody adds an entry. A choice stage whose id the map did not
+ * recognise reported `correct: 0` while the screen showed the real options, so
+ * the FIRST option was graded correct whatever it said. On a rearrangement
+ * problem that is the upside-down answer. Every test stayed green, because
+ * `correctEntryFor` submitted option 0 and `classify` compared against the same
+ * broken lookup: the engine agreeing with itself about a wrong answer, which is
+ * the same shape as the chain stage graded against the whole chain.
+ *
+ * A topic has at most ONE choice stage, so the topic is enough to identify it
+ * and there is no id to get wrong. `taxonomy.test.ts` asserts that "at most
+ * one" holds, because it is the assumption this keying rests on — the day a
+ * topic gains a second choice stage, the test says so rather than the engine
+ * quietly answering about the first.
+ */
+export function choiceItemsFor(problem: Problem): readonly string[] {
+  const set = choiceOptionsFor(problem);
+  // LOUD, not optional. `stagesFor` only calls this where it is building a
+  // choice stage, so a null here means a topic declares a stage it has no
+  // options for — a defect in this file, and one that used to surface as the
+  // first option being graded correct. A declared check that quietly stops
+  // running is worse than no check.
+  if (set === null) throw new RangeError(`${problem.topic} builds a choice stage and declares no options for it`);
+  return set.items;
+}
+
+export function choiceOptionsFor(problem: Problem): OptionSet | null {
+  switch (problem.topic) {
+    case 'REARRANGE':
+      return rearrangeOptions(problem);
+    case 'POWERS':
+      return powerOptions(problem);
+    case 'FRACTIONS':
+      return fractionOptions(problem);
+    case 'UNITS':
+      return unitOptions(problem);
+    case 'PROPORTION':
+    case 'SCINOT':
+    case 'SIGFIGS':
+      // Named rather than defaulted. These three ask for numbers at every
+      // stage; a `default` here would swallow a new topic that does have a
+      // choice stage and hand it no options at all.
+      return null;
+  }
 }
 
 const of = (errorClass: ErrorClass, value: number): Prediction => ({
@@ -1524,7 +1575,9 @@ export function correctEntryFor(
   scratchSigFigs: number,
 ): StudentEntry {
   if (stage.kind === 'CHOICE') {
-    return { kind: 'choice', option: optionsFor(problem, stage).correct };
+    const set = choiceOptionsFor(problem);
+    if (set === null) throw new RangeError(`${problem.topic} has a choice stage and declares no options for it`);
+    return { kind: 'choice', option: set.correct };
   }
   const value = correctValueAt(problem, solution, stage) ?? 0;
   if (stage.kind === 'COUNT') return { kind: 'text', text: String(Math.round(value)) };

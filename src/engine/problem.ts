@@ -1261,15 +1261,29 @@ export interface GenerationReport {
   readonly rejected: Readonly<Record<string, number>>;
 }
 
+/**
+ * How many generation reports to keep before evicting the oldest.
+ *
+ * BOUNDED BECAUSE OF THE DRILL. This map is diagnostic only — the sweep reads
+ * an entry immediately after generating the problem it belongs to — but it is
+ * module-level and it used to grow forever. A single-skill drill is a loop
+ * around the generator with nothing recorded, which is exactly what makes it
+ * cheap to build; a loop around a generator that leaks 1.4 KB a problem is not
+ * cheap, it is a page that gets slower the longer somebody practises. Measured
+ * at 2.8 MB over two thousand problems before this bound existed.
+ */
+const MAX_REPORTS = 4096;
+
 const REPORTS = new Map<string, { attempts: number; rejected: Record<string, number> }>();
 
 /**
  * What the generator threw away on its way to this problem, and why.
  *
- * PRECONDITION: {@link generateProblem} was called with the same arguments.
- * Kept for the sweep, which reports rejection counts by guarantee — the number
- * that says whether the structural guarantees or the backstop are doing the
- * separating.
+ * PRECONDITION: {@link generateProblem} was called with the same arguments,
+ * and fewer than {@link MAX_REPORTS} problems have been generated since. Read
+ * it straight after generating, which is what the sweep does. Kept for that
+ * sweep, which reports rejection counts by guarantee — the number that says
+ * whether the structural guarantees or the backstop are doing the separating.
  */
 export function generationReport(assignmentKey: string, topic: Topic, tier: number, index: number): GenerationReport {
   const key = `${assignmentKey}|${topic}|${tier}|${index}`;
@@ -1303,6 +1317,12 @@ export function generateProblem(assignmentKey: string, topic: Topic, tier: numbe
       lastBroken = broken;
       for (const name of new Set(broken)) rejected[name] = (rejected[name] ?? 0) + 1;
       continue;
+    }
+    if (REPORTS.size >= MAX_REPORTS) {
+      // Oldest first: a Map iterates in insertion order, so the first key is
+      // the least recently generated.
+      const oldest = REPORTS.keys().next();
+      if (!oldest.done) REPORTS.delete(oldest.value);
     }
     REPORTS.set(key, { attempts: attempt + 1, rejected });
     return candidate;

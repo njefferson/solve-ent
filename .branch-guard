@@ -10,3 +10,11 @@ escape=SOLVENT_PROMOTE
 # places, and the failure mode is a build reporting a version its code is not —
 # which sends the next screenshot after a defect that was fixed two releases ago.
 also=tools/version-check.mjs
+
+# AND THE WORDS, on every commit, because this is the rule a later session
+# undoes in one well-meaning commit. Adding a streak counter is an afternoon's
+# work and feels like kindness; it teaches a student to chase the animation and
+# makes stopping feel like failing, which is exactly wrong for the person who
+# most needs to do twenty of these. Same for copy that assumes a classroom a
+# homeschooler does not have.
+also=tools/copy-check.mjs

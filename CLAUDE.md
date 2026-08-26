@@ -36,9 +36,16 @@ moves work. This teaches exactly those moves and nothing else.
 Static, no backend, no accounts, no cookies, no network calls at runtime.
 
 **Attribution is the product. Do not build a solver.** Free tools already solve
-these and already explain the procedure. What none of them do is attribute a
-specific wrong answer to a specific conceptual failure and report that to the
-teacher.
+these and already explain the procedure. What this adds is attributing a
+specific wrong answer to a specific conceptual failure.
+
+**State that claim carefully.** Research tutors have attributed wrong answers to
+misconceptions since Brown and Burton's BUGGY in 1978, and `E-REARR-SIGN` is
+that literature's canonical example almost word for word — it was re-derived
+here, not invented. What is defensible is that the platforms a chemistry class
+can buy diagnose at the TOPIC level, and that this one refuses to guess when two
+misconceptions would produce answers a student could not tell apart. `NOTES.md`
+has the full version, including the risk that follows from it.
 
 ## The rules specific to this repository
 
@@ -84,6 +91,30 @@ teacher.
   letter apart in the same corner of the platform, and recognition turns on a
   microphone. When there is a bundle, a permissions gate names the allowance and
   forbids the other by name.
+- **NO SCORE, NO STREAK, NO TARGET, NO CONGRATULATION — and it is a gate.**
+  Streaks and badges teach a student to chase the animation and make stopping
+  feel like failing, which is exactly wrong for the person who most needs to do
+  twenty of these. What replaces praise is CHANGE: say what happened, and say a
+  repeated mistake stopped only where that is true. `tools/copy-check.mjs` runs
+  on EVERY COMMIT through `.branch-guard` and refuses a streak, a badge, points,
+  a fraction like 3/7 and every variant of "Great job" — because this is the
+  rule a later session undoes in one well-meaning commit. It strips comments
+  first, since the comments are where the words that must not be built are
+  written down. `DrillOutcome` also has no field for a count and must never gain
+  one.
+- **THE CADENCE IS EXACT.** Once is not a pattern and is never named. Twice goes
+  in the closing summary. Three times is said during the run, once, with what
+  fixes it, and never again.
+- **NOBODY IS ASSUMED TO BE IN A CLASSROOM.** Homeschoolers are a real audience
+  and the structure already serves them; the words are the only thing that would
+  exclude them. Same gate. What is banned is second-person address assuming a
+  room — "your teacher", "hand it in", a named gradebook — never the word
+  *teacher* on its own.
+- **BLOCKED PRACTICE IS ITS OWN SCREEN, and it is owed early.** A whole problem
+  is interleaved practice; a skill somebody does not have yet is built by doing
+  the same move again. **Keep `classify` a pure function of (problem, stage,
+  entry)** — not for testability, but because that purity is what makes a drill
+  a loop around it with no session, no code and nothing recorded.
 - **`tools/cli.ts` PRINTS ANSWERS and is not a student surface.** Nothing
   student-facing may ever call it.
 - **Every numeric tolerance is a named constant** in `src/engine/tolerance.ts`,
@@ -104,8 +135,9 @@ npm ci
 npm run check
 ```
 
-That is the strict type check, the release triplet, the whole test suite, and
-then `verify-algebra`, which recomputes the algebra from OUTSIDE the engine.
+That is the strict type check, the release triplet, the words gate, the whole
+test suite, and then `verify-algebra`, which recomputes the algebra from OUTSIDE
+the engine.
 `npm test` is thorough and self-referential in one way — it asks the engine
 whether the engine agrees with itself — and `verify-algebra` is what answers
 that. Its strongest check substitutes the app's answer back INTO the relation

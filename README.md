@@ -7,10 +7,15 @@ at maths" — they have never been shown how the specific moves work. This teach
 exactly those moves and nothing else.
 
 **Attribution is the product.** Free tools already solve these problems and
-already explain the procedure. What none of them do is attribute a specific
-wrong answer to a specific conceptual failure — *the 0.0526 you wrote is what
-you get when you multiply the concentration by the exponent instead of raising
-it* — and report that to the teacher.
+already explain the procedure. This one attributes a specific wrong answer to a
+specific conceptual failure — *the 0.0526 you wrote is what you get when you
+multiply the concentration by the exponent instead of raising it*.
+
+Research tutors have done this since the 1970s. The platforms a chemistry class
+can actually buy diagnose at the topic level instead: get a dilution wrong and
+they re-serve the topic, rather than telling you the ratio went in upside down.
+And when two mistakes would produce answers you could not tell apart, this one
+refuses to guess — see below.
 
 **There is no user interface yet, on purpose.** This repository currently holds
 the domain engine, the error taxonomy, the step machine and the tests.
@@ -76,14 +81,27 @@ node tools/cli.ts scan     --count 500
 `scan` prints the two numbers this project is measured by: the taxonomy
 collision count, which must be zero, and the unclassified rate.
 
+## What it says about a run
+
+No score, no streak, no target, no congratulation. A streak teaches you to chase
+the animation and makes stopping feel like failing.
+
+What you get instead is what changed. A mistake made once is not a pattern and
+is never mentioned. Made twice, it turns up at the end. Made three times, it is
+named while you are still working — once, with what fixes it, and then not
+again. And if you were getting them wrong the same way and then you were not,
+it says so. Only then.
+
 ## What it is not
 
 - **Not a solver.** It will not do a student's homework, and the one thing it
   must never become is a tool that does.
 - **Not a general algebra course.** The seven topics are the fence.
-- **Not a place any student information goes.** Identity is a teacher-assigned
-  roster number. No names, no accounts, no cookies, no analytics, and nothing
-  leaves the device.
+- **Not a place any student information goes.** Identity is an assigned roster
+  number. No names, no accounts, no cookies, no analytics, and nothing leaves
+  the device.
+- **Not something you need a classroom for.** It is built for one, and nothing
+  in it assumes you have one.
 
 ## Licence
 
