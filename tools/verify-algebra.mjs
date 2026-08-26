@@ -271,6 +271,38 @@ function chainFactorsSeen() {
       {
         const problem = generateProblem('VERIFY', 'SIGFIGS', tier, index);
         const values = problem.operands.map((o) => o.quantity.value);
+
+        // THE MIXED SHAPE, worked here from the WRITTEN forms rather than from
+        // the engine's precision machinery — which is the point of this file.
+        // Add first: the coarsest last decimal place among the two addends
+        // limits the sum, and how many significant figures that leaves depends
+        // on where the sum's leading digit lands. Then multiply: the fewest
+        // significant figures between that sum and the last measurement.
+        if (problem.operation === 'ADD_THEN_MULTIPLY') {
+          const solution = solve(problem);
+          const sum = values[0] + values[1];
+          const coarsest = Math.max(
+            lastPlaceWritten(problem.operands[0].written),
+            lastPlaceWritten(problem.operands[1].written),
+          );
+          const sumMagnitude = Number(Math.abs(sum).toExponential().split('e')[1]);
+          const sumFigures = Math.max(1, sumMagnitude - coarsest + 1);
+          if (sumFigures !== solution.at['Gs']) {
+            fail(`SIGFIGS #${index} mixed: by hand the sum carries ${sumFigures} figures, the app says ${solution.at['Gs']}`);
+          }
+          const answerFigures = Math.min(sumFigures, sigFigsWritten(problem.operands[2].written));
+          if (answerFigures !== solution.at['G2']) {
+            fail(`SIGFIGS #${index} mixed: by hand the answer carries ${answerFigures}, the app says ${solution.at['G2']}`);
+          }
+          // FROM THE TRUTH, ONCE — the sum goes in unrounded.
+          const expectedMixed = Number((sum * values[2]).toPrecision(answerFigures));
+          if (relative(expectedMixed, solution.answer) > 1e-12) {
+            fail(`SIGFIGS #${index} mixed: by hand ${expectedMixed}, the app says ${solution.answer}`);
+          }
+          checked += 1;
+          continue;
+        }
+
         const raw =
           problem.operation === 'MULTIPLY'
             ? values.reduce((a, b) => a * b, 1)

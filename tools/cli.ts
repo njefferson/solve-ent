@@ -10,6 +10,7 @@
  *   node tools/cli.ts stages  --topic REARRANGE --tier 3 --index 4
  *   node tools/cli.ts diagnose --topic POWERS --tier 1 --index 0 --stage W3 --entry "0.051 mol/(L·s)"
  *   node tools/cli.ts session --topic PROPORTION --tier 2 --count 3
+ *   node tools/cli.ts drill   --topic PROPORTION --tier 2 --count 8 --wrong E-PROP-INVERTED --until 5
  *   node tools/cli.ts scan    --count 500
  *
  * `scan` is the one that prints the two numbers this project is measured by:
@@ -37,8 +38,10 @@ import {
   requiredSigFigs,
   stagesFor,
   type Collision,
+  type ErrorClass,
   type Stage,
 } from '../src/engine/taxonomy.ts';
+import { readRun, type Attempt } from '../src/report/drill.ts';
 import {
   completionCounts,
   controllableClock,
@@ -233,6 +236,71 @@ switch (command) {
     for (const [skill, count] of Object.entries(counts.wrongBySkill)) {
       line(`    ${skill.padEnd(10)} ${count} wrong`);
     }
+    rule();
+    line();
+    break;
+  }
+
+  case 'drill': {
+    // A DRILL IS A LOOP AROUND THE CLASSIFIER. No session, no completion code,
+    // nothing recorded — which is the whole reason blocked practice costs
+    // almost nothing to build, and is only true while `classify` stays a pure
+    // function of (problem, stage, entry).
+    //
+    // It is here to drive `readRun` against REAL classifications. Until this
+    // existed the cadence had only ever been exercised by hand-built fixtures,
+    // which is the shape of a check that agrees with whoever wrote it.
+    const topic = topicFlag('PROPORTION');
+    const tier = Number(flag('tier', '2'));
+    const count = Number(flag('count', '8'));
+    // Which misconception the simulated student holds, and when they stop
+    // holding it. `--until 0` means they never do.
+    const held = flag('wrong', '') as ErrorClass | '';
+    const until = Number(flag('until', String(count)));
+
+    answersWarning();
+    line();
+    const attempts: Attempt[] = [];
+    for (let index = 0; index < count; index += 1) {
+      const problem = generateProblem(flag('key', 'CLI'), topic, tier, index);
+      const solution = solve(problem);
+      // The LAST stage of each problem, which is the one the whole topic is
+      // about. A real drill picks the stage by skill; this picks one.
+      const stages = stagesFor(problem).filter((s) => s.kind === 'NUMERIC');
+      const stage = stages[stages.length - 1];
+      if (stage === undefined) continue;
+
+      const correct = correctEntryFor(problem, solution, stage, SCRATCH_SIG_FIGS);
+      let entry = correct;
+      if (held !== '' && index < until) {
+        const predicted = predictionsFor(problem, solution, stage).predictions.find(
+          (p) => p.errorClass === held && p.value !== undefined,
+        );
+        if (predicted !== undefined) {
+          const text = (predicted.value as number).toPrecision(Math.max(6, requiredSigFigs(problem, solution)));
+          entry = { kind: 'text', text: stage.needsUnit ? `${text} ${formatUnit(stage.unit)}` : text };
+        }
+      }
+
+      const result = classify(problem, solution, stage, entry);
+      attempts.push({ skill: stage.counter, errorClass: result.correct ? null : result.errorClass });
+      line(
+        `  ${String(index + 1).padStart(2)}. ${stage.id.padEnd(4)} ` +
+          `${(entry.kind === 'text' ? entry.text : '').padEnd(22)} ` +
+          `${result.correct ? 'right' : (result.errorClass ?? 'COLLISION')}`,
+      );
+      // The notes are said AS THEY FIRE, which is the whole point of the
+      // cadence — a note that only appears in a summary is not said during the
+      // run at all.
+      for (const note of readRun(attempts).notes) {
+        if (note.afterAttempt === index) line(`      → ${note.text}`);
+      }
+    }
+
+    const outcome = readRun(attempts);
+    line();
+    rule();
+    for (const closing of outcome.closing) line(`  ${closing}`);
     rule();
     line();
     break;

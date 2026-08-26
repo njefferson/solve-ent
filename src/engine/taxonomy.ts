@@ -500,6 +500,29 @@ export function stagesFor(problem: Problem): Stage[] {
 
     case 'SIGFIGS': {
       const first = problem.operands[0] as StatedValue;
+      const mixed = problem.operation === 'ADD_THEN_MULTIPLY';
+      const sumStage: Stage[] = mixed
+        ? [
+            {
+              id: 'Gs',
+              kind: 'COUNT',
+              counter: 'PRECISION',
+              unit: NO_UNIT,
+              needsUnit: false,
+              // A COUNT, NOT A VALUE, and that is the whole design of this
+              // stage. Asking for the sum ROUNDED would be demanding the
+              // intermediate be rounded, which is E-SIG-ROUND-EARLY — the
+              // mistake this topic exists to teach against. Asking how many
+              // figures it is ENTITLED to is the same question with none of
+              // that: the number is carried, and its entitlement is stated.
+              gradesSigFigs: false,
+              prompt:
+                `Add the first two first. The addition rule limits the last DECIMAL PLACE, ` +
+                `not the significant figures — so how many significant figures is that sum ` +
+                `entitled to? A whole number.`,
+            },
+          ]
+        : [];
       return [
         {
           id: 'G1',
@@ -510,6 +533,7 @@ export function stagesFor(problem: Problem): Stage[] {
           gradesSigFigs: false,
           prompt: `How many significant figures does ${first.written} carry? A whole number.`,
         },
+        ...sumStage,
         {
           id: 'G2',
           kind: 'COUNT',
@@ -517,9 +541,11 @@ export function stagesFor(problem: Problem): Stage[] {
           unit: NO_UNIT,
           needsUnit: false,
           gradesSigFigs: false,
-          prompt:
-            `${problem.operation === 'MULTIPLY' ? 'Multiplying' : 'Adding'} measurements — how many ` +
-            `significant figures is the answer entitled to? A whole number.`,
+          prompt: mixed
+            ? `Now the multiplication. Between that sum and the last measurement, how many ` +
+              `significant figures is the answer entitled to? A whole number.`
+            : `${problem.operation === 'MULTIPLY' ? 'Multiplying' : 'Adding'} measurements — how many ` +
+              `significant figures is the answer entitled to? A whole number.`,
         },
         {
           id: 'G3',
@@ -785,6 +811,25 @@ function roundEarlyAnswer(problem: Problem, solution: Solution): number | null {
       return running;
     }
     case 'SIGFIGS': {
+      // THE MIXED SHAPE ROUNDS AT ITS SEAM, which is the specific mistake it is
+      // for: round the intermediate SUM to what the addition rule entitles it
+      // to, and only then multiply. That is a different value from rounding
+      // every operand up front, and it is the one a student actually produces.
+      //
+      // The first version of this had no branch here at all, so a mixed problem
+      // fell through to the addition case and predicted the sum of all THREE
+      // operands. It happened to land on the wrong-rule answer, and surfaced as
+      // a taxonomy collision — a wrong prediction wearing a decomposition
+      // defect's clothes. Worth remembering: a collision is evidence that
+      // something is wrong, not evidence about WHICH thing.
+      if (problem.operation === 'ADD_THEN_MULTIPLY') {
+        const sumFigures = solution.at['Gs'];
+        const sumValue =
+          (problem.operands[0]?.quantity.value ?? 0) + (problem.operands[1]?.quantity.value ?? 0);
+        if (sumFigures === undefined) return null;
+        const early = roundToSigFigs(sumValue, sumFigures);
+        return rounded(early * (problem.operands[2]?.quantity.value ?? 1));
+      }
       const values = problem.operands.map((o) => rounded(o.quantity.value));
       const raw =
         problem.operation === 'MULTIPLY'
@@ -1080,6 +1125,16 @@ function numericPredictions(problem: Problem, solution: Solution, stage: Stage):
         if (zeros > 0) out.push(of('E-SIG-COUNT-ZEROS', countSigFigs(first) + zeros));
         break;
       }
+      if (stage.id === 'Gs') {
+        // Applying the significant-figures rule where the DECIMAL-PLACE rule
+        // governs. This is the step the failure rate is concentrated on.
+        const shortcut = Math.min(
+          countSigFigs(problem.operands[0] as StatedValue),
+          countSigFigs(problem.operands[1] as StatedValue),
+        );
+        out.push(of('E-SIG-WRONG-RULE', shortcut));
+        break;
+      }
       if (stage.id === 'G2') {
         const counts = ruleCounts(problem);
         if (counts !== null && counts.wrong !== counts.right) {
@@ -1151,6 +1206,19 @@ function ruleCounts(problem: Problem & { topic: 'SIGFIGS' }): {
   const right = solution.at['G2'];
   if (right === undefined) return null;
   const values = problem.operands.map((o) => o.quantity.value);
+
+  if (problem.operation === 'ADD_THEN_MULTIPLY') {
+    // THE SHORTCUT, which is what the literature reports students taking:
+    // round on the fewest significant figures in sight, never asking what the
+    // intermediate sum was entitled to. It is not "the other rule applied to
+    // everything" — it is a rule applied to the wrong operands.
+    return {
+      right,
+      wrong: Math.min(...problem.operands.map((o) => countSigFigs(o))),
+      raw: ((values[0] as number) + (values[1] as number)) * (values[2] as number),
+    };
+  }
+
   const raw =
     problem.operation === 'MULTIPLY'
       ? values.reduce((a, b) => a * b, 1)
@@ -1199,7 +1267,13 @@ export interface Collision {
  */
 export function collisionsFor(problem: Problem, solution: Solution): Collision[] {
   const found: Collision[] = [];
-  const sf = problem.answerSigFigs;
+  // THE PRECISION THE CLASSIFIER ACTUALLY GRADES AT, which for six of the seven
+  // topics is the problem's stated figure count and for the significant-figures
+  // topic is the DERIVED one. Reading `problem.answerSigFigs` here checked the
+  // sweep at a placeholder — four figures — while `classify` graded at three,
+  // so a pair that collided in a real session did not collide in the sweep.
+  // One precision governs everything; this line used to be the exception.
+  const sf = requiredSigFigs(problem, solution);
 
   for (const stage of stagesFor(problem)) {
     const { predictions } = predictionsFor(problem, solution, stage);

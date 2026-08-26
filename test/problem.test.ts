@@ -24,6 +24,7 @@ import {
   solve,
   statedValues,
   type Problem,
+  type StatedValue,
 } from '../src/engine/problem.ts';
 import { MAX_ANSWER_SIG_FIGS, MIN_ANSWER_SIG_FIGS } from '../src/engine/tolerance.ts';
 import { hashString, makeRng, nextInt, pick } from '../src/engine/rng.ts';
@@ -229,6 +230,86 @@ test('a guarantee refuses a candidate that breaks it', () => {
     checkGuarantees(flatExponent).includes('EXPONENTS_NOT_DEGENERATE'),
     'an exponent of zero was accepted, and it makes adding and multiplying them the same',
   );
+});
+
+test('the mixed significant-figures shape is posed often enough to exist', () => {
+  // THE STARVATION CHECK, and it is here because the first version of this
+  // shape's guarantees left three problems in six hundred. A case that exists
+  // in the type and not in practice has been deleted while appearing to be
+  // kept, and nothing else in the suite would have said so — every other test
+  // asks whether the problems it GETS are correct.
+  let mixed = 0;
+  let total = 0;
+  for (const tier of [2, 3]) {
+    for (let index = 0; index < 200; index += 1) {
+      const problem = generateProblem('MIXED', 'SIGFIGS', tier, index);
+      if (problem.topic !== 'SIGFIGS') throw new Error('unreachable');
+      total += 1;
+      if (problem.operation === 'ADD_THEN_MULTIPLY') mixed += 1;
+    }
+  }
+  assert.ok(mixed / total > 0.1, `only ${mixed} of ${total} were the mixed shape`);
+
+  // And tier 1 is the single-rule shapes, deliberately.
+  for (let index = 0; index < 60; index += 1) {
+    const problem = generateProblem('MIXED', 'SIGFIGS', 1, index);
+    if (problem.topic !== 'SIGFIGS') throw new Error('unreachable');
+    assert.notEqual(problem.operation, 'ADD_THEN_MULTIPLY', 'the hardest case reached tier 1');
+  }
+});
+
+test('the mixed shape applies BOTH rules, in order, and rounds once', () => {
+  // Recomputed here from the written forms rather than from the engine's
+  // precision machinery, which is the function under test.
+  const written = (text: string): number => {
+    const mantissa = text.split(/[eE]/)[0] as string;
+    return Math.max(1, mantissa.replace('-', '').replace('.', '').replace(/^0+/, '').length);
+  };
+  const lastPlace = (text: string): number => {
+    const point = text.indexOf('.');
+    return point === -1 ? 0 : -(text.length - point - 1);
+  };
+
+  let checked = 0;
+  for (const tier of [2, 3]) {
+    for (let index = 0; index < 200; index += 1) {
+      const problem = generateProblem('MIXED-RULE', 'SIGFIGS', tier, index);
+      if (problem.topic !== 'SIGFIGS' || problem.operation !== 'ADD_THEN_MULTIPLY') continue;
+      const solution = solve(problem);
+      const [a, b, c] = problem.operands as [StatedValue, StatedValue, StatedValue];
+
+      // Step one: the ADDITION rule limits the last decimal place.
+      const sum = a.quantity.value + b.quantity.value;
+      const coarsest = Math.max(lastPlace(a.written), lastPlace(b.written));
+      const sumMagnitude = Number(Math.abs(sum).toExponential().split('e')[1]);
+      const sumFigures = Math.max(1, sumMagnitude - coarsest + 1);
+      assert.equal(solution.at['Gs'], sumFigures, `#${index}: the sum's entitlement`);
+
+      // Step two: the MULTIPLICATION rule takes the fewest figures.
+      assert.equal(
+        solution.at['G2'],
+        Math.min(sumFigures, written(c.written)),
+        `#${index}: the answer's entitlement`,
+      );
+
+      // ROUNDED ONCE, from the truth. The sum enters the multiplication whole.
+      assert.ok(
+        Math.abs(solution.answer - Number((sum * c.quantity.value).toPrecision(solution.at['G2'] as number))) <
+          Math.abs(solution.answer) * 1e-12,
+        `#${index}: the sum was rounded before it was multiplied`,
+      );
+
+      // The stage asking about the sum is a COUNT and never grades figures —
+      // asking for the sum ROUNDED would demand the intermediate be rounded,
+      // which is the mistake this topic exists to teach against.
+      const sumStage = stagesFor(problem).find((stage) => stage.id === 'Gs');
+      assert.ok(sumStage !== undefined, `#${index}: no stage asks about the sum`);
+      assert.equal(sumStage?.kind, 'COUNT');
+      assert.equal(sumStage?.gradesSigFigs, false);
+      checked += 1;
+    }
+  }
+  assert.ok(checked > 30, `only ${checked} mixed problems were checked`);
 });
 
 test('a topic the generator cannot satisfy says so rather than lowering a guarantee', () => {

@@ -114,6 +114,14 @@ has the full version, including the risk that follows from it.
   has to stay swappable. After repeated failure on one skill the app changes
   what it is doing rather than serving the next problem — `NOTES.md` has the
   ladder and the trip-wire that would say the model is not carrying the load.
+- **RELEASE NOTES ARE FOR HOMESCHOOL TEACHERS AND STUDENTS, as the core
+  audience.** Not for programmers, not for whoever wrote the commit. If a
+  release changed something a reader can see or do, describe it in the words
+  they would use; if it changed something under the surface, say that plainly
+  rather than dressing it up. A note naming a function, a type, a file or a gate
+  is a note written for the wrong person. `CHANGELOG.md` also says what is still
+  missing, every release, because a list of only fixes is an advertisement
+  (Doctrine §7d).
 - **THE CADENCE IS EXACT.** Once is not a pattern and is never named. Twice goes
   in the closing summary. Three times is said during the run, once, with what
   fixes it, and never again.

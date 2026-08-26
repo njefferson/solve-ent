@@ -410,10 +410,26 @@ export interface UnitsProblem extends ProblemBase {
   readonly substance: string;
 }
 
-/** Combining measurements and rounding ONCE, at the end. */
+/**
+ * Combining measurements and rounding ONCE, at the end.
+ *
+ * `ADD_THEN_MULTIPLY` is the case chemistry-education research reports students
+ * failing most — a problem mixing an addition with a multiplication, where the
+ * answer's precision is set by the DECIMAL PLACES of the sum first and then by
+ * the SIGNIFICANT FIGURES of the product. The catalogued error is rounding on
+ * the fewest significant figures among everything in sight, without ever asking
+ * what the intermediate sum was entitled to.
+ *
+ * THE GENERATOR COULD NOT POSE IT, because this field read `'MULTIPLY' | 'ADD'`.
+ * The type forbade the hardest case in the topic, and no sweep over generated
+ * problems could have noticed — a sweep only ever sees what the generator can
+ * make. It was found by reading the literature instead, which is the one
+ * validation route that can find a MISSING case rather than confirming a
+ * present one.
+ */
 export interface SigfigsProblem extends ProblemBase {
   readonly topic: 'SIGFIGS';
-  readonly operation: 'MULTIPLY' | 'ADD';
+  readonly operation: 'MULTIPLY' | 'ADD' | 'ADD_THEN_MULTIPLY';
   readonly operands: readonly StatedValue[];
   readonly answerUnit: UnitExpr;
 }
@@ -753,6 +769,45 @@ function solveUnits(problem: UnitsProblem): Solution {
 function solveSigfigs(problem: SigfigsProblem): Solution {
   const values = problem.operands.map((o) => o.quantity.value);
   const quantities = problem.operands.map((o) => o.quantity);
+
+  // THE MIXED SHAPE, and its precision is set in TWO steps: the sum's last
+  // decimal place first, then the fewest significant figures between that sum
+  // and the thing it multiplies. Neither step alone gives the right answer, and
+  // taking the fewest figures among all three operands — the obvious shortcut —
+  // is the misconception this shape exists to catch.
+  if (problem.operation === 'ADD_THEN_MULTIPLY') {
+    const first = quantities[0] as Quantity;
+    const second = quantities[1] as Quantity;
+    const third = quantities[2] as Quantity;
+    const sumValue = (values[0] as number) + (values[1] as number);
+    const sum = addSubtract(sumValue, [first, second]);
+    const sumFigures = sum.kind === 'measured' ? sum.reading.sigFigs : problem.answerSigFigs;
+    const mixedRaw = sumValue * (values[2] as number);
+    // CARRIED, NOT ROUNDED. The sum enters the multiplication at full
+    // precision; rounding it here would be E-SIG-ROUND-EARLY committed by the
+    // grader itself.
+    const mixedPrecision = multiplyDivide(mixedRaw, [sum, third]);
+    const mixedFigures =
+      mixedPrecision.kind === 'measured' ? mixedPrecision.reading.sigFigs : problem.answerSigFigs;
+    return {
+      topic: 'SIGFIGS',
+      answer: roundToSigFigs(mixedRaw, mixedFigures),
+      answerUnit: problem.answerUnit,
+      at: {
+        G1: countSigFigs(problem.operands[0] as StatedValue),
+        Gs: sumFigures,
+        G2: mixedFigures,
+        G3: roundToSigFigs(mixedRaw, mixedFigures),
+      },
+      precisionAt: { Gs: sum, G3: mixedPrecision },
+      working: [
+        `the sum is ${sumValue}, and the addition rule limits its last decimal place`,
+        `so the sum is entitled to ${sumFigures} significant figures`,
+        `the product is ${mixedRaw}, entitled to ${mixedFigures}`,
+      ],
+    };
+  }
+
   const raw =
     problem.operation === 'MULTIPLY'
       ? values.reduce((a, b) => a * b, 1)
@@ -1156,6 +1211,67 @@ export function checkGuarantees(problem: Problem): Guarantee[] {
     case 'SIGFIGS': {
       const quantities = problem.operands.map((o) => o.quantity);
       const values = problem.operands.map((o) => o.quantity.value);
+
+      // THE MIXED SHAPE HAS ITS OWN PAIR OF RULES, and the "wrong" one is not
+      // the other rule applied to everything — it is the shortcut students
+      // actually take: round on the fewest significant figures in sight and
+      // never ask what the intermediate sum was entitled to.
+      if (problem.operation === 'ADD_THEN_MULTIPLY') {
+        const solution = solve(problem);
+        const rightMixed = solution.at['G2'];
+        const shortcut = Math.min(...problem.operands.map((o) => countSigFigs(o)));
+        const rawMixed = ((values[0] as number) + (values[1] as number)) * (values[2] as number);
+        if (rightMixed === undefined || rightMixed < 1) broken.push('SIGFIG_RULES_DISAGREE');
+        else if (rightMixed === shortcut) broken.push('SIGFIG_RULES_DISAGREE');
+        else if (
+          sameAtPrecision(
+            roundToSigFigs(rawMixed, rightMixed),
+            roundToSigFigs(rawMixed, shortcut),
+            MAX_ANSWER_SIG_FIGS + 2,
+          )
+        ) {
+          broken.push('ROUNDING_IS_VISIBLE');
+        }
+        // The sum has to HAVE an entitlement, and that is all this asks.
+        //
+        // It briefly also demanded that the sum's figure count DIFFER from the
+        // answer's, on the reasoning that otherwise the two-step reading and
+        // the one-step reading agree. That reasoning was wrong twice over: the
+        // two are different QUESTIONS that may share an answer, and requiring
+        // them to differ made the shape almost unreachable — three problems in
+        // six hundred, which is a case that exists in the type and not in
+        // practice. A guarantee that starves a generator is not protecting
+        // anybody from anything.
+        const sumFigures = solution.at['Gs'];
+        if (sumFigures === undefined || sumFigures < 1) broken.push('SIGFIG_RULES_DISAGREE');
+        if (!physicallyReal(rawMixed)) broken.push('PHYSICALLY_REAL');
+
+        // THE BACKSTOP, and this shape is the third topic to need it.
+        //
+        // Rounding the intermediate sum early and applying the wrong rule both
+        // amount to carrying fewer digits through the multiplication, so they
+        // land on the same number more often than not — twelve collisions in a
+        // 10,500-problem sweep the first time this shape was posed. There is no
+        // relation between the two that a generator can be told to avoid, only
+        // one it has to look for.
+        if (sumFigures !== undefined) {
+          const earlySum = roundToSigFigs((values[0] as number) + (values[1] as number), sumFigures);
+          const rightCandidate = rightMixed === undefined ? rawMixed : roundToSigFigs(rawMixed, rightMixed);
+          const candidates = [
+            rightCandidate,
+            roundToSigFigs(rawMixed, shortcut),
+            roundToSigFigs(earlySum * (values[2] as number), rightMixed ?? MAX_ANSWER_SIG_FIGS),
+          ];
+          const distinct = candidates.filter(
+            (v, i) => i === 0 || !indistinguishable(v, candidates[0] as number, rightMixed ?? MAX_ANSWER_SIG_FIGS),
+          );
+          if (!predictionsSeparated(distinct, rightMixed ?? MAX_ANSWER_SIG_FIGS)) {
+            broken.push('PREDICTIONS_SEPARATED');
+          }
+        }
+        return broken;
+      }
+
       const raw =
         problem.operation === 'MULTIPLY'
           ? values.reduce((a, b) => a * b, 1)
@@ -1755,7 +1871,7 @@ const START_BANDS: Readonly<Record<string, readonly [number, number]>> = {
 
 /** What a significant-figures problem combines. */
 const SIGFIG_SHAPES: readonly {
-  readonly operation: 'MULTIPLY' | 'ADD';
+  readonly operation: 'MULTIPLY' | 'ADD' | 'ADD_THEN_MULTIPLY';
   readonly labels: readonly string[];
   readonly units: readonly string[];
   readonly answerUnit: string;
@@ -1802,10 +1918,43 @@ const SIGFIG_SHAPES: readonly {
       [0.5, 40],
     ],
   },
+  // ADD THEN MULTIPLY — the case with the highest reported failure rate, and
+  // the one the type used to forbid. Both are sequences somebody actually
+  // performs at a bench: pour, top up, then take the concentration; weigh, add
+  // a second portion, then take the specific heat.
+  {
+    operation: 'ADD_THEN_MULTIPLY',
+    labels: ['the volume in the flask', 'the volume added', 'the concentration'],
+    units: ['L', 'L', 'mol/L'],
+    answerUnit: 'mol',
+    bands: [
+      [0.05, 2],
+      [0.005, 0.4],
+      [0.02, 6],
+    ],
+  },
+  {
+    operation: 'ADD_THEN_MULTIPLY',
+    labels: ['the first mass', 'the second mass', 'the specific heat capacity'],
+    units: ['g', 'g', 'J/(g·K)'],
+    answerUnit: 'J/K',
+    bands: [
+      [4, 400],
+      [0.2, 40],
+      [0.12, 4.2],
+    ],
+  },
 ];
 
 function draftSigfigs(rng: Rng, tier: number, seed: string): Problem | null {
-  const shape = pick(rng, SIGFIG_SHAPES.filter((s) => (tier === 1 ? s.bands.length === 2 : true)));
+  // Tier 1 is the single-rule shapes; the mixed one is where two rules apply in
+  // order and is the hardest case in the topic, so it starts at tier 2.
+  const shape = pick(
+    rng,
+    SIGFIG_SHAPES.filter((s) =>
+      tier === 1 ? s.operation !== 'ADD_THEN_MULTIPLY' && s.bands.length === 2 : true,
+    ),
+  );
   const operands: StatedValue[] = shape.bands.map((band, i) => {
     const figures = nextInt(rng, 2, MAX_ANSWER_SIG_FIGS + 1);
     return state(
@@ -1827,9 +1976,14 @@ function draftSigfigs(rng: Rng, tier: number, seed: string): Problem | null {
     operands,
     answerUnit: parseUnit(shape.answerUnit),
     prompt:
-      `${shape.operation === 'MULTIPLY' ? 'Multiply' : 'Add'} ` +
-      operands.map((o) => `${o.written} ${formatUnit(o.unit)}`).join(shape.operation === 'MULTIPLY' ? ' × ' : ' + ') +
-      `. Round ONCE, at the end, to the figures the measurements entitle you to.`,
+      shape.operation === 'ADD_THEN_MULTIPLY'
+        ? `Add ${operands[0]?.written} ${formatUnit(operands[0]?.unit ?? parseUnit(''))} and ` +
+          `${operands[1]?.written} ${formatUnit(operands[1]?.unit ?? parseUnit(''))}, ` +
+          `then multiply by ${operands[2]?.written} ${formatUnit(operands[2]?.unit ?? parseUnit(''))}. ` +
+          `Two rules apply, in that order. Round ONCE, at the end.`
+        : `${shape.operation === 'MULTIPLY' ? 'Multiply' : 'Add'} ` +
+          operands.map((o) => `${o.written} ${formatUnit(o.unit)}`).join(shape.operation === 'MULTIPLY' ? ' × ' : ' + ') +
+          `. Round ONCE, at the end, to the figures the measurements entitle you to.`,
   };
   return problem;
 }

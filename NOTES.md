@@ -76,6 +76,66 @@ Both are printed by `npm test` and by `node tools/cli.ts scan`.
 Two more numbers are printed beside them, and both exist to keep the first two
 honest — see *What the collision sweep cannot see* below.
 
+## What the catalogue route found, on its first pass
+
+The first validation route — read the published misconception literature and
+compare — was run, and it found two things the collision sweep is structurally
+incapable of finding. Both are about coverage rather than about correctness,
+which is exactly what that route is for.
+
+**The generator could not pose the hardest case in the significant-figures
+topic.** Research reports the highest failure rate on questions that MIX an
+addition with a multiplication: the sum's precision is limited by decimal
+places, the product's by significant figures, and the two rules apply in that
+order. The catalogued error is rounding on the fewest significant figures in
+sight without ever asking what the intermediate sum was entitled to.
+
+`SigfigsProblem.operation` read `'MULTIPLY' | 'ADD'`. **The TYPE forbade it**,
+and no sweep over generated problems could ever have noticed: a sweep only sees
+what the generator can make. Built in 0.3.0, with its own stage asking what the
+sum is entitled to — a COUNT, never a value, because asking for the sum ROUNDED
+would be demanding the intermediate be rounded, which is the mistake the topic
+exists to teach against.
+
+**And the app never asks anybody to GET a ratio, only to USE one.** Coefficient
+and subscript confusion is a catalogued stoichiometry misconception and is
+structurally out of reach here, because a proportion problem STATES the recipe
+rather than asking a student to read it off a balanced equation. That is a
+scope boundary rather than a missing class — but it is a real limit on what the
+app can claim, and it was invisible until somebody read a list of misconceptions
+next to the list of topics.
+
+**Two classes came back confirmed.** E-SIG-WRONG-RULE and E-SIG-ROUND-EARLY both
+appear in the literature as named, commonly-reported errors. That is positive
+evidence for two of the twenty-nine, which is two more than the sweep can give.
+
+### Three defects the mixed shape surfaced on its way in
+
+Worth reading before adding another problem shape, because all three are the
+shape of *a new case reaching code that was written when it did not exist*.
+
+**A guarantee that starved the generator.** The first version required the sum's
+figure count to DIFFER from the answer's, on the reasoning that otherwise the
+two-step reading collapses to the one-step reading. Three problems in six
+hundred survived it. They are different QUESTIONS that may share an answer, and
+a guarantee that makes a case unreachable is not protecting anybody from
+anything — it is deleting the case while appearing to keep it.
+
+**The round-early prediction fell through to the wrong branch.**
+`roundEarlyAnswer` tested `operation === 'MULTIPLY'` and treated everything else
+as an addition, so a mixed problem was predicted to be the sum of all three
+operands. It landed on the wrong-rule answer and surfaced as a taxonomy
+collision. **A collision is evidence that something is wrong, not evidence about
+WHICH thing** — the decomposition was fine and a prediction was simply wrong.
+
+**And the collision sweep was running at the wrong precision, which predates all
+of this.** `collisionsFor` read `problem.answerSigFigs`, which for the
+significant-figures topic is a PLACEHOLDER — the real count is derived, and it is
+what `classify` grades at. So the sweep checked pairs at four figures while a
+real session graded at three, and a pair that collided in front of a student did
+not collide in the sweep. One precision governs everything; that line was the
+last exception.
+
 ## Validating the taxonomy without anybody handing over homework
 
 **The twenty-nine classes came from reasoning about what students do wrong — the
@@ -630,8 +690,11 @@ call and not a session's.
   keep.
 - **A browser walk** of the primary journey, getting one step wrong on purpose,
   dropping the network, and reloading the page for real.
-- **The validation pass against real wrong answers**, by one of the four routes
-  above. Nothing about it requires anybody to send work anywhere.
+- **The validation pass against real wrong answers**, by one of the three
+  remaining routes. Nothing about it requires anybody to send work anywhere.
+  The catalogue route has been run once and is written up above; it should be
+  run again whenever a topic changes, because it is the only route that can find
+  a case the generator cannot pose.
 - **The single-skill drill, as its own screen, EARLY.** The engine half is
   built; the screen is not. See *Blocked practice* above.
 - **A five-minute opener path before an elaborate one.** The classroom feedback

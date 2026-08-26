@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * copy-check.mjs — the three rules about WORDS, held by a gate rather than by
+ * copy-check.mjs — the four rules about WORDS, held by a gate rather than by
  * whoever is editing the file at the time.
  *
  *   node tools/copy-check.mjs
@@ -47,6 +47,19 @@
  * one, the repository documentation says so, and a rule that fired on that
  * would push people into writing around it. What is banned is SECOND-PERSON
  * ADDRESS assuming one — "your teacher", "ask your teacher", "hand it in".
+ *
+ * ## Rule four: the release notes are for the people who use this
+ *
+ * **Homeschool teachers and students are the core audience of `CHANGELOG.md`**,
+ * not programmers and not whoever wrote the commit. A note naming a function, a
+ * type, a filename or a gate is a note written for the wrong person — and it is
+ * written that way by default, because the person writing it has just spent
+ * hours inside those names.
+ *
+ * So the changelog is scanned for what a programmer's note LOOKS like rather
+ * than for how it reads: identifiers in backticks, camelCase and
+ * SCREAMING_SNAKE tokens, and `.ts` or `.mjs` filenames. Those are values, not
+ * wording — a check on the wording would fire on the prose explaining the rule.
  *
  * ## Comments are stripped first, and that is load-bearing
  *
@@ -124,6 +137,19 @@ const CLASSROOM = [
   [/\byour\s+(?:homework|assignment)\s+is\s+due\b/i, 'assumes a due date somebody else set'],
 ];
 
+/**
+ * Rule four, over CHANGELOG.md only. What a note written for a programmer looks
+ * like, in shapes rather than in words.
+ */
+const DEVELOPER_VOICE = [
+  [/`[A-Za-z_$][\w$]*\(\)`/, 'names a function'],
+  [/`[a-z]+[A-Z]\w*`/, 'names something in camelCase'],
+  [/`[A-Z][A-Z0-9]*_[A-Z0-9_]*`/, 'names a constant'],
+  [/[\w/.-]+\.(?:ts|mjs|js|json|yml)\b/, 'names a file'],
+  [/\bnpm run\b|\bgit \w+\b/, 'gives a command'],
+  [/\brefactor(?:ed|ing)?\b|\bcodebase\b|\bAPI\b|\brepo(?:sitory)?\b/i, 'a word from the wrong vocabulary'],
+];
+
 /** Every tracked source file under the roots. */
 function sourceFiles() {
   const out = [];
@@ -170,6 +196,21 @@ for (const file of files) {
   });
 }
 
+/* ---- rule four, over the release notes ---- */
+const CHANGELOG = join(REPO, 'CHANGELOG.md');
+let notesLines = 0;
+try {
+  const notes = readFileSync(CHANGELOG, 'utf8');
+  notes.split('\n').forEach((line, i) => {
+    notesLines += 1;
+    for (const [pattern, why] of DEVELOPER_VOICE) {
+      if (pattern.test(line)) findings.push({ where: 'CHANGELOG.md', line: i + 1, why, text: line.trim().slice(0, 90) });
+    }
+  });
+} catch {
+  findings.push({ where: 'CHANGELOG.md', line: 0, why: 'there are no release notes at all', text: '' });
+}
+
 console.log('\n=== the words · Solve-ent ===\n');
 
 // A GATE THAT SCANS NOTHING MUST SAY SO. There is no screen yet, so most of
@@ -189,6 +230,7 @@ if (findings.length === 0) {
   console.log(`  ok    no score, no streak, no target, no congratulation`);
   console.log(`  ok    nothing telling a reader the fault is in them`);
   console.log(`  ok    nothing addressed to a reader who is assumed to be in a classroom`);
+  console.log(`  ok    ${notesLines} lines of release notes, none of them written for a programmer`);
   console.log('\nWhat replaces praise is change: say what happened, and say it stopped only where it did.\n');
   process.exit(0);
 }
