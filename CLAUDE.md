@@ -160,6 +160,15 @@ has the full version, including the risk that follows from it.
 - **No date access outside an injected clock.** A test that cannot control the
   time cannot check anything that carries one, and `steps.test.ts` enforces it
   by reading the source.
+- **THE DOCTRINE MARKER AND THE CI HUB PIN MOVE TOGETHER.** `.doctrine-sync` and
+  `HUB_SHA` in the gates workflow are the same commit written twice; a pin left
+  behind means CI runs the hub's shared gates from before the rules this
+  repository has already adopted — every gate green, the new rule enforced
+  nowhere. `tools/hub-pin-check.mjs` refuses a commit where they disagree, in
+  either direction, and runs on every commit through `.branch-guard`. It is
+  repo-local rather than a hub gate on purpose: CI fetches the hub AT that pin,
+  so a shared gate validating the pin would be fetched at the commit it is
+  checking. Hub LESSONS §117.
 - **No third-party runtime dependencies, and no network calls at runtime.** Node
   strips the TypeScript, so there is no bundler and no test framework — the type
   checker is the whole build.

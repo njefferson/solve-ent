@@ -696,6 +696,38 @@ green meant *not looked at*. The file is scanned in the same run, by its STRING
 LITERALS only (its generated header names a filename twice and none of that
 reaches a reader), and the line saying which rules it was held to is printed.
 
+## The hub commit is written in two files, and they drifted on the commit that adopted the lesson about drifting
+
+`.doctrine-sync` records the hub commit this repository has RECONCILED with, and
+`HUB_SHA` in the gates workflow is the commit CI checks the hub out at to run the
+shared gates. **They are the same fact.** A pin left behind means CI runs the
+hub's privacy, quote and no-grid gates from before the rules this repository has
+already read: every gate green, the new rule enforced nowhere, and the marker
+asserting it was read and applied.
+
+It happened here on the commit that adopted hub LESSONS §146 — the marker moved,
+the pin did not, and it was found by grepping the workflow on the way to
+something else rather than by anything that would find it next time. That is
+§117 recurring, having been enforced by CHECKLIST since it was written.
+
+`tools/hub-pin-check.mjs` refuses a commit where the two disagree in EITHER
+direction. Behind is CI enforcing stale rules; ahead is CI enforcing rules this
+repository has not reconciled with. Both have the same fix: read the drift, then
+move them together. An abbreviated pin or a branch name fails loudly rather than
+reading as absent, and a missing file is a failure and never a skip.
+
+**It is repo-local rather than a hub gate, and that is deliberate.** The hub's
+shared gates take `--repo .` precisely so divergent copies cannot exist. This one
+cannot: CI fetches the hub AT that pin, so a shared gate validating the pin would
+be fetched at the very commit it is checking — a pin left behind far enough
+checks out a hub without the file, and the step fails with a missing module
+rather than a diagnosis. It reads only files in this repository and needs the hub
+for nothing, which is also why it can be a commit hook without making a commit
+depend on the hub being checked out.
+
+It was never planted. It went red twice on real drift, unprompted — once on the
+§146 adopt and again on the §117 adopt an hour later.
+
 ## What is NOT built, and it is most of the app
 
 Named here so nobody has to discover it by looking:

@@ -37,7 +37,7 @@ env:
   # canonical gates AT THIS SHA, so leaving it behind would mean every gate
   # going green while running a check that had never heard of the rule it is
   # supposed to enforce.
-  HUB_SHA: c2f2faf550778c4b7c89497422fcaad7fc94849a
+  HUB_SHA: da458d8904ffea4429ab17632ee053c0318ac927
 
 jobs:
   gates:
@@ -109,6 +109,13 @@ jobs:
       # comments are exactly where the words that must NOT be built are written
       # down. It also runs on every commit through `.branch-guard`; here it
       # covers the case where somebody committed without the hook installed.
+      # The hub commit is written in two files — the reconciliation marker and
+      # the SHA this job checks the hub out at — and they drift silently. A pin
+      # left behind means every shared gate above went green while running a
+      # check that had never heard of the rule this repository has adopted.
+      - name: The hub pin and the doctrine marker agree
+        run: npm run pin
+
       - name: The words
         run: npm run copy
 

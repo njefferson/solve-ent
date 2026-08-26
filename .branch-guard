@@ -24,3 +24,10 @@ also=tools/copy-check.mjs
 # the tree — and a what's-new panel one release behind is a panel telling
 # somebody about a change they do not have.
 also=tools/notes-check.mjs
+
+# And the hub pin, which is the same commit written in two files: the marker
+# `doctrine-sync --adopt` moves, and the SHA CI checks the hub out at to run the
+# shared gates. Adopting is one command and editing a workflow is another, and
+# skipping the second leaves CI enforcing rules from before the ones this repo
+# has already read — every gate green, the new rule enforced nowhere.
+also=tools/hub-pin-check.mjs
