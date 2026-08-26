@@ -1519,8 +1519,14 @@ Named here so nobody has to discover it by looking:
 
 - **`tools/cli.ts` prints answers** and says so on every command that shows one.
 - **Nothing deployed, and no repository metadata.**
-- **Nothing is deployed and no Pages project exists.** That is the owner's to
-  create — see below.
+- **Nothing is deployed yet.** The Pages project does not exist, but **creating
+  it is not a manual step and never was** — `deploy.yml` runs
+  `pages project create` before it deploys, exactly as the hub's own deploy
+  does, and that command is a no-op once the project is there. This was recorded
+  here as the owner's job to do by hand for several releases and that was simply
+  wrong; the hub had been creating its own project in CI the whole time.
+  What IS the owner's: the two repository secrets the job reads. It skips with a
+  message rather than failing when they are absent, so the log says which.
 
 ## The first CI run, read rather than trusted
 
@@ -1549,8 +1555,12 @@ call and not a session's.
   are GitHub-UI steps a session token cannot perform (Doctrine §10). Proposed
   values go in the hub's `METADATA.md`; never report this repository set up
   while a row there says proposed.
-- **The Cloudflare Pages project and the default branch** are the owner's too.
-  There is nothing to deploy yet, which is why no deploy workflow exists.
+- **The two Cloudflare repository secrets** — `CLOUDFLARE_API_TOKEN` and
+  `CLOUDFLARE_ACCOUNT_ID` — are the owner's, because a session has no business
+  handling a token value. The deploy job reads them and skips with a message
+  when they are not there. The Pages project itself is NOT manual: the job
+  creates it.
+- **The default branch** is the owner's.
 - **Whether the seven topics are the right seven** is the teacher's call. The
   list is closed until somebody with a classroom says otherwise.
 

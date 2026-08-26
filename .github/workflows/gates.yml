@@ -10,10 +10,10 @@ name: Gates
 # Nothing in this job pushes, and nothing in it needs a token, so the checkout
 # leaves no credential in .git/config for whatever step gets added next year.
 #
-# THERE IS NO DEPLOY JOB, and that is not an omission. There is no screen and
-# no Cloudflare Pages project yet — a deploy job with nothing to deploy is a
-# workflow that goes green while doing nothing, which is the shape of a gate
-# nobody can trust.
+# THE DEPLOY IS ITS OWN WORKFLOW, in deploy.yml, and it runs on `main` only.
+# This one gates; that one ships. They do not wait on each other, because what
+# protects `main` is that nothing reaches it except a promotion of a commit
+# these gates have already passed on `staging`.
 
 # `staging` and `main` only, deliberately. The harness's own `claude/*` branch
 # is kept pointing at the same commit as `staging`, so listing it here would buy

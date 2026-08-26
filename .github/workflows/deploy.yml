@@ -1,0 +1,114 @@
+name: Deploy
+
+# main -> production (solve-ent.pages.dev)
+#
+# Deploys the static site in public/ to Cloudflare Pages via wrangler. Needs two
+# repository secrets, CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID — and it
+# SKIPS WITH A MESSAGE rather than failing when they are absent, so a repository
+# that has not been given them yet says so in the log instead of going red on
+# every push.
+#
+# COPIED FROM THE HUB'S OWN DEPLOY, deliberately, down to the whitespace strip
+# and the rollback note. That one has run in anger; a second design here would
+# be a second set of mistakes to make.
+#
+# THE PROJECT IS CREATED BY THIS JOB. `pages project create` is a no-op once it
+# exists, which is why it carries continue-on-error — and it means the Pages
+# project is not a thing somebody has to make by hand first. It was recorded as
+# a manual step here for several releases and that was simply wrong.
+#
+# Actions are pinned by SHA, not tag (Doctrine §16.1) — a tag is a mutable
+# pointer someone else controls, and these steps execute holding a live
+# Pages:Edit token. Dependabot keeps the pins current.
+#
+# THIS DOES NOT RUN THE GATES. `gates.yml` runs on the same push and this job
+# does not wait for it, which is deliberate: a deploy that waits on a two-minute
+# browser sweep is a deploy nobody runs. What protects `main` is that nothing
+# reaches it except a promotion of a commit the gates have already passed on
+# `staging`.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Nothing in this job pushes. Leaving the token in .git/config makes
+          # it available to every later step, including whatever action gets
+          # added next year (Doctrine §16.4). zizmor: artipacked.
+          persist-credentials: false
+
+      - name: Prepare Cloudflare credentials
+        id: cf
+        env:
+          RAW_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          RAW_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          # Strip any whitespace/newlines that sneak in when a secret is pasted.
+          # A trailing newline corrupts the Authorization header (Cloudflare 6111).
+          TOKEN=$(printf '%s' "$RAW_TOKEN" | tr -d '[:space:]')
+          ACCOUNT=$(printf '%s' "$RAW_ACCOUNT" | tr -d '[:space:]')
+          echo "::add-mask::$TOKEN"
+          echo "::add-mask::$ACCOUNT"
+          if [ -n "$TOKEN" ] && [ -n "$ACCOUNT" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "Cloudflare secrets are not on this repository yet - skipping the deploy."
+            echo "Nothing is wrong with the build; there is simply nowhere to put it."
+          fi
+          # Doctrine §16.4: the cleaned values go to the job environment, never to
+          # step outputs. Outputs persist in the run's stored output and are
+          # readable through the API; env is scoped to this job's steps. Only the
+          # non-secret `ready` flag is an output.
+          echo "CF_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+          echo "CF_ACCOUNT=$ACCOUNT" >> "$GITHUB_ENV"
+
+      - name: Verify cleaned token
+        if: steps.cf.outputs.ready == 'true'
+        continue-on-error: true
+        run: |
+          echo "cleaned token length: ${#CF_TOKEN}"
+          curl -s https://api.cloudflare.com/client/v4/user/tokens/verify \
+            -H "Authorization: Bearer $CF_TOKEN" \
+            | python3 -c "import sys,json; d=json.load(sys.stdin); print('valid:', d.get('success'), '| status:', (d.get('result') or {}).get('status'), '| errors:', d.get('errors'))"
+
+      - name: Ensure the Pages project exists
+        if: steps.cf.outputs.ready == 'true'
+        continue-on-error: true
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        with:
+          apiToken: ${{ env.CF_TOKEN }}
+          accountId: ${{ env.CF_ACCOUNT }}
+          command: pages project create solve-ent --production-branch=main
+
+      - name: Deploy to Cloudflare Pages
+        if: steps.cf.outputs.ready == 'true'
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        with:
+          apiToken: ${{ env.CF_TOKEN }}
+          accountId: ${{ env.CF_ACCOUNT }}
+          command: pages deploy public --project-name=solve-ent --branch=${{ github.ref_name }} --commit-dirty=true
+
+      - name: How to roll this back
+        if: always() && steps.cf.outputs.ready == 'true'
+        run: |
+          # Doctrine §16 — the rollback path is printed on every deploy so it is
+          # known BEFORE it is needed, not looked up during an outage.
+          echo "If this deploy is bad:"
+          echo "  Cloudflare dashboard -> Workers & Pages -> solve-ent -> Deployments"
+          echo "  -> pick the last good one -> Manage deployment -> Rollback."
+          echo "That is instant. A git revert is also fine but waits for a fresh build,"
+          echo "and note concurrency cancel-in-progress can cancel an in-flight deploy."

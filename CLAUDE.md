@@ -298,5 +298,8 @@ a runner can never satisfy (hub LESSONS 107).
 
 Description, website, topics and social preview are GitHub-UI steps a session
 token cannot perform. Proposed values live in the hub's `METADATA.md`. Never
-report this repository set up while a row there says proposed. The Cloudflare
-Pages project and the default branch are the owner's too.
+report this repository set up while a row there says proposed. The default
+branch is the owner's, and so are the two Cloudflare repository secrets the
+deploy job reads — a session has no business handling a token value. **The Pages
+project is NOT a manual step**: `deploy.yml` creates it before deploying, the
+same way the hub's own deploy does.
