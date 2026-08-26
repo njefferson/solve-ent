@@ -201,8 +201,11 @@ function measured() {
     return {
       ok: false,
       why:
-        'the hub is checked out at neither .hub nor ../noahjefferson, so the palette ' +
-        'could not be measured against the shared floors',
+        'the hub is checked out at neither .hub nor ../noahjefferson, so the palette\n' +
+        '  could not be measured against the shared floors. It is not skipped: a colour\n' +
+        '  reaching a screen unmeasured is the whole thing this exists to prevent.\n' +
+        '  Check njefferson/noahjefferson out beside this repository — every session here\n' +
+        '  needs it anyway, for doctrine-sync and the shared gates.',
     };
   }
   const run = spawnSync(process.execPath, [HUB_GATE, SOURCE], { encoding: 'utf8' });

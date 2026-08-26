@@ -204,7 +204,11 @@ has the full version, including the risk that follows from it.
 
 ## Running it
 
-Node 22.18 or newer.
+Node 22.18 or newer, **and the hub checked out beside this repository** — the
+palette is measured by the hub's canonical gate, and a session without it cannot
+commit. That is deliberate: a colour reaching a screen unmeasured is the thing
+that gate exists to prevent, so it fails rather than skipping. CI checks the hub
+out at `.hub` and the gate looks in both places.
 
 ```
 npm ci
