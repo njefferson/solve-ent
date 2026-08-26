@@ -61,6 +61,32 @@
  * SCREAMING_SNAKE tokens, and `.ts` or `.mjs` filenames. Those are values, not
  * wording — a check on the wording would fire on the prose explaining the rule.
  *
+ * ## The release notes the app CARRIES are held to rule four, not rules one to
+ * three — and this is the interesting one
+ *
+ * `src/report/releases.ts` is generated from `CHANGELOG.md` and lives under
+ * `src/`, so the first version of this scanned it like any other source file.
+ * It failed. On the 0.2.0 note, whose entire job is to tell a reader that this
+ * app has **no streaks**.
+ *
+ * **A gate that bans a word cannot scan the copy that exists to say the word is
+ * absent.** The two lines it caught are the product keeping its promise, said
+ * out loud to the person it is a promise to, and the only way to word around
+ * the gate is to stop saying it — which would make the note worse in exactly
+ * proportion to how well the gate is working.
+ *
+ * So the artefact is scanned under rule four, which is the rule that actually
+ * applies to it, since release notes are what it is. Rules one to three are
+ * about copy addressed to somebody about their own work: praise, blame and an
+ * assumed classroom are register errors in a sentence spoken TO a student
+ * mid-run. A release note is about the app, and describing an absence requires
+ * naming it.
+ *
+ * NOT AN EXEMPTION, and the difference is the whole point: the file is scanned,
+ * in this run, and the line saying so is printed. What changes is which rules,
+ * and only its STRING LITERALS are read — the generated header names a filename
+ * on two lines and none of that reaches anybody.
+ *
  * ## Comments are stripped first, and that is load-bearing
  *
  * The comments are exactly where the words that must NOT be built are written
@@ -94,6 +120,16 @@ const ROOTS = ['src', 'tools'];
  * privacy gate's own history, where green meant "not looked at".
  */
 const SELF = 'tools/copy-check.mjs';
+
+/**
+ * The release notes the app carries, generated from CHANGELOG.md.
+ *
+ * Held to rule four rather than to rules one to three — see the header. It is
+ * scanned in this same run and the fact is printed; what changes is which rules
+ * apply, because a release note describing what this app refuses to do has to
+ * name the thing it refuses.
+ */
+const GENERATED_NOTES = 'src/report/releases.ts';
 
 /** Rule one, with what each pattern is for. */
 const PRAISE = [
@@ -180,7 +216,10 @@ function stripComments(source) {
     .join('\n');
 }
 
-const files = sourceFiles().filter((file) => relative(REPO, file) !== SELF);
+const files = sourceFiles().filter((file) => {
+  const where = relative(REPO, file);
+  return where !== SELF && where !== GENERATED_NOTES;
+});
 const findings = [];
 let scanned = 0;
 
@@ -196,7 +235,7 @@ for (const file of files) {
   });
 }
 
-/* ---- rule four, over the release notes ---- */
+/* ---- rule four, over the release notes: the source AND the artefact ---- */
 const CHANGELOG = join(REPO, 'CHANGELOG.md');
 let notesLines = 0;
 try {
@@ -209,6 +248,30 @@ try {
   });
 } catch {
   findings.push({ where: 'CHANGELOG.md', line: 0, why: 'there are no release notes at all', text: '' });
+}
+
+// And the generated artefact, by its STRING LITERALS, because that is the part
+// a reader ever sees. Generated from the same source, so this should never fire
+// on its own — but "should never" is what a check is for, and the generator is
+// a program that could one day carry a filename through into a line.
+let notesStrings = 0;
+try {
+  const artefact = readFileSync(join(REPO, GENERATED_NOTES), 'utf8');
+  const lines = artefact.split('\n');
+  lines.forEach((line, i) => {
+    for (const [, literal] of line.matchAll(/'((?:[^'\\]|\\.)*)'/g)) {
+      const text = literal.replace(/\\'/g, "'").replace(/\\\\/g, '\\');
+      notesStrings += 1;
+      for (const [pattern, why] of DEVELOPER_VOICE) {
+        if (pattern.test(text)) {
+          findings.push({ where: GENERATED_NOTES, line: i + 1, why, text: text.trim().slice(0, 90) });
+        }
+      }
+    }
+  });
+} catch {
+  // Missing is not silent: reported below with the roots that do not exist.
+  notesStrings = -1;
 }
 
 console.log('\n=== the words · Solve-ent ===\n');
@@ -231,6 +294,14 @@ if (findings.length === 0) {
   console.log(`  ok    nothing telling a reader the fault is in them`);
   console.log(`  ok    nothing addressed to a reader who is assumed to be in a classroom`);
   console.log(`  ok    ${notesLines} lines of release notes, none of them written for a programmer`);
+  if (notesStrings < 0) {
+    console.log(`  note  ${GENERATED_NOTES} is missing — the notes the app carries were not checked`);
+  } else {
+    console.log(
+      `  ok    ${notesStrings} written line(s) in ${GENERATED_NOTES}, held to the same rule\n` +
+        `        (and to that rule ONLY — a note saying this app has no streaks has to say "streaks")`,
+    );
+  }
   console.log('\nWhat replaces praise is change: say what happened, and say it stopped only where it did.\n');
   process.exit(0);
 }

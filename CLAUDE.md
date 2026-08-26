@@ -114,6 +114,24 @@ has the full version, including the risk that follows from it.
   has to stay swappable. After repeated failure on one skill the app changes
   what it is doing rather than serving the next problem — `NOTES.md` has the
   ladder and the trip-wire that would say the model is not carrying the load.
+- **THE WHAT'S-NEW LIST IS BOUNDED AT FIVE AND OPENS A PAGE IN THIS APP.** The
+  current release and four before it, generated from `CHANGELOG.md` by
+  `tools/changelog.mjs` — one source, drift-checked on every commit through
+  `.branch-guard`. A list that grows by accumulation eventually becomes longer
+  than the app, so `OLDER_THAN_SHOWN` is carried and the panel says how many it
+  is not showing. `NOTES_PAGE` is a path in this app and **never a code host**;
+  somebody who wants to know what changed in a maths trainer should not land in
+  a repository. When there is a screen, the panel shows once per release, never
+  to a first-time visitor, stores nothing but a version and stores it
+  device-locally, and never interrupts a run. `NOTES.md` has the full contract.
+- **A GATE THAT BANS A WORD CANNOT SCAN THE COPY THAT SAYS THE WORD IS ABSENT.**
+  `src/report/releases.ts` is reader-facing copy under `src/`, and the words
+  gate failed on the note whose job is to say this app has no streaks. It is
+  held to the release-notes rule and not to the praise, blame and classroom
+  rules — those are about a sentence spoken TO a student about their own work,
+  and a release note is about the app. It is still SCANNED, by its string
+  literals, and the run prints which rules it was held to; a whole-file
+  exemption is where material collects.
 - **RELEASE NOTES ARE FOR HOMESCHOOL TEACHERS AND STUDENTS, as the core
   audience.** Not for programmers, not for whoever wrote the commit. If a
   release changed something a reader can see or do, describe it in the words

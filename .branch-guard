@@ -18,3 +18,9 @@ also=tools/version-check.mjs
 # most needs to do twenty of these. Same for copy that assumes a classroom a
 # homeschooler does not have.
 also=tools/copy-check.mjs
+
+# And the release notes, which are GENERATED from CHANGELOG.md and committed.
+# A generated artefact in the tree is a generated artefact that goes stale in
+# the tree — and a what's-new panel one release behind is a panel telling
+# somebody about a change they do not have.
+also=tools/notes-check.mjs

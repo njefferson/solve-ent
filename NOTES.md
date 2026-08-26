@@ -57,12 +57,12 @@ one, said once and never explained again.
 
 **Session 1 is complete. There is no user interface, on purpose.** The domain
 engine, the error taxonomy, the step machine, the run reader and the test suite
-are built and green: 61 tests, a clean strict type check with no `any` in the
+are built and green: 70 tests, a clean strict type check with no `any` in the
 tree, and no runtime dependencies at all.
 
 **The two numbers session 1 exists to produce:**
 
-- **Taxonomy collisions: 0**, over 10,500 generated problems and 72,577
+- **Taxonomy collisions: 0**, over 10,500 generated problems and 72,992
   predicted wrong values. Two error classes predicting something a student
   could not tell apart fails the build. There is no tiebreak anywhere and there
   never will be.
@@ -620,6 +620,82 @@ strongest supply-chain position available and it matches the
 no-third-party-runtime-dependencies constraint exactly rather than
 approximately.
 
+## The what's-new surface, and the contract it has to keep
+
+**Half of this is built and the visible half is not.** The words exist, bounded
+and generated from one source; the panel that shows them and the page it opens
+do not, because there is no screen at all. That is stated here in full so
+session 2 builds the agreed thing rather than re-deciding it.
+
+**The words half, built in 0.4.0.** `CHANGELOG.md` is the source and
+`tools/changelog.mjs` writes `src/report/releases.ts` from it. Nothing is typed
+twice, and `tools/notes-check.mjs` runs the drift check on EVERY commit through
+`.branch-guard` — because a generated artefact in the tree is a generated
+artefact that goes stale in the tree, and a what's-new panel one release behind
+is a panel telling somebody about a change they do not have.
+
+**Bounded at five: the current release and four before it.** A list that grows
+by accumulation eventually becomes longer than the app. `OLDER_THAN_SHOWN` is
+carried so the panel can say how many it is NOT showing, rather than implying
+five is all there has ever been. The generator also REFUSES a release with no
+"still missing" line (Doctrine §7d) — checked rather than remembered, because
+the release somebody is proudest of is the release it gets left off.
+
+**`NOTES_PAGE` is `/whats-new`, a path in this app.** Never a link off to a code
+host. Somebody who wants to know what changed in a maths trainer should not land
+in a repository, and a test asserts the VALUE rather than trusting the comment,
+because that is the line somebody edits when a page is slow to build and a link
+to the source feels like a reasonable stopgap.
+
+**The visible half, owed the moment there is a screen:**
+
+- **Shown once per release, never twice.** The trigger is the stored version
+  differing from `VERSION`, and the stored version is written when the panel is
+  DISMISSED rather than when it is shown — a panel closed by a reload is a panel
+  nobody read.
+- **Never to a first-time visitor.** No stored version at all means a newcomer,
+  and a newcomer has nothing to catch up on. Write the current version and show
+  nothing. A what's-new panel is the second-worst possible first screen, after
+  a panel of what they have missed by never having been here.
+- **It is a device-local preference and it never leaves the device.**
+  `localStorage`, like every accommodation. It reaches no completion code and no
+  teacher's page.
+- **Closeable, and closing it means closed** (Doctrine §4) — a real control with
+  a real target size, not a corner glyph, and Escape as well when there is a
+  keyboard.
+- **It never interrupts a run.** Between problems or on the way in, never over a
+  question somebody is part-way through answering.
+- **The link opens `/whats-new` inside the app.** Same-document navigation, so
+  it needs the `hashchange` listener the opener path needs — see the warm-up
+  link trap below.
+- **It must join the accessibility gate's surface list in the SAME commit** that
+  builds it, or it ships unmeasured. That is hub LESSONS §28 and it has cost a
+  release before.
+
+## A gate that bans a word cannot scan the copy that says the word is absent
+
+`src/report/releases.ts` is generated reader-facing copy that lives under
+`src/`, so `tools/copy-check.mjs` scanned it like any other source file the
+moment it existed. **It failed** — on the 0.2.0 note, whose whole job is to tell
+a reader this app has no streaks.
+
+The two lines it caught are the product keeping its promise, said out loud to
+the person the promise is to. There is no wording around it: the only way past
+the gate is to stop saying it, which would make the note worse in exact
+proportion to how well the gate was working.
+
+So the artefact is held to rule four — the release-notes rule — and not to rules
+one to three. That is the rule that actually applies to it. Rules one to three
+are about copy addressed to somebody about their own work; praise, blame and an
+assumed classroom are register errors in a sentence spoken TO a student mid-run.
+A release note is about the app, and describing an absence requires naming it.
+
+**Deliberately not a whole-file exemption**, because a whole-file exemption is
+where material collects — that is the hub privacy gate's own history, where
+green meant *not looked at*. The file is scanned in the same run, by its STRING
+LITERALS only (its generated header names a filename twice and none of that
+reaches a reader), and the line saying which rules it was held to is printed.
+
 ## What is NOT built, and it is most of the app
 
 Named here so nobody has to discover it by looking:
@@ -630,6 +706,10 @@ Named here so nobody has to discover it by looking:
   there is no codec, no MAC and no readout yet. When there is one, the readout
   must DECODE the code the student is holding rather than describe it, so it
   cannot drift from the truth.
+- **No what's-new panel and no `/whats-new` page.** The WORDS are built,
+  bounded and generated from one source; the surfaces that would show them are
+  not, because there is no screen to put them on. The contract they have to
+  keep is written above rather than left to be re-decided.
 - **No teacher's page**, no resume, no accessibility work, no palette, no
   service worker, nothing deployed, and no repository metadata.
 - **Nothing is deployed and no Pages project exists.** That is the owner's to

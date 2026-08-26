@@ -112,6 +112,13 @@ jobs:
       - name: The words
         run: npm run copy
 
+      # The release notes come from ONE source and are BOUNDED — the current
+      # release plus four, with everything older on a page in the app rather
+      # than a link off to a code host. A generated artefact in the tree goes
+      # stale in the tree, so this is checked here as well as on every commit.
+      - name: The release notes have not drifted from their one source
+        run: npm run notes:check
+
       # Prints the two numbers this project is measured by: the taxonomy
       # collision count, which must be zero, and the unclassified rate.
       - name: Tests

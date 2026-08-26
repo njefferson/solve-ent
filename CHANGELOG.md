@@ -9,6 +9,34 @@ release changed something you can see or do, it is described below in the words
 you would use for it. If it changed something under the surface that you cannot
 see, it says that plainly rather than dressing it up.
 
+## 0.4.0 — CAPABILITY
+
+**When a new version arrives, this will be able to tell you what changed — and
+it will not be an endless list.**
+
+Every app should say what is different since last time, in the place you already
+are, rather than sending you off to a website meant for programmers. This
+release builds the part that holds those words: the newest release plus four
+before it, and nothing older than that. Everything further back lives on a page
+inside the app itself.
+
+Five is a decision and not a number that happened. A list that grows by
+accumulation eventually becomes longer than the thing it is describing, and
+nobody opening a maths trainer wants to scroll through two years of it. The app
+also knows how many releases it is NOT showing, so it can say so, instead of
+leaving an impression that five is all there has ever been.
+
+**The words are now written in one place and only one place.** Until now, what a
+reader would see and what was kept alongside the working parts were two separate
+lists — and two lists drift, so an app ends up describing a change that is not in
+the version somebody is actually running. There is one set of words now, and a
+check refuses any change that lets the two disagree.
+
+**Still missing, and it is the part that matters:** there is still no screen, so
+the panel that would appear on a new version, and the page it would open, do not
+exist yet. What exists is the list of words and the rule about how long it is
+allowed to be. Nothing here can be opened and read.
+
 ## 0.3.0 — CAPABILITY
 
 **Significant-figures questions can now mix adding and multiplying, which is the
@@ -48,6 +76,9 @@ and that explanation is the person reading it.
 This is now checked automatically every time the app changes, the same way the
 no-scores rule is, so it cannot quietly stop being true.
 
+**Still missing:** there is no screen, so none of these words have reached
+anybody yet. The check is in place for when they do.
+
 ## 0.2.0 — CAPABILITY
 
 **No scores, no streaks, no targets, and nothing congratulating anybody.**
@@ -74,6 +105,10 @@ and that it is one thing to fix, not a pile of questions to do again.
 if it was one the marking had not been told about. On a rearranging question
 that meant the upside-down answer would have been accepted. Nobody could have
 run into this yet — there is no screen — but it would have been waiting.
+
+**Still missing:** there is no screen, so nothing above can be seen. And there
+is still no way to practise a single skill on its own, which is the thing most
+worth having if one particular move is the one going wrong.
 
 ## 0.1.0 — CAPABILITY
 
