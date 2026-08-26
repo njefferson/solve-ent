@@ -919,6 +919,23 @@ changes. It failed on 0.5.0, the first release that made it non-zero, which is
 also the first release on which that branch had ever been reachable. It is
 annotated `number` now.
 
+### Two things the screenshots said that no gate did
+
+Both were found by looking at a rendered page, which is the one thing none of
+the gates above can do.
+
+**The diagnosis was a fragment**, which is written up in full below — it is the
+reason the framing lives in the screen rather than in the engine.
+
+**The Start button is below the fold on a phone.** The orientation runs four
+paragraphs and an aside, so on a 390-wide viewport a reader scrolls about a
+third of a screen to reach the control. That is ordinary for an orientation and
+it is not the unreachable-control failure — the button is reached by the same
+gesture everything else on the page is reached by. It is recorded because the
+next person to add a paragraph there should know what it costs, and because
+"scroll a bit" and "4.9 screens down" are the same shape at different sizes,
+and the second one shipped in a sibling app for 142 releases.
+
 ## What is NOT built, and it is most of the app
 
 Named here so nobody has to discover it by looking:
