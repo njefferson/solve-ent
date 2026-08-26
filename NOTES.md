@@ -1280,27 +1280,22 @@ call and not a session's.
 
 ## Obligations this repository still owes
 
-- **The §7e baseline**, in full, when there is a screen: an ⓘ control in the
-  app's own chrome, first-run orientation that survives whatever the reader
-  presses to begin, patch notes from one source, a text diagnostic, and the
-  stale-app offer. None of it applies yet and all of it is owed the moment a
-  surface exists.
-- **A palette**, measured by the hub's gate before anything is drawn, and the
-  hub's `PALETTES.md` recipe followed rather than improvised. Three things from
-  it are worth deciding EARLY, because they are cheap now and expensive later:
-  the token declarations must be consolidated to ONE source before any second
-  palette exists, or adding families multiplies the blocks that must never
-  drift; palette and mode are INDEPENDENT axes, so the day/night toggle stays
-  as it is and a `data-palette` attribute sits beside it; and the picker labels
-  each option by NAME, because a swatch alone is colour as the sole carrier.
-  **Instrument is the recommended default family** — the only one whose worst
-  text pairing clears 4.87 across all four palettes.
-- **An accessibility gate** covering every state in both modes, measured from
-  resolved pixels, with the role invariant that reverse-maps every rendered
-  colour to its token — copied from MoleBridge, which is where it earned its
-  keep.
-- **A browser walk** of the primary journey, getting one step wrong on purpose,
-  dropping the network, and reloading the page for real.
+**Six of the eight things this list used to name are built**, and they were
+struck from it on the day the difficulty picker landed rather than the day each
+of them shipped. The §7e baseline is complete (the ⓘ control, first-run
+orientation that survives the thing a reader presses to begin, patch notes from
+one source, the text diagnostic and the stale-app offer); the palette is
+generated from `palettes/solve-ent.json` and measured by the hub's gate; the
+accessibility gate covers every state in both modes and reverse-maps every
+rendered colour to a token; the browser walk gets a step wrong on purpose,
+drops the network and reloads for real; the drill has its own screen; and the
+short opener path is `#/warm-up`, two problems with no menu, with the
+`hashchange` listener the trap below requires.
+
+**A list of obligations that keeps discharged items is a list nobody reads.**
+The session sections above are the record of how each was built; what is still
+owed is here, and what was never built at all is in *What is NOT built*.
+
 - **The validation pass against real wrong answers**, by one of the three
   remaining routes. The catalogue route has been run once and is written up
   above; it should be run again whenever a topic changes, because it is the only
@@ -1311,16 +1306,6 @@ call and not a session's.
   suggestion to close a summary with. It was said once, and then raised three
   more times anyway — twice inside a single reply — which is what moved it from
   a note into a rule.
-- **The single-skill drill, as its own screen, EARLY.** The engine half is
-  built; the screen is not. See *Blocked practice* above.
-- **A five-minute opener path before an elaborate one.** The classroom feedback
-  on the sibling app was not about practice or reports — it was that a short
-  opener at the start of a lesson is what would actually get used. A link that
-  goes straight into two short problems, no menu, no setup.
-  **And the trap that comes with it: a hash-only URL change is same-document**,
-  so a link like that does nothing in an already-open tab unless something
-  listens for `hashchange`. That is a silent failure — the link looks fine and
-  the page simply does not move.
 - **Two walk traps to avoid rather than discover.** Scope every count in a
   browser walk to its own screen: an unscoped row count went from 8 to 16 in the
   sibling app the moment a second screen used the same class. And any map from a
