@@ -94,8 +94,11 @@ check(
   (await visibleSurface(page)).join() === 'difficulty',
   'picking a topic that has more than one difficulty asks which one',
 );
+// THE COUNT IS THE DETAIL, NOT THE SENTENCE. Written into the sentence it read
+// "all three ... are offered at once, not 3" on the line where it PASSED, since
+// a passing line prints its detail too.
 const offered = await page.locator('#difficulties button').count();
-check(offered === 3, `all three of this topic's difficulties are offered at once, not ${offered}`);
+check(offered === 3, "all three of this topic's difficulties are offered at once", `${String(offered)} offered`);
 check(
   (await page.locator('#difficulties button[disabled]').count()) === 0,
   'and none of them is locked — nothing here has to be earned',

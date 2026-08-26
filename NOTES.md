@@ -1315,6 +1315,35 @@ clipped box sits at its own inset, so the surface read as though its own styles
 were not applying. It is a `<div>` now — the control already carries the name,
 and one more landmark per step is noise.
 
+### Two releases were pushed and no CI run was created
+
+0.9.0 and 0.10.0 both went to `staging`, both were verified against the remote —
+the range line, then `git ls-remote` reading back the exact SHA — and **neither
+push created a workflow run.** The newest run in the list was the commit before
+them, and it was green, so the repository looked healthy.
+
+The commit before them had its own shape worth naming: a run that concluded
+`failure` five seconds after it was created, with its only job still `queued`.
+That is a dispatch that never reached a runner rather than a gate finding
+anything. A hand dispatch of the same workflow fifty minutes later queued
+immediately and passed every step, so whatever it was had passed by then.
+
+**What was wrong was the sentence, not the push.** "CI is running" was said for
+both releases because a push had happened and pushes cause runs. The thing
+actually looked at was the newest row in a list, and every green row in it
+belonged to an earlier commit. A red run is on the page in red; a run that was
+never created is an absence, and the row above it reads as the answer.
+
+So the check here is **a run whose head SHA is this commit**, and its log — not
+the newest run's colour. Hub LESSONS §161 carries the general form, and the hub's
+CLAUDE.md indexes it beside the deploy rule it is a sibling of: a push is
+evidence about a ref, and a run, a deploy or an artefact is evidence about a
+commit, which has to be looked up by that commit.
+
+0.9.0 and 0.10.0 are verified by run 27, a hand dispatch against `ffc8ff5`, whose
+log printed the working-log checks, the scratch-line checks, 66 walk steps and
+the update walk against a real second worker.
+
 ## What is NOT built, and it is most of the app
 
 Named here so nobody has to discover it by looking:
