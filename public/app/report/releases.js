@@ -32,9 +32,23 @@ export const NOTES_PAGE = '/whats-new';
  * it non-zero, which is also the first release on which that branch had ever
  * been reachable.
  */
-export const OLDER_THAN_SHOWN = 1;
+export const OLDER_THAN_SHOWN = 2;
 /** Newest first. */
 export const RELEASES = [
+    {
+        version: '0.6.0',
+        kind: 'CAPABILITY',
+        lines: [
+            'It works with no connection now, which is the one that matters most for whoever is doing this on a bus, in a car, or somewhere the signal gives out halfway through.',
+            'Open it once with a connection and it keeps a copy on the device. After that it opens whether or not there is any network at all — the questions, the marking, the explanations and the list of what changed. Nothing is ever fetched while you work, because nothing ever was: the questions are worked out on the device.',
+            'And when a newer version arrives, it waits for you. This is the part most apps get wrong, so it is worth saying what happens instead.',
+            'A newer version does not replace what you have while you are using it. You get a line at the top of the screen saying one is ready, with a button to switch to it and a button to leave it for later. Nothing reloads on its own, nothing is lost part-way through a question, and if you ignore it entirely you get the new one next time you open the app.',
+            'If you have never opened this before, you are told none of that. There is nothing you missed.',
+            'You can keep it on your home screen, and the information button now lists how to do that on each kind of device.',
+            'Also: the panel that tells you which copy of the app is on the device now says so exactly, which matters because the version number on screen is reported by the code that is running — on an out-of-date copy, that is the old code reporting itself perfectly accurately.',
+        ],
+        stillMissing: 'there is still no way to practise a single move over and over, which is the thing most worth having when one particular step is the one going wrong. Every question still arrives at the same difficulty. Nothing can be handed in and there is no page for whoever set the work. And the icon is a simple drawing rather than a proper one.',
+    },
     {
         version: '0.5.0',
         kind: 'CAPABILITY',
@@ -79,21 +93,5 @@ export const RELEASES = [
             'This is now checked automatically every time the app changes, the same way the no-scores rule is, so it cannot quietly stop being true.',
         ],
         stillMissing: 'there is no screen, so none of these words have reached anybody yet. The check is in place for when they do.',
-    },
-    {
-        version: '0.2.0',
-        kind: 'CAPABILITY',
-        lines: [
-            'No scores, no streaks, no targets, and nothing congratulating anybody.',
-            'A streak teaches you to protect a number, and it makes stopping feel like losing something. That is the opposite of what is useful for the person who most needs to sit and do twenty of these.',
-            'What you get instead is what changed:',
-            'A mistake made once is not a pattern, and nothing is said about it.',
-            'Made twice, it turns up at the end.',
-            'Made three times, it is named while you are still working — once, with what fixes it — and then not raised again.',
-            'If you were making the same mistake and then you stopped, it says so. Only if that actually happened, and one right answer after a run of wrong ones is not enough to count.',
-            'And if a whole set went wrong, it does not tell you how many. Four questions and none right is true and is no use to anybody. It says what the mistake was and that it is one thing to fix, not a pile of questions to do again.',
-            'Also fixed: a multiple-choice question could mark the wrong option correct if it was one the marking had not been told about. On a rearranging question that meant the upside-down answer would have been accepted. Nobody could have run into this yet — there is no screen — but it would have been waiting.',
-        ],
-        stillMissing: 'there is no screen, so nothing above can be seen. And there is still no way to practise a single skill on its own, which is the thing most worth having if one particular move is the one going wrong.',
     },
 ];

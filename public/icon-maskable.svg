@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Solve-ent">
+  <!-- Maskable: the mark sits inside the 40% safe zone, so a platform that
+       crops this to a circle does not cut a stroke in half. -->
+  <rect width="512" height="512" fill="#1a1a1a"/>
+  <g fill="none" stroke="#9fc2f5" stroke-width="30" stroke-linecap="round">
+    <path d="M166 212h180"/>
+    <path d="M166 300h180"/>
+    <path d="M256 156v40"/>
+  </g>
+</svg>

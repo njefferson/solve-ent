@@ -936,15 +936,93 @@ next person to add a paragraph there should know what it costs, and because
 "scroll a bit" and "4.9 screens down" are the same shape at different sizes,
 and the second one shipped in a sibling app for 142 releases.
 
+## Session 3: offline, and the update that waits
+
+Doctrine §7h, which is the one item of the §7e baseline that had been named as
+owed since there was a screen. The failure it prevents is invisible by
+construction: caching IS the business of not asking the network, so a stale app
+looks perfectly fine. It is just old. There is no error, no symptom, and the
+version on screen is the old code reporting itself perfectly accurately.
+**Nobody finds this by using the app.**
+
+### The worker and the manifest are GENERATED, and the precache list is read off the tree
+
+Two things in a service worker must move with the release and are exactly what a
+hand-edited file gets wrong. The **cache name**: if it does not change, a new
+release reuses the old cache and can never replace what is in it (hub LESSONS
+§21). The **precache list**: written by hand it goes stale the first time a
+module is added, and the symptom is a file that silently is not there offline.
+Both come out of `tools/pwa.mjs` now, drift-checked on every commit.
+
+**The generator was briefly a fixed-point search.** It writes the manifest, and
+it read the manifest back off the tree as part of the list — so the first run
+produced a list without it and the second produced a list with it, and the drift
+check failed until it had been run twice. The manifest is added by NAME instead,
+which is true whether or not it exists yet. A generator whose output is part of
+its own input is not a generator.
+
+### A first install is not an update, and it took two attempts to say that right
+
+`activate` calls `clients.claim()` so the worker starts serving the page it was
+registered from — and **claiming fires `controllerchange` exactly as a
+replacement does**. The first version reloaded on any `controllerchange`, so
+every first-time visitor got a reload they did not ask for, on the visit where
+they had just arrived. It was caught by the accessibility gate, whose page
+navigated out from under it mid-measure. A reader would have seen a flash and
+thought nothing of it, which is worse.
+
+The first fix was worse than the defect and is worth recording. It captured
+`hadController` once at boot and refused to offer an update unless it was true —
+correct for the first paint and **wrong forever after**, because a page that
+arrived as a newcomer could then never be offered an update however long it
+stayed open. The real signal is not `controller` at boot but whether the
+registration has an ACTIVE worker at the moment a new one installs: a waiting
+worker beside an active one is an update, a waiting worker with no active one is
+a first install.
+
+The reload guard needs both halves. `expectingSwap` is this reader pressing the
+control. `hadController` covers the other tab — somebody takes the update
+elsewhere, that worker claims every client, and this page is now old markup being
+served new modules, which is the §7h.1 hazard arriving sideways.
+
+### The hub's gate says itself that it cannot prove this works
+
+It reads source text and catches NEVER IMPLEMENTED, not implemented-subtly-wrong.
+It passed on the very first attempt, with the newcomer-reload defect live.
+
+So `tools/update-walk.mjs` serves release A, installs it, then serves a
+genuinely different release B from the SAME origin — which is what a deploy
+looks like from the browser's side — and walks what a reader experiences: a
+first visit not reloaded and not told, the app opening with the network gone,
+a returning reader told in words, the open page still on the release it started
+on, "Not now" leaving them alone, and the control bringing the new version in
+with the old cache deleted. Nineteen steps.
+
+**It crashed rather than diagnosing, the first time it was planted.** With
+`skipWaiting()` back in install the strip never appears, and the walk went
+straight on and died in a click timeout: thirty lines of stack trace, a non-zero
+exit, and not one word about what was wrong. The steps that depend on the strip
+are guarded now, and the failure names the likeliest cause — which on this gate
+is precisely a worker that took over during install.
+
+### What the update strip is, and is not
+
+A standing indicator under the bar that pushes the page down, never a dialog.
+Somebody part-way through a question is not interrupted and has nothing to
+dismiss before answering, and reloading mid-run would lose the run. It is a
+`[data-surface]` so the accessibility gate walks it, but it is deliberately NOT
+one of the mutually exclusive screens — hiding it on the next screen change
+would mean the app noticed a new version, said so, and then quietly took the
+words away.
+
 ## What is NOT built, and it is most of the app
 
 Named here so nobody has to discover it by looking:
 
-- **No service worker, so it does not work offline.** Every app here is
-  offline-first and this one is not yet, which is worst for exactly the people
-  who need it on a bus. Doctrine §7h's stale-app offer depends on it and is
-  owed with it. The walk asserts the CURRENT behaviour — that it does not load
-  offline — so the absence stays known.
+- **A real icon.** The manifest points at two hand-drawn SVGs using the
+  palette's own night page and accent. They are honest placeholders, and an icon
+  is the one surface the accessibility gate cannot reach, which is why they take
+  their colours from the palette file rather than from taste.
 - **No single-skill drill screen.** The engine half is built and `classify` is
   pure, which is what makes the drill a loop around it with no session and
   nothing recorded. The screen is not built, and it is the thing most worth

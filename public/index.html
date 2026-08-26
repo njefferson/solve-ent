@@ -6,6 +6,9 @@
 <title>Solve-ent — the algebra a chemistry problem needs</title>
 <meta name="description" content="Practice for the specific algebra moves a chemistry calculation needs. It works out which mistake produced a wrong answer, and says so.">
 <meta name="theme-color" content="#1a1a1a">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon.svg">
 <link rel="stylesheet" href="/css/tokens.css">
 <link rel="stylesheet" href="/css/app.css">
 <script src="/js/theme.js"></script>
@@ -26,6 +29,18 @@
     <span aria-hidden="true">i</span>
   </button>
 </header>
+
+<!-- A NEWER VERSION IS READY: a standing indicator, never a dialog.
+     Somebody part-way through a question is not interrupted, and reloading
+     mid-run would lose the run — so the reader chooses when. A first install
+     never shows this: there was no previous version to have replaced. -->
+<div id="update-strip" data-surface="update" class="update-strip" role="region" aria-label="A newer version" hidden>
+  <p id="update-said">A newer version of Solve-ent is ready. It will be used next time you open this, or you can switch to it now.</p>
+  <div class="update-actions">
+    <button type="button" id="update-take" class="primary">Use the new version now</button>
+    <button type="button" id="update-later" class="ghost">Not now</button>
+  </div>
+</div>
 
 <main id="main" tabindex="-1">
 

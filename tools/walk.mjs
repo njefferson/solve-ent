@@ -248,23 +248,38 @@ await upgraded.waitForTimeout(250);
 check(!(await upgraded.locator('#whats-new[open]').count()), 'dismissing it means it does not come back');
 await upgraded.close();
 
-/* ---- the network dropped, and a REAL reload ---- */
+/* ---- the network dropped, and a REAL reload ----
+ *
+ * THIS LINE USED TO ASSERT THE OPPOSITE. Until there was a service worker the
+ * honest thing was to record that the app does NOT load offline, so the absence
+ * stayed known rather than being rediscovered by somebody on a bus. It loads
+ * now, and the full stale-app path — a first visit not being reloaded or told,
+ * a returning reader being told, the open page staying on the release it
+ * started on until the reader presses the control — is driven against a REAL
+ * second worker by `tools/update-walk.mjs`. This is the shallow half, here so
+ * the primary journey carries it too.
+ */
+await page.evaluate(async () => {
+  // The worker has to have installed before there is anything to be offline
+  // with, and the walk is faster than a first install.
+  await globalThis.navigator.serviceWorker?.ready;
+});
 await context.setOffline(true);
 const offlinePage = await context.newPage();
 let reachedOffline = true;
 try {
-  await offlinePage.goto(`${server.origin}/`, { timeout: 5000 });
+  await offlinePage.goto(`${server.origin}/`, { timeout: 8000 });
+  await offlinePage.waitForTimeout(200);
 } catch {
   reachedOffline = false;
 }
-// THERE IS NO SERVICE WORKER YET, so this is expected to fail — and it is
-// reported as a fact rather than skipped, because the day one is added this
-// line is what says whether it works.
-check(
-  !reachedOffline,
-  'offline: the app does NOT load — there is no service worker yet, and this line is how that stays known',
-  reachedOffline ? 'it loaded, which means a worker was added and this expectation is now stale' : 'as expected',
-);
+check(reachedOffline, 'the app opens with the network gone');
+if (reachedOffline) {
+  check(
+    (await offlinePage.locator('[data-surface="welcome"], #topics').count()) > 0,
+    'and it is the app rather than a browser error page',
+  );
+}
 await offlinePage.close();
 await context.setOffline(false);
 

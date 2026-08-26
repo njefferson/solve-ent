@@ -133,6 +133,16 @@ jobs:
       - name: The engine a browser runs matches its source
         run: npm run web:check
 
+      # The worker's cache name must move with the release and its precache list
+      # must be what public/ contains. A cache name that does not change means
+      # everyone who has the app keeps the old shell forever.
+      - name: The service worker and the manifest
+        run: npm run pwa:check
+
+      # Doctrine §7h, from the hub, at the pinned commit.
+      - name: An app that caches itself can say it is stale
+        run: node .hub/pwa-check.mjs --repo .
+
       - name: The words
         run: npm run copy
 
@@ -169,6 +179,13 @@ jobs:
 
       - name: The walk
         run: npm run walk
+
+      # The stale-app path, against a REAL second worker. The hub's pwa gate
+      # reads source and says so itself: it catches never-implemented, not
+      # implemented-subtly-wrong. This serves one release, installs it, serves a
+      # different one, and walks what a reader experiences.
+      - name: The stale-app path, with a real second worker
+        run: npm run update-walk
 
       - name: Install zizmor (version- and hash-pinned by the hub)
         run: |

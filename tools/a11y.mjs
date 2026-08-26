@@ -165,6 +165,23 @@ const STATES = [
     },
   },
   {
+    // A NEWER VERSION IS READY. Its own state, because it is only ever on screen
+    // after a release somebody already had has been replaced — which a resting
+    // sweep never produces, and which is exactly the shape of the diagnosis
+    // panel one entry up. It is shown here rather than driven by a real second
+    // worker: this gate measures a rendered surface, and `tools/update-walk.mjs`
+    // is what proves the path that puts it there.
+    name: 'update-strip',
+    surface: 'update',
+    path: '/',
+    async reach(page) {
+      await page.evaluate(() => {
+        const strip = document.getElementById('update-strip');
+        if (strip !== null) strip.hidden = false;
+      });
+    },
+  },
+  {
     name: 'notes-page',
     surface: 'notes',
     path: '/whats-new',

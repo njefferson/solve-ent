@@ -1,0 +1,26 @@
+{
+  "name": "Solve-ent — the algebra a chemistry problem needs",
+  "short_name": "Solve-ent",
+  "description": "Practice for the specific algebra moves a chemistry calculation needs. It works out which mistake produces a wrong answer, and says so.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1a1a1a",
+  "theme_color": "#1a1a1a",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "lang": "en"
+}

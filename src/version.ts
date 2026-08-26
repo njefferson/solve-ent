@@ -9,7 +9,7 @@
  */
 
 /** `version.capability.iteration`. */
-export const VERSION = '0.5.0';
+export const VERSION = '0.6.0';
 
 /** What the app is called, in one place, for anything that has to say it. */
 export const APP_NAME = 'Solve-ent';

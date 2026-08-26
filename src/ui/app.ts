@@ -65,6 +65,7 @@ import {
   type Store,
 } from './prefs.ts';
 import { canSpeak, deviceVoice, type Voice } from './speech.ts';
+import { heldCaches, watchForUpdate } from './update.ts';
 
 /* ------------------------------------------------------------------ *
  * Constants. Every threshold is named, with the judgement beside it.
@@ -156,10 +157,22 @@ function setPref<K extends keyof Prefs>(key: K, value: Prefs[K]): void {
  * Surfaces
  * ------------------------------------------------------------------ */
 
+/**
+ * Surfaces that are SCREENS: exactly one is on at a time.
+ *
+ * The update strip is a `[data-surface]` too — the accessibility gate walks that
+ * attribute and a state it cannot see ships unmeasured — but it is a standing
+ * indicator ALONGSIDE a screen rather than one of them. Hiding it here would
+ * mean the app noticed a new version, said so, and then silently took the words
+ * away the next time the reader pressed anything.
+ */
+const SCREENS: readonly string[] = ['welcome', 'start', 'work', 'done'];
+
 function show(surface: SurfaceName): void {
   for (const node of document.querySelectorAll<HTMLElement>('[data-surface]')) {
-    const isIt = node.dataset['surface'] === surface;
-    node.hidden = !isIt;
+    const name = node.dataset['surface'] ?? '';
+    if (!SCREENS.includes(name)) continue;
+    node.hidden = name !== surface;
   }
   // Focus moves to the heading of the surface that just arrived, or a reader
   // using a keyboard is left where the control they pressed used to be.
@@ -592,6 +605,21 @@ function diagnosticText(): string {
   return lines.join('\n');
 }
 
+/**
+ * The line that says which COPY of the app this device is holding.
+ *
+ * Filled in after the caches answer, which is why it is separate: the version
+ * stamp above reports the code that is RUNNING, and on a stale app that is the
+ * old code reporting itself perfectly accurately. The cache names are the only
+ * thing that can tell "current" from "what this device still has".
+ */
+async function addCacheLine(): Promise<void> {
+  const held = await heldCaches();
+  const line = held.length === 0 ? 'stored copies: none' : `stored copies: ${held.join(', ')}`;
+  const node = document.getElementById('diagnostic-text');
+  if (node !== null) node.textContent = `${node.textContent ?? ''}\n${line}`;
+}
+
 /* ------------------------------------------------------------------ *
  * Boot
  * ------------------------------------------------------------------ */
@@ -606,7 +634,6 @@ export function boot(storeForTests?: Store): void {
 
   $('#version').textContent = VERSION;
   $('#roster-max').textContent = String(MAX_ROSTER_NUMBER);
-  $('#diagnostic-text').textContent = diagnosticText();
 
   for (const button of document.querySelectorAll<HTMLButtonElement>('[data-pref]')) {
     button.addEventListener('click', () => {
@@ -653,6 +680,29 @@ export function boot(storeForTests?: Store): void {
   } else if (decision.remember !== null) {
     store.set(NOTES_SEEN_KEY, decision.remember);
   }
+
+  $('#diagnostic-text').textContent = diagnosticText();
+  void addCacheLine();
+
+  // A NEWER VERSION IS READY. The worker waits rather than taking over under
+  // this page; this puts the words on screen and the reader decides when.
+  watchForUpdate({
+    offer(take) {
+      const strip = $('#update-strip');
+      strip.hidden = false;
+      $('#update-take').addEventListener('click', () => take(), { once: true });
+      $('#update-later').addEventListener('click', () => {
+        strip.hidden = true;
+      });
+      // Said once, in the live region, so somebody not looking at the top of the
+      // page is told too. Never repeated: the strip is standing, and repeating
+      // it would talk over whatever they are doing.
+      say($('#update-said').textContent ?? '');
+    },
+    withdraw() {
+      $('#update-strip').hidden = true;
+    },
+  });
 
   globalThis.addEventListener('hashchange', route);
 

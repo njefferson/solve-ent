@@ -9,6 +9,43 @@ release changed something you can see or do, it is described below in the words
 you would use for it. If it changed something under the surface that you cannot
 see, it says that plainly rather than dressing it up.
 
+## 0.6.0 — CAPABILITY
+
+**It works with no connection now**, which is the one that matters most for
+whoever is doing this on a bus, in a car, or somewhere the signal gives out
+halfway through.
+
+Open it once with a connection and it keeps a copy on the device. After that it
+opens whether or not there is any network at all — the questions, the marking,
+the explanations and the list of what changed. Nothing is ever fetched while you
+work, because nothing ever was: the questions are worked out on the device.
+
+**And when a newer version arrives, it waits for you.** This is the part most
+apps get wrong, so it is worth saying what happens instead.
+
+A newer version does not replace what you have while you are using it. You get a
+line at the top of the screen saying one is ready, with a button to switch to it
+and a button to leave it for later. Nothing reloads on its own, nothing is lost
+part-way through a question, and if you ignore it entirely you get the new one
+next time you open the app.
+
+If you have never opened this before, you are told none of that. There is
+nothing you missed.
+
+**You can keep it on your home screen**, and the information button now lists
+how to do that on each kind of device.
+
+**Also:** the panel that tells you which copy of the app is on the device now
+says so exactly, which matters because the version number on screen is reported
+by the code that is running — on an out-of-date copy, that is the old code
+reporting itself perfectly accurately.
+
+**Still missing:** there is still no way to practise a single move over and over,
+which is the thing most worth having when one particular step is the one going
+wrong. Every question still arrives at the same difficulty. Nothing can be handed
+in and there is no page for whoever set the work. And the icon is a simple
+drawing rather than a proper one.
+
 ## 0.5.0 — CAPABILITY
 
 **There is something to open.** Until now everything in here worked and none of

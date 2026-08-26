@@ -48,3 +48,10 @@ also=tools/web-check.mjs
 # inherited through `extends`, which is how the whole browser layer came to be
 # checked by neither config while both exited 0.
 also=tools/coverage-check.mjs
+
+# The service worker and the manifest, GENERATED from the version and the tree.
+# The cache name has to move with the release or everyone who already has the app
+# keeps the old shell forever — and the app cannot notice, which is what caching
+# means. The precache list has to be what public/ actually contains, or a module
+# is silently not there offline.
+also=tools/pwa-check.mjs
