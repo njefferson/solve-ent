@@ -182,8 +182,13 @@ button {
 a.ghost { color: var(--accent); }
 .ghost:hover { background: var(--surface); }
 
-/* ---------- choosing a topic ---------- */
+/* ---------- choosing a topic, or a move ---------- */
 .topics { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; }
+/* A control that FOLLOWS the list needs the same gap the list has inside it.
+   Without this, "Go back to whole questions" sat flush against the last move,
+   reading as a seventh option. The inset check cannot see this — it measures
+   where words start horizontally, and this is vertical. */
+.topics + button { margin-top: 1.1rem; }
 .topic {
   width: 100%;
   text-align: left;
