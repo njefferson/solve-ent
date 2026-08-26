@@ -1199,10 +1199,15 @@ call and not a session's.
 - **A browser walk** of the primary journey, getting one step wrong on purpose,
   dropping the network, and reloading the page for real.
 - **The validation pass against real wrong answers**, by one of the three
-  remaining routes. Nothing about it requires anybody to send work anywhere.
-  The catalogue route has been run once and is written up above; it should be
-  run again whenever a topic changes, because it is the only route that can find
-  a case the generator cannot pose.
+  remaining routes. The catalogue route has been run once and is written up
+  above; it should be run again whenever a topic changes, because it is the only
+  route that can find a case the generator cannot pose.
+  **A SESSION DOES NOT RAISE THIS AS A RECOMMENDATION.** The owner will use
+  student work when they have student work. It is not a prerequisite to name
+  before building the next thing, not a caveat to attach to a report, and not a
+  suggestion to close a summary with. It was said once, and then raised three
+  more times anyway — twice inside a single reply — which is what moved it from
+  a note into a rule.
 - **The single-skill drill, as its own screen, EARLY.** The engine half is
   built; the screen is not. See *Blocked practice* above.
 - **A five-minute opener path before an elaborate one.** The classroom feedback
