@@ -318,6 +318,27 @@ Named here so nobody has to discover it by looking:
 - **Nothing is deployed and no Pages project exists.** That is the owner's to
   create — see below.
 
+## The first CI run, read rather than trusted
+
+`gates.yml` went green on `staging` at `8221a6b` in **twenty-one seconds**,
+which is faster than the same work takes in a session sandbox and is therefore
+the shape of a run that skipped something. Its log was read rather than its tick:
+49 tests in 2,031 ms, the verifier's four counts printed in full — 1,200
+rearranged answers substituted back into their relations, 5,400 recomputed by
+hand, 2,520 written answers checked against the figures they claim — and zizmor
+v1.29.0 completing `.github/workflows/gates.yml` under `--strict-collection`.
+Every step ran. The runner is simply quicker.
+
+Worth keeping because the alternative reading was available and would have been
+wrong in the comfortable direction: a green tick on a suspiciously fast run is
+exactly what a workflow looks like when a glob matched nothing.
+
+**Dependabot opened two pull requests within a minute of the first push** —
+TypeScript 5.9.3 to 7.0.2 and `@types/node` 22.19.4 to 26.2.0 — and both are
+green. Neither is merged. MoleBridge already pins TypeScript 7.0.2, so the
+family standard is the newer one; whether to take a major bump is the owner's
+call and not a session's.
+
 ## Waiting on the owner
 
 - **The GitHub repository's description, topics, website and social preview**
