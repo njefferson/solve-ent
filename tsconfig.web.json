@@ -17,6 +17,12 @@
   "compilerOptions": {
     "noEmit": false,
     "outDir": "public/app",
+    // EXPLICIT, because TypeScript 7 stopped inferring it. Under 5.x the common
+    // source directory was worked out to be `./src` and the output laid out
+    // from there; 7 requires it to be said. It is the same value 5 inferred —
+    // `tools/web-build.mjs --check` compares the emitted tree against what is
+    // committed, so a layout that had moved would fail rather than land.
+    "rootDir": "src",
     "module": "esnext",
     "moduleResolution": "bundler",
     // Source imports say `./foo.ts` because that is what Node runs. The emitted

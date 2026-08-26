@@ -31,10 +31,10 @@
  *
  * PURE apart from the clock handed to it.
  */
-import { generateProblem, posesTier, TOPIC_NAMES, solve } from "./problem.js";
-import { classify, correctEntryFor, stagesFor, } from "./taxonomy.js";
-import { COUNTER_SKILLS } from "./taxonomy.js";
-import { SCRATCH_SIG_FIGS } from "./tolerance.js";
+import { generateProblem, posesTier, TOPIC_NAMES, solve } from './problem.js';
+import { classify, correctEntryFor, stagesFor, } from './taxonomy.js';
+import { COUNTER_SKILLS } from './taxonomy.js';
+import { SCRATCH_SIG_FIGS } from './tolerance.js';
 /** A clock stuck at one moment. */
 export function fixedClock(atMs) {
     return { now: () => atMs };

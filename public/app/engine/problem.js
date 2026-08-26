@@ -24,10 +24,10 @@
  *
  * PURE. No I/O, no globals, no clock.
  */
-import { addSubtract, exact, formatSigFigs, formatUnambiguous, lastPlaceOf, magnitudeOf, measured, multiplyDivide, roundToSigFigs, sigFigsFrom, } from "../num/sigfig.js";
-import { DIMENSIONLESS, divideUnits, formatUnit, invertUnits, multiplyUnits, parseUnit, runChain, sameUnit, } from "../num/units.js";
-import { makeRng, nextInt, pick } from "./rng.js";
-import { FACTOR_SEPARATION, MAX_ANSWER_SIG_FIGS, MAX_EVERYDAY, MAX_EXPONENT, MAX_GENERATION_ATTEMPTS, MIN_ANSWER_SIG_FIGS, MIN_EVERYDAY, MIN_EXPONENT, RATIO_MARGIN, UNITY_MARGIN, } from "./tolerance.js";
+import { addSubtract, exact, formatSigFigs, formatUnambiguous, lastPlaceOf, magnitudeOf, measured, multiplyDivide, roundToSigFigs, sigFigsFrom, } from '../num/sigfig.js';
+import { DIMENSIONLESS, divideUnits, formatUnit, invertUnits, multiplyUnits, parseUnit, runChain, sameUnit, } from '../num/units.js';
+import { makeRng, nextInt, pick } from './rng.js';
+import { FACTOR_SEPARATION, MAX_ANSWER_SIG_FIGS, MAX_EVERYDAY, MAX_EXPONENT, MAX_GENERATION_ATTEMPTS, MIN_ANSWER_SIG_FIGS, MIN_EVERYDAY, MIN_EXPONENT, RATIO_MARGIN, UNITY_MARGIN, } from './tolerance.js';
 /** Every topic, in the order a course would meet them. */
 export const TOPICS = [
     'REARRANGE',

@@ -26,7 +26,7 @@
  * PURE. No I/O, no globals, no clock. A drill is a loop around this and the
  * classifier: no session, no code, nothing recorded.
  */
-import { CLASS_MEANINGS, REMEDIES, remediesFor, } from "../engine/taxonomy.js";
+import { CLASS_MEANINGS, REMEDIES, remediesFor, } from '../engine/taxonomy.js';
 /**
  * How many times a mistake has to be made before it is named during the run.
  *

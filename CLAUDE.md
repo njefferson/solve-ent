@@ -199,7 +199,10 @@ has the full version, including the risk that follows from it.
   must never have two versions, so `tsconfig.web.json` emits `public/app/` and
   `erasableSyntaxOnly` is what makes "erasure only" checkable rather than
   hopeful. **Not a bundler**: one file in, one file out, same names, same
-  imports, nothing flattened, nothing minified, no new dependency. The output is
+  imports, nothing flattened, nothing minified, no new dependency. **`rootDir` is
+  set explicitly** — TypeScript 7 stopped inferring the common source directory
+  and refuses to emit without it; the value is the one 5.x worked out, and the
+  drift check is what proves the layout did not move. The output is
   COMMITTED because `public/` is the site — building at deploy would be a new
   way for a release to silently not arrive (hub LESSONS §53) — so staleness is
   the risk and `tools/web-build.mjs --check` runs on every commit.

@@ -36,11 +36,11 @@
  *
  * PURE. No I/O, no globals, no clock.
  */
-import { formatSigFigs, formatUnambiguous, magnitudeOf, parseQuantity, roundToSigFigs, SigFigError, } from "../num/sigfig.js";
-import { flip, formatUnit, parseUnit, runChain, sameUnit } from "../num/units.js";
-import { hashString } from "./rng.js";
-import { countSigFigs, FLIPPED_RATE_SYMBOL, indistinguishable, normalise, rearrangeParts, relationById, sameAtPrecision, solve, statedValues, shownSymbol, } from "./problem.js";
-import { DISTINGUISHABLE_RELATIVE, ORDER_OF_MAGNITUDE_LIMIT, SCINOT_TRIGGER_LOG10, } from "./tolerance.js";
+import { formatSigFigs, formatUnambiguous, magnitudeOf, parseQuantity, roundToSigFigs, SigFigError, } from '../num/sigfig.js';
+import { flip, formatUnit, parseUnit, runChain, sameUnit } from '../num/units.js';
+import { hashString } from './rng.js';
+import { countSigFigs, FLIPPED_RATE_SYMBOL, indistinguishable, normalise, rearrangeParts, relationById, sameAtPrecision, solve, statedValues, shownSymbol, } from './problem.js';
+import { DISTINGUISHABLE_RELATIVE, ORDER_OF_MAGNITUDE_LIMIT, SCINOT_TRIGGER_LOG10, } from './tolerance.js';
 /** Every class, for a test that insists each one has a fixture. */
 export const ERROR_CLASSES = [
     'E-REARR-MULTIPLIED', 'E-REARR-INVERTED', 'E-REARR-PARTIAL', 'E-REARR-SIGN',

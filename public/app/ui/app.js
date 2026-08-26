@@ -30,18 +30,18 @@
  * hub LESSONS §28, and it has cost a release elsewhere. **Add a surface here and
  * to `tools/a11y.mjs` in the same commit.**
  */
-import { TOPIC_NAMES, laddersFor, solve } from "../engine/problem.js";
-import { drillItem } from "../engine/blocked.js";
-import { MAX_ROSTER_NUMBER, SessionError, currentProblem, currentStage, startSession, submit, } from "../engine/steps.js";
-import { CLASS_MEANINGS, COUNTER_SKILLS, REMEDIES, SKILL_NAMES, choiceItemsFor, classify, formatUnit, readEntry, remediesFor, } from "../engine/taxonomy.js";
-import { evaluate } from "../num/arith.js";
-import { readRun } from "../report/drill.js";
-import { MAX_SHOWN, NOTES_PAGE, OLDER_THAN_SHOWN, RELEASES } from "../report/releases.js";
-import { APP_NAME, VERSION } from "../version.js";
-import { NOTES_SEEN_KEY, decideNotes } from "./notes.js";
-import { browserStore, documentAttributes, readPrefs, writePrefs, } from "./prefs.js";
-import { canSpeak, deviceVoice } from "./speech.js";
-import { heldCaches, watchForUpdate } from "./update.js";
+import { TOPIC_NAMES, laddersFor, solve } from '../engine/problem.js';
+import { drillItem } from '../engine/blocked.js';
+import { MAX_ROSTER_NUMBER, SessionError, currentProblem, currentStage, startSession, submit, } from '../engine/steps.js';
+import { CLASS_MEANINGS, COUNTER_SKILLS, REMEDIES, SKILL_NAMES, choiceItemsFor, classify, formatUnit, readEntry, remediesFor, } from '../engine/taxonomy.js';
+import { evaluate } from '../num/arith.js';
+import { readRun } from '../report/drill.js';
+import { MAX_SHOWN, NOTES_PAGE, OLDER_THAN_SHOWN, RELEASES } from '../report/releases.js';
+import { APP_NAME, VERSION } from '../version.js';
+import { NOTES_SEEN_KEY, decideNotes } from './notes.js';
+import { browserStore, documentAttributes, readPrefs, writePrefs, } from './prefs.js';
+import { canSpeak, deviceVoice } from './speech.js';
+import { heldCaches, watchForUpdate } from './update.js';
 /* ------------------------------------------------------------------ *
  * Constants. Every threshold is named, with the judgement beside it.
  * ------------------------------------------------------------------ */

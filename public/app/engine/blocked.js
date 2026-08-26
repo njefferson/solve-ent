@@ -24,9 +24,9 @@
  * the same key get the same drill in the same order — the same property that
  * lets one thing written on a board produce one set of problems.
  */
-import { TOPIC_NAMES, generateProblem, laddersFor } from "./problem.js";
-import { hashString } from "./rng.js";
-import { stagesFor } from "./taxonomy.js";
+import { TOPIC_NAMES, generateProblem, laddersFor } from './problem.js';
+import { hashString } from './rng.js';
+import { stagesFor } from './taxonomy.js';
 /**
  * Difficulties to look through, easiest first.
  *
