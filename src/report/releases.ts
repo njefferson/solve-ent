@@ -48,10 +48,24 @@ export const NOTES_PAGE = '/whats-new';
  * it non-zero, which is also the first release on which that branch had ever
  * been reachable.
  */
-export const OLDER_THAN_SHOWN: number = 3;
+export const OLDER_THAN_SHOWN: number = 4;
 
 /** Newest first. */
 export const RELEASES: readonly Release[] = [
+  {
+    version: '0.8.0',
+    kind: 'CAPABILITY',
+    lines: [
+      'You can choose how the questions are set now. Pick a topic and it asks which kind of question you want before it starts.',
+      'They have names rather than numbers, and the name says what the question does: cancelling units offers two steps, three steps or four steps; powers offers squares, then cubes and roots, then past a cube; significant figures offers one rule, either rule, then two rules in order. Every one of them is there the first time you open it. Nothing is locked, nothing has to be earned, and nothing switches you to a different one because of how a run went.',
+      'Two topics were offering a choice that changed nothing. This is worth being plain about, because the setting has existed since the first release and every question you have ever been given came at the first one.',
+      'When each was measured against the one below it, six of the fourteen steps produced questions nobody could tell apart — bigger numbers, and nothing else. So the topics now offer what they actually have. Proportions has one kind of question. Fractions has two. The other five have three each.',
+      'Fractions can hand you the rate upside down. Instead of "the concentration is 4.00 mol/L" you get "the volume one mole takes up is 0.250 L/mol", and the first thing it asks is to turn that over. This is what the topic is named for and it had never once been asked.',
+      'Cancelling units goes up to four conversions in a row, which is where the long chemistry questions live — a volume of liquid weighed, turned into moles, and then into particles or into the volume it fills as a gas.',
+      'Two things were found while measuring all of this and both are fixed. A proportion question could ask you to work out a number that was already printed in the question, when a recipe took one mole of the first substance. And on a long conversion, turning one factor over and turning the whole chain over could come to the same answer, so being told which one happened would have been a guess.',
+    ],
+    stillMissing: 'nothing can be handed in and there is still no page for whoever set the work. Proportions has one kind of question because a second one means asking about two reactions in a row, and that is a question this has never posed — it is for whoever is teaching to ask for, not for this to decide. The icon is still a simple drawing rather than a proper one.',
+  },
   {
     version: '0.7.0',
     kind: 'CAPABILITY',
@@ -104,16 +118,5 @@ export const RELEASES: readonly Release[] = [
       'The words are now written in one place and only one place. Until now, what a reader would see and what was kept alongside the working parts were two separate lists — and two lists drift, so an app ends up describing a change that is not in the version somebody is actually running. There is one set of words now, and a check refuses any change that lets the two disagree.',
     ],
     stillMissing: 'there is still no screen, so the panel that would appear on a new version, and the page it would open, do not exist yet. What exists is the list of words and the rule about how long it is allowed to be. Nothing here can be opened and read.',
-  },
-  {
-    version: '0.3.0',
-    kind: 'CAPABILITY',
-    lines: [
-      'Significant-figures questions can now mix adding and multiplying, which is the kind people get wrong most.',
-      'Two rules govern how many digits an answer is allowed to keep, and they are different rules. Adding is limited by decimal places. Multiplying is limited by significant figures. A question that does both — add two measurements, then multiply by a third — needs both rules, in order, and the usual mistake is to skip the first one and round on the fewest digits in sight.',
-      'Until now this app could not ask that question at all. It could only ask questions that used one rule or the other, so the hardest case in the topic was missing. It is there now, from the second difficulty level up, and it asks about the middle step on its own: how many significant figures is that sum entitled to? — without asking anyone to round it, because rounding partway through is the mistake, not the method.',
-      'This was found by reading published research on what people actually get wrong, rather than by testing the app against itself. The app\'s own checks could never have found it: they only ever look at questions the app is able to ask.',
-    ],
-    stillMissing: 'there is no screen. Nothing here can be opened and used yet. Everything above lives in the part that works out the questions and marks the answers, and there is nothing to look at.',
   },
 ];

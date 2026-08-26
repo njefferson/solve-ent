@@ -39,7 +39,7 @@
 import { formatSigFigs, formatUnambiguous, magnitudeOf, parseQuantity, roundToSigFigs, SigFigError, } from "../num/sigfig.js";
 import { flip, formatUnit, parseUnit, runChain, sameUnit } from "../num/units.js";
 import { hashString } from "./rng.js";
-import { countSigFigs, indistinguishable, normalise, rearrangeParts, relationById, sameAtPrecision, solve, statedValues, shownSymbol, } from "./problem.js";
+import { countSigFigs, FLIPPED_RATE_SYMBOL, indistinguishable, normalise, rearrangeParts, relationById, sameAtPrecision, solve, statedValues, shownSymbol, } from "./problem.js";
 import { DISTINGUISHABLE_RELATIVE, ORDER_OF_MAGNITUDE_LIMIT, SCINOT_TRIGGER_LOG10, } from "./tolerance.js";
 /** Every class, for a test that insists each one has a fixture. */
 export const ERROR_CLASSES = [
@@ -47,7 +47,7 @@ export const ERROR_CLASSES = [
     'E-PROP-INVERTED', 'E-PROP-ADDED', 'E-PROP-DROPPED',
     'E-SCI-EXP-OP', 'E-SCI-EXP-SIGN', 'E-SCI-MANTISSA-OP', 'E-SCI-NORMALISE',
     'E-POW-MULTIPLIED', 'E-POW-INVERTED', 'E-POW-SWAPPED', 'E-POW-COEFF',
-    'E-FRAC-INVERTED', 'E-FRAC-RECIPROCAL', 'E-FRAC-RATE-IGNORED',
+    'E-FRAC-INVERTED', 'E-FRAC-RECIPROCAL', 'E-FRAC-RATE-IGNORED', 'E-FRAC-NOT-FLIPPED',
     'E-UNIT-FACTOR-INVERTED', 'E-UNIT-DROPPED', 'E-UNIT-CHAIN-INVERTED',
     'E-UNIT-MISSING', 'E-UNIT-WRONG',
     'E-SIG-FIGURES', 'E-SIG-WRONG-RULE', 'E-SIG-COUNT-ZEROS', 'E-SIG-ROUND-EARLY',
@@ -81,6 +81,7 @@ export const CLASS_MEANINGS = {
     'E-FRAC-INVERTED': 'multiplied by the rate where it had to be divided by',
     'E-FRAC-RECIPROCAL': 'wrote the answer upside down',
     'E-FRAC-RATE-IGNORED': 'carried the amount through without using the rate at all',
+    'E-FRAC-NOT-FLIPPED': 'used the rate as it was written, without turning it over first',
     'E-UNIT-FACTOR-INVERTED': 'used one conversion factor upside down, so its unit did not cancel',
     'E-UNIT-DROPPED': 'left a link out of the chain',
     'E-UNIT-CHAIN-INVERTED': 'turned every factor upside down',
@@ -309,8 +310,24 @@ export function stagesFor(problem) {
             });
             return stages;
         }
-        case 'FRACTIONS':
+        case 'FRACTIONS': {
+            const flip = problem.upsideDown
+                ? [
+                    {
+                        id: 'F0',
+                        kind: 'NUMERIC',
+                        counter: 'SETUP',
+                        unit: problem.flippedUnit,
+                        needsUnit: false,
+                        gradesSigFigs: false,
+                        prompt: `${problem.rate.written} ${formatUnit(problem.rate.unit)} is ${problem.rate.label}. ` +
+                            `${problem.rateName[0]?.toUpperCase() ?? ''}${problem.rateName.slice(1)}, r, is that turned over. ` +
+                            `What is r, in ${formatUnit(problem.flippedUnit)}? A bare number.`,
+                    },
+                ]
+                : [];
             return [
+                ...flip,
                 {
                     id: 'F1',
                     kind: 'CHOICE',
@@ -331,6 +348,7 @@ export function stagesFor(problem) {
                     prompt: `Work it out, to ${problem.answerSigFigs} significant figures, with its unit.`,
                 },
             ];
+        }
         case 'UNITS': {
             const first = problem.factors[0];
             return [
@@ -520,7 +538,11 @@ function powerOptions(problem) {
 function fractionOptions(problem) {
     const seed = `${problem.seed}|F1`;
     const a = problem.amount.symbol;
-    const r = problem.rate.symbol;
+    // ALWAYS THE RATE THE RIGHT WAY UP. Where the question stated the reciprocal,
+    // the stated value is `p` and `r` is what F0 asked for — so these options
+    // describe the same move whichever way the question happened to state it,
+    // and every symbol they name has been named by a question already.
+    const r = FLIPPED_RATE_SYMBOL;
     return buildOptions(seed, `${a} ÷ ${r}`, [
         { errorClass: 'E-FRAC-INVERTED', text: `${a} × ${r}` },
         { errorClass: 'E-FRAC-RECIPROCAL', text: `${r} ÷ ${a}` },
@@ -618,8 +640,16 @@ function roundEarlyAnswer(problem, solution) {
             const power = rounded(problem.base.quantity.value ** problem.exponent);
             return rounded(power * (problem.coefficient?.quantity.value ?? 1));
         }
-        case 'FRACTIONS':
-            return null;
+        case 'FRACTIONS': {
+            // NOTHING TO ROUND EARLY where the rate arrives the way it is needed:
+            // there is one division and its result is the answer. Where the question
+            // stated the reciprocal there IS an intermediate — the rate turned over —
+            // and a reader who writes that down to the answer's figures before
+            // dividing by it arrives somewhere else.
+            if (!problem.upsideDown)
+                return null;
+            return rounded(problem.amount.quantity.value / rounded(1 / problem.rate.quantity.value));
+        }
         case 'UNITS': {
             let running = problem.start.quantity.value;
             for (const factor of problem.factors)
@@ -890,13 +920,27 @@ function numericPredictions(problem, solution, stage) {
             break;
         }
         case 'FRACTIONS': {
+            const amount = problem.amount.quantity.value;
+            const stated = problem.rate.quantity.value;
+            // The rate the right way up, which is what every one of these is about.
+            const rate = problem.upsideDown ? 1 / stated : stated;
+            if (stage.id === 'F0') {
+                // Turning it over is the whole of what this stage asks, so writing the
+                // number back down is the whole of what can go wrong at it.
+                out.push(of('E-FRAC-NOT-FLIPPED', stated));
+                break;
+            }
             if (stage.id !== 'F2')
                 break;
-            const amount = problem.amount.quantity.value;
-            const rate = problem.rate.quantity.value;
             out.push(of('E-FRAC-INVERTED', amount * rate));
             out.push(of('E-FRAC-RECIPROCAL', rate / amount));
             out.push(of('E-FRAC-RATE-IGNORED', amount));
+            // NOT `E-FRAC-NOT-FLIPPED` HERE, and not because it could not happen.
+            // Dividing by the rate as it was written lands on amount ÷ p, which is
+            // exactly where multiplying by the rate turned over lands — one number,
+            // two misconceptions. F0 is what separates them: it asks for the flip on
+            // its own, before this stage exists, so which of the two happened is
+            // already known rather than guessed at.
             break;
         }
         case 'UNITS': {
@@ -1333,6 +1377,7 @@ export function remediesFor(errorClass, logError) {
         case 'E-FRAC-INVERTED':
         case 'E-FRAC-RECIPROCAL':
         case 'E-FRAC-RATE-IGNORED':
+        case 'E-FRAC-NOT-FLIPPED':
             out.push('A2-PROPORTION');
             break;
         case 'E-UNIT-FACTOR-INVERTED':

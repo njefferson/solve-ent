@@ -30,7 +30,7 @@ import { SCRATCH_SIG_FIGS } from '../src/engine/tolerance.ts';
 const assignment = (over: Partial<SessionConfig> = {}): SessionConfig => ({
   assignmentKey: 'CHEM-7B',
   topic: 'PROPORTION',
-  tier: 2,
+  tier: 1,
   count: 3,
   mode: 'assignment',
   rosterNumber: 17,

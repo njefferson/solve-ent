@@ -30,7 +30,7 @@
  * hub LESSONS §28, and it has cost a release elsewhere. **Add a surface here and
  * to `tools/a11y.mjs` in the same commit.**
  */
-import { TOPIC_NAMES, solve } from "../engine/problem.js";
+import { TOPIC_NAMES, laddersFor, solve } from "../engine/problem.js";
 import { drillItem } from "../engine/blocked.js";
 import { MAX_ROSTER_NUMBER, SessionError, currentProblem, currentStage, startSession, submit, } from "../engine/steps.js";
 import { CLASS_MEANINGS, COUNTER_SKILLS, REMEDIES, SKILL_NAMES, choiceItemsFor, classify, formatUnit, readEntry, remediesFor, } from "../engine/taxonomy.js";
@@ -54,8 +54,14 @@ const PRACTICE_COUNT = 5;
  * five-problem "short" opener is not short.
  */
 const WARM_UP_COUNT = 2;
-/** Which difficulty a run starts at. Tier 1 is the one somebody can do. */
-const OPENING_TIER = 1;
+/**
+ * Which difficulty a run starts at where nothing chose one.
+ *
+ * The first the topic declares, read off the ladder rather than written here as
+ * a number — two topics no longer have three difficulties and one has a single
+ * one, so a constant would be a claim about every topic made in one place.
+ */
+const openingTier = (topic) => laddersFor(topic)[0].tier;
 /** The key a practice run generates from when nobody has been given one. */
 const PRACTICE_KEY = 'practice';
 /* ------------------------------------------------------------------ *
@@ -116,7 +122,7 @@ function setPref(key, value) {
  * mean the app noticed a new version, said so, and then silently took the words
  * away the next time the reader pressed anything.
  */
-const SCREENS = ['welcome', 'start', 'drill-pick', 'drill', 'work', 'done'];
+const SCREENS = ['welcome', 'start', 'difficulty', 'drill-pick', 'drill', 'work', 'done'];
 function show(surface) {
     for (const node of document.querySelectorAll('[data-surface]')) {
         const name = node.dataset['surface'] ?? '';
@@ -541,12 +547,12 @@ function renderDone() {
 /* ------------------------------------------------------------------ *
  * Starting
  * ------------------------------------------------------------------ */
-function begin(topic, count, key) {
+function begin(topic, tier, count, key) {
     try {
         const session = startSession({
             assignmentKey: key,
             topic,
-            tier: OPENING_TIER,
+            tier,
             count,
             mode: 'practice',
             // Practice records nothing and reports to nobody, so there is no
@@ -568,10 +574,40 @@ function renderStart() {
     clear(list);
     for (const [topic, name] of Object.entries(TOPIC_NAMES)) {
         const button = make('button', { type: 'button', class: 'topic' }, name);
-        button.addEventListener('click', () => begin(topic, PRACTICE_COUNT, PRACTICE_KEY));
+        button.addEventListener('click', () => chooseDifficulty(topic));
         list.append(make('li', {}).appendChild(button).parentElement);
     }
     show('start');
+}
+/**
+ * Choosing how the questions are set, for a topic that has more than one way.
+ *
+ * NO SCREEN WHERE THERE IS NOTHING TO CHOOSE. Difficulty is per topic, and one
+ * topic poses a single kind of question — putting a picker in front of it with
+ * one thing in it would make the reader press a button to agree with the only
+ * option there was.
+ *
+ * NOTHING IS LOCKED AND NOTHING PROMOTES ITSELF. A difficulty that arrives
+ * because of how the last run went is a verdict on the reader delivered as a
+ * feature, and one that has to be unlocked is the same verdict from the other
+ * side. Every one of them is here on the first visit.
+ */
+function chooseDifficulty(topic) {
+    const ladder = laddersFor(topic);
+    const only = ladder.length === 1 ? ladder[0] : undefined;
+    if (only !== undefined) {
+        begin(topic, only.tier, PRACTICE_COUNT, PRACTICE_KEY);
+        return;
+    }
+    $('#difficulty-topic').textContent = TOPIC_NAMES[topic];
+    const list = $('#difficulties');
+    clear(list);
+    for (const difficulty of ladder) {
+        const button = make('button', { type: 'button', class: 'topic' }, difficulty.name);
+        button.addEventListener('click', () => begin(topic, difficulty.tier, PRACTICE_COUNT, PRACTICE_KEY));
+        list.append(make('li', {}).appendChild(button).parentElement);
+    }
+    show('difficulty');
 }
 /* ------------------------------------------------------------------ *
  * The (i) panel, the what's-new panel, and routing
@@ -619,7 +655,7 @@ function route() {
         const topics = Object.keys(TOPIC_NAMES);
         const first = topics[0];
         if (first !== undefined)
-            begin(first, WARM_UP_COUNT, PRACTICE_KEY);
+            begin(first, openingTier(first), WARM_UP_COUNT, PRACTICE_KEY);
         return;
     }
     if (globalThis.location.hash === '#/about') {
@@ -755,6 +791,9 @@ export function boot(storeForTests) {
     $('#to-drill').addEventListener('click', () => {
         run = null;
         renderDrillPick();
+    });
+    $('#difficulty-back').addEventListener('click', () => {
+        renderStart();
     });
     $('#drill-back').addEventListener('click', () => {
         drill = null;

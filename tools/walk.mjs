@@ -87,10 +87,24 @@ check(
 );
 check((await page.locator('#topics button').count()) === 7, 'seven topics, and the list is closed');
 
-/* ---- working ---- */
+/* ---- choosing how the questions are set ---- */
 await page.locator('#topics button').first().click();
 await page.waitForTimeout(150);
-check((await visibleSurface(page)).join() === 'work', 'picking a topic starts the run');
+check(
+  (await visibleSurface(page)).join() === 'difficulty',
+  'picking a topic that has more than one difficulty asks which one',
+);
+const offered = await page.locator('#difficulties button').count();
+check(offered === 3, `all three of this topic's difficulties are offered at once, not ${offered}`);
+check(
+  (await page.locator('#difficulties button[disabled]').count()) === 0,
+  'and none of them is locked — nothing here has to be earned',
+);
+
+/* ---- working ---- */
+await page.locator('#difficulties button').first().click();
+await page.waitForTimeout(150);
+check((await visibleSurface(page)).join() === 'work', 'picking a difficulty starts the run');
 const question = await page.locator('#question').innerText();
 const step = await page.locator('#step-prompt').innerText();
 check(question.trim().length > 0, 'there is a question on screen');

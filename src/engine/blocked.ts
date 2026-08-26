@@ -25,7 +25,7 @@
  * lets one thing written on a board produce one set of problems.
  */
 
-import { TOPIC_NAMES, generateProblem, type Problem, type Topic } from './problem.ts';
+import { TOPIC_NAMES, generateProblem, laddersFor, type Problem, type Topic } from './problem.ts';
 import { hashString } from './rng.ts';
 import { stagesFor, type CounterSkill, type Stage } from './taxonomy.ts';
 
@@ -104,6 +104,10 @@ function placesFor(skill: CounterSkill): Place[] {
   const found: Place[] = [];
   for (const tier of DRILL_TIERS) {
     for (const topic of TOPICS) {
+      // ONLY WHERE THE TOPIC HAS ONE. Difficulty is per topic — `PROPORTION`
+      // poses one and `FRACTIONS` two — and `generateProblem` refuses a tier a
+      // topic does not declare rather than quietly handing back tier 1.
+      if (!laddersFor(topic).some((difficulty) => difficulty.tier === tier)) continue;
       for (let attempt = 0; attempt < PROBE_ATTEMPTS; attempt += 1) {
         const problem = generateProblem(`probe|${skill}|${topic}|${String(tier)}`, topic, tier, attempt);
         if (stagesFor(problem).some((stage) => stage.counter === skill)) {

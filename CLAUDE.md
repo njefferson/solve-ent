@@ -156,6 +156,22 @@ has the full version, including the risk that follows from it.
   rearrangement option can only be read ONE way: brackets on a divisor of more
   than one factor, nowhere else, because an option a reader cannot parse
   attributes nothing and attribution is the product.
+- **DIFFICULTY IS DECLARED PER TOPIC, AND A DIFFICULTY THAT POSES WHAT THE ONE
+  BELOW IT POSES FAILS THE BUILD.** This is the collision rule one level out: a
+  control that does nothing is worse than a control that is missing, because its
+  presence answers "is difficulty handled here" for everybody afterwards.
+  `TIERS` was `[1, 2, 3]` for eleven releases and every screen opened at the
+  first one, so nothing had ever posed the other two — and when `tiers.test.ts`
+  measured all fourteen steps, six of them changed nothing a reader could tell.
+  `LADDERS` says what each topic has; `generateProblem` REFUSES a tier a topic
+  does not declare rather than clamping to one that exists. **Never add a
+  difficulty to make a topic look symmetrical** — five have three, fractions has
+  two, proportions has one, and the step that would make proportions two is a
+  second reaction in sequence, which is a question shape to ask the teacher for.
+  Difficulties are NAMED rather than numbered and the name describes the
+  QUESTION: "Four steps", not "Hard". Nothing is locked, and nothing promotes or
+  demotes itself — a difficulty that arrives because of how the last run went is
+  a verdict on the reader delivered as a feature.
 - **BLOCKED PRACTICE IS ITS OWN SCREEN, and it is owed early.** A whole problem
   is interleaved practice; a skill somebody does not have yet is built by doing
   the same move again. **Keep `classify` a pure function of (problem, solution,
@@ -203,8 +219,8 @@ has the full version, including the risk that follows from it.
   recognise.
 - **A NEW SURFACE JOINS `tools/a11y.mjs` IN THE SAME COMMIT.** The gate asserts
   its state list against every `[data-surface]` in the document, so it refuses
-  rather than quietly not measuring. Eight states by two modes, dialogs opened
-  rather than skipped — most of this app's controls live inside them, and the
+  rather than quietly not measuring. Every state it declares, in both modes,
+  dialogs opened rather than skipped — most of this app's controls live inside them, and the
   diagnosis panel only exists after a wrong step. Run `npm run browser` for the
   gate and the walk together.
 - **A NEW VERSION WAITS; THE READER RELEASES IT.** `public/sw.js` and the

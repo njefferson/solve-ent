@@ -25,7 +25,7 @@
  * PURE. No I/O, no globals, no clock.
  */
 import { addSubtract, exact, formatSigFigs, formatUnambiguous, lastPlaceOf, magnitudeOf, measured, multiplyDivide, roundToSigFigs, sigFigsFrom, } from "../num/sigfig.js";
-import { DIMENSIONLESS, divideUnits, formatUnit, multiplyUnits, parseUnit, runChain, sameUnit, } from "../num/units.js";
+import { DIMENSIONLESS, divideUnits, formatUnit, invertUnits, multiplyUnits, parseUnit, runChain, sameUnit, } from "../num/units.js";
 import { makeRng, nextInt, pick } from "./rng.js";
 import { FACTOR_SEPARATION, MAX_ANSWER_SIG_FIGS, MAX_EVERYDAY, MAX_EXPONENT, MAX_GENERATION_ATTEMPTS, MIN_ANSWER_SIG_FIGS, MIN_EVERYDAY, MIN_EXPONENT, RATIO_MARGIN, UNITY_MARGIN, } from "./tolerance.js";
 /** Every topic, in the order a course would meet them. */
@@ -44,15 +44,75 @@ export const TOPIC_NAMES = {
     PROPORTION: 'proportions and cross-multiplying',
     SCINOT: 'scientific notation',
     POWERS: 'powers and roots',
-    FRACTIONS: 'fractions and rates',
+    FRACTIONS: 'fractions and reciprocals',
     UNITS: 'cancelling units',
     SIGFIGS: 'significant figures',
 };
 /**
- * Difficulty within a topic. Three, not four: the third tier is where a
- * problem gains an extra link, an extra factor or an awkward precision, and a
- * fourth would be a difference nobody could name.
+ * The difficulties each topic has, easiest first.
+ *
+ * **NOT THREE EVERYWHERE, and that is a measurement rather than a preference.**
+ * This was `TIERS = [1, 2, 3]` for every topic since the first release, and
+ * every screen opened at tier 1, so nothing ever posed the other two. The first
+ * run of `tiers.test.ts` measured all fourteen steps and found six of them
+ * changed nothing a reader could tell — two topics were flat from end to end.
+ *
+ * A difficulty that poses what the one below it poses is the collision rule
+ * wearing different clothes: a control that does nothing is worse than a
+ * control that is missing, because its presence answers "is difficulty handled
+ * here" for everybody afterwards. So a topic declares what it has. Five have
+ * three; `FRACTIONS` has two; `PROPORTION` has one.
+ *
+ * `PROPORTION` having one is not a gap waiting to be filled quietly. Bigger
+ * numbers and an awkward ratio are the only things that separated its tiers,
+ * and neither is a different question. The step that would be real is a second
+ * reaction in sequence — moles of A to moles of B to moles of C — and that is a
+ * question shape this application has never posed, so it is the teacher's to
+ * ask for. `NOTES.md` carries it.
  */
+export const LADDERS = {
+    REARRANGE: [
+        { tier: 1, name: 'Two things multiplied' },
+        { tier: 2, name: 'A product on both sides' },
+        { tier: 3, name: 'Three or more factors' },
+    ],
+    PROPORTION: [{ tier: 1, name: 'One ratio' }],
+    SCINOT: [
+        { tier: 1, name: 'Exponents within 6' },
+        { tier: 2, name: 'Exponents within 12' },
+        { tier: 3, name: 'The whole range' },
+    ],
+    POWERS: [
+        { tier: 1, name: 'Squares' },
+        { tier: 2, name: 'Cubes and roots' },
+        { tier: 3, name: 'Past a cube' },
+    ],
+    FRACTIONS: [
+        { tier: 1, name: 'The rate the right way up' },
+        { tier: 2, name: 'The rate upside down' },
+    ],
+    UNITS: [
+        { tier: 1, name: 'Two steps' },
+        { tier: 2, name: 'Three steps' },
+        { tier: 3, name: 'Four steps' },
+    ],
+    SIGFIGS: [
+        { tier: 1, name: 'One rule' },
+        { tier: 2, name: 'Either rule' },
+        { tier: 3, name: 'Two rules in order' },
+    ],
+};
+/** The difficulties a topic has, easiest first. Never empty. */
+export const laddersFor = (topic) => LADDERS[topic];
+/**
+ * Whether a topic poses this difficulty at all.
+ *
+ * For a sweep that walks topics against tiers. `PROPORTION` has one difficulty
+ * and `FRACTIONS` two, so nine of the twenty-one squares are not questions this
+ * application poses and generating one throws.
+ */
+export const posesTier = (topic, tier) => laddersFor(topic).some((difficulty) => difficulty.tier === tier);
+/** Every tier any topic poses. For a sweep that wants the whole space. */
 export const TIERS = [1, 2, 3];
 function state(symbol, label, value, sigFigs, unit) {
     const rounded = roundToSigFigs(value, sigFigs);
@@ -243,6 +303,15 @@ export const RELATIONS = [
 export function relationById(id) {
     return RELATIONS.find((r) => r.id === id);
 }
+/**
+ * The symbol for the rate the right way up.
+ *
+ * ALWAYS `r`, whichever way the question stated it. Where the question states
+ * the reciprocal, the stated value is `p` and `r` is what the first stage asks
+ * for — so a reader never meets `r` in a question before the question that
+ * defines it.
+ */
+export const FLIPPED_RATE_SYMBOL = 'r';
 /** A generator that ran out of draws. */
 export class GenerationError extends Error {
     topic;
@@ -476,17 +545,26 @@ function solvePowers(problem) {
 }
 function solveFractions(problem) {
     const amount = problem.amount.quantity.value;
-    const rate = problem.rate.quantity.value;
-    const answer = amount / rate;
+    const stated = problem.rate.quantity.value;
+    // The rate the right way up. Where the question stated the reciprocal, this
+    // is what F1 asks for and F2 divides by.
+    const rate = problem.upsideDown ? 1 / stated : stated;
+    // MULTIPLIED, NOT DIVIDED BY THE FLIP. `amount / (1 / stated)` is the same
+    // number in arithmetic and not always the same in floating point, and the
+    // stated value is the one the reader has in front of them.
+    const answer = problem.upsideDown ? amount * stated : amount / stated;
     return {
         topic: 'FRACTIONS',
         answer,
         answerUnit: problem.answerUnit,
-        at: { F2: answer },
+        at: problem.upsideDown ? { F0: rate, F2: answer } : { F2: answer },
         precisionAt: { F2: multiplyDivide(answer, [problem.amount.quantity, problem.rate.quantity]) },
-        working: [
-            `${problem.amount.written} ÷ ${problem.rate.written} = ${answer}`,
-        ],
+        working: problem.upsideDown
+            ? [
+                `1 ÷ ${problem.rate.written} = ${rate}`,
+                `${problem.amount.written} × ${problem.rate.written} = ${answer}`,
+            ]
+            : [`${problem.amount.written} ÷ ${problem.rate.written} = ${answer}`],
     };
 }
 function solveUnits(problem) {
@@ -749,6 +827,26 @@ export function checkGuarantees(problem) {
             if (indistinguishable(have + to - from, roundToSigFigs(earlyScale * to, sf), sf)) {
                 broken.push('SCALE_NOT_RECIPE');
             }
+            // THE SCALING STAGE MUST ASK FOR SOMETHING THE QUESTION DOES NOT PRINT.
+            // "How many times the recipe is that?" has the answer c when a = 1 — the
+            // number is already on the page, so the stage teaches copying and
+            // attributes nothing to anybody who copies it. The same happens at
+            // c = a² (the scale is a) and c = ab (the scale is b).
+            //
+            // A CONDITION ON THE STATED VALUES, like every guarantee here: those
+            // three equalities are what "the scale is one of the printed numbers"
+            // means, worked out rather than compared for.
+            //
+            // Found by widening the no-leak check to every difficulty a topic has:
+            // it had only ever looked at tier 2, and `PROPORTION` no longer has one.
+            // Two recipes take one mole — N₂ to NH₃ and CaCO₃ to O — and they stay in
+            // the table to be refused, like the one-to-one pair above them.
+            const scale = have / from;
+            if (nearUnity(from, UNITY_MARGIN))
+                broken.push('SCALE_IS_WORK');
+            if (withinRatio(scale, from, RATIO_MARGIN) || withinRatio(scale, to, RATIO_MARGIN)) {
+                broken.push('SCALE_IS_WORK');
+            }
             if (!physicallyReal(answer))
                 broken.push('PHYSICALLY_REAL');
             return broken;
@@ -864,8 +962,37 @@ export function checkGuarantees(problem) {
             const rate = problem.rate.quantity.value;
             // Multiplying by a rate and dividing by it agree exactly when the rate
             // is 1, and ignoring it agrees with dividing by it at the same point.
+            // Both hold whichever way up the question stated it: where it stated the
+            // reciprocal, a stated 1 flips to 1.
             if (nearUnity(rate, UNITY_MARGIN))
                 broken.push('RATE_NOT_UNITY');
+            if (problem.upsideDown) {
+                // WORKED OUT BY HAND from the flipped shape, where the correct answer
+                // is amount·p and the rate the right way up is r = 1/p:
+                //
+                //   "wrote it upside down" (r/amount) meets the correct answer where
+                //   amount·p = 1, and meets "never used the rate" (amount) where
+                //   p = 1/amount².
+                //
+                // The other three pairings all reduce to p = 1 or amount = 1, which the
+                // two checks above already refuse.
+                //
+                // ONE PAIRING IS DELIBERATELY ABSENT. A reader who never turns the rate
+                // over divides by p and gets amount/p, which is exactly what a reader
+                // who turned it over and then multiplied gets — two misconceptions, one
+                // number. The DECOMPOSITION is what separates them rather than a
+                // tiebreak: F0 asks for the flip on its own, so by the time the answer
+                // is asked for, whether it was turned over is already known and is not
+                // a thing to guess at. That is why the flip is a stage.
+                const answer = amount * rate;
+                if (nearUnity(answer, UNITY_MARGIN))
+                    broken.push('FLIP_SEPARATES');
+                if (withinRatio(rate, 1 / (amount * amount), RATIO_MARGIN))
+                    broken.push('FLIP_SEPARATES');
+                if (!physicallyReal(answer))
+                    broken.push('PHYSICALLY_REAL');
+                return broken;
+            }
             // Taking the reciprocal of the answer gives rate/amount where
             // amount/rate is wanted; the two agree when amount = rate.
             if (withinRatio(amount, rate, RATIO_MARGIN))
@@ -916,6 +1043,20 @@ export function checkGuarantees(problem) {
             const chainProduct = factors.reduce((a, f) => a * f.value, 1);
             if (nearUnity(chainProduct, UNITY_MARGIN))
                 broken.push('CHAIN_PRODUCT_NOT_UNITY');
+            // AND THE SAME MISTAKE MEETS ONE LINK BEING UPSIDE DOWN. Inverting the
+            // whole chain divides by (∏f)², inverting link i divides by f_i², so the
+            // two are one number exactly when the OTHER links multiply to one.
+            //
+            // On a two-link chain that means the other link is 1, which the check at
+            // the top of this block already refuses — which is why this was not here.
+            // Four-link chains reach it honestly: no single link is near one and
+            // three of them together still can be. Found by the collision sweep the
+            // day the fourth link arrived.
+            for (let i = 0; i < factors.length; i += 1) {
+                const withoutOne = factors.reduce((a, f, j) => (j === i ? a : a * f.value), 1);
+                if (nearUnity(withoutOne, UNITY_MARGIN))
+                    broken.push('CHAIN_PRODUCT_NOT_UNITY');
+            }
             const ran = runChain(problem.start.quantity.value, problem.start.unit, factors);
             if (!sameUnit(ran.unit, problem.wantedUnit))
                 broken.push('PHYSICALLY_REAL');
@@ -1104,16 +1245,24 @@ export function generationReport(assignmentKey, topic, tier, index) {
 /**
  * Generate one problem.
  *
- * PRECONDITION: `topic` is one of {@link TOPICS} and `tier` one of
- * {@link TIERS}. Deterministic: the same arguments always produce the same
- * problem, on every device, which is what lets a teacher write one key on the
- * board and a class of thirty work the same set.
+ * PRECONDITION: `topic` is one of {@link TOPICS} and `tier` one the topic
+ * declares in {@link LADDERS}. Deterministic: the same arguments always produce
+ * the same problem, on every device, which is what lets a teacher write one key
+ * on the board and a class of thirty work the same set.
+ *
+ * **A tier the topic does not declare is refused, not clamped.** Clamping would
+ * hand back tier 1 and let a caller believe it had asked for something harder,
+ * which is how `PROPORTION` served the same questions under three labels for
+ * eleven releases.
  *
  * Throws {@link GenerationError} rather than lowering a guarantee. A generator
  * that relaxes its own conditions to find something to pose is a generator that
  * poses the problem the guarantee existed to refuse.
  */
 export function generateProblem(assignmentKey, topic, tier, index) {
+    if (!laddersFor(topic).some((difficulty) => difficulty.tier === tier)) {
+        throw new RangeError(`${topic} has no tier ${String(tier)}`);
+    }
     const key = `${assignmentKey}|${topic}|${tier}|${index}`;
     const rng = makeRng(key);
     const rejected = {};
@@ -1227,10 +1376,18 @@ const RECIPES = [
     { from: 2, to: 2, fromName: 'H₂O', toName: 'H₂', unit: 'mol' },
 ];
 function draftProportion(rng, tier, seed) {
-    const recipe = pick(rng, RECIPES);
     const answerSigFigs = drawSigFigs(rng);
+    // THE RECIPE, not only the number. Both branches here were `tier === 1 ? … : …`,
+    // so tiers 2 and 3 drew identically and the topic had one difficulty step
+    // wearing two labels. What makes a proportion harder is the ratio being
+    // further from something a reader can do in their head, so tier 3 draws from
+    // the recipes whose two coefficients are furthest apart.
+    const spread = (r) => Math.max(r.from, r.to) / Math.min(r.from, r.to);
+    const awkward = RECIPES.filter((r) => spread(r) >= 2);
+    const recipeFor = tier < 3 || awkward.length === 0 ? RECIPES : awkward;
     const haveFigures = tier === 1 ? 3 : nextInt(rng, 3, MAX_ANSWER_SIG_FIGS);
-    const have = drawValue(rng, tier === 1 ? 0.5 : 0.02, tier === 1 ? 12 : 40, haveFigures);
+    const recipe = pick(rng, recipeFor);
+    const have = drawValue(rng, tier === 1 ? 0.5 : 0.02, tier === 1 ? 12 : tier === 2 ? 40 : 400, haveFigures);
     const problem = {
         topic: 'PROPORTION',
         tier,
@@ -1287,7 +1444,11 @@ function draftScinot(rng, tier, seed) {
 }
 function draftPowers(rng, tier, seed) {
     const direction = tier >= 2 && nextInt(rng, 0, 2) === 0 ? 'ROOT' : 'POWER';
-    const exponent = tier === 1 ? 2 : nextInt(rng, 2, 3);
+    // Tier 3 goes past a cube, which is where the exponent stops being a shape
+    // somebody recognises and becomes something they have to work. It read
+    // `tier === 1 ? 2 : nextInt(rng, 2, 3)`, so tiers 2 and 3 drew from the same
+    // two values.
+    const exponent = tier === 1 ? 2 : tier === 2 ? nextInt(rng, 2, 3) : nextInt(rng, 3, 4);
     const answerSigFigs = drawSigFigs(rng);
     const baseFigures = nextInt(rng, 2, MAX_ANSWER_SIG_FIGS);
     if (direction === 'ROOT') {
@@ -1335,6 +1496,7 @@ const RATES = [
         amountName: 'moles of solute',
         amountUnit: 'mol',
         rateName: 'the concentration',
+        flippedName: 'the volume one mole takes up',
         rateUnit: 'mol/L',
         answerUnit: 'L',
         min: 0.02,
@@ -1346,6 +1508,7 @@ const RATES = [
         amountName: 'the mass',
         amountUnit: 'g',
         rateName: 'the molar mass',
+        flippedName: 'the moles in one gram',
         rateUnit: 'g/mol',
         answerUnit: 'mol',
         min: 0.5,
@@ -1357,6 +1520,7 @@ const RATES = [
         amountName: 'the mass',
         amountUnit: 'g',
         rateName: 'the density',
+        flippedName: 'the volume one gram takes up',
         rateUnit: 'g/mL',
         answerUnit: 'mL',
         min: 2,
@@ -1368,6 +1532,7 @@ const RATES = [
         amountName: 'the amount of product',
         amountUnit: 'mol',
         rateName: 'the rate',
+        flippedName: 'the time one mole takes',
         rateUnit: 'mol/s',
         answerUnit: 's',
         min: 0.01,
@@ -1380,22 +1545,37 @@ function draftFractions(rng, tier, seed) {
     const shape = pick(rng, RATES);
     const answerSigFigs = drawSigFigs(rng);
     const amountFigures = nextInt(rng, 3, MAX_ANSWER_SIG_FIGS);
-    const rateFigures = tier === 1 ? 3 : nextInt(rng, 3, MAX_ANSWER_SIG_FIGS);
+    const rateFigures = nextInt(rng, 3, MAX_ANSWER_SIG_FIGS);
     const amount = drawValue(rng, shape.min, shape.max, amountFigures);
-    const rate = drawValue(rng, shape.rateMin, shape.rateMax, rateFigures);
+    const upsideDown = tier === 2;
+    const flippedUnit = invertUnits(parseUnit(shape.rateUnit));
+    // THE STATED VALUE IS THE ONE DRAWN, whichever way up it is. Drawing the rate
+    // and then stating its reciprocal would state a rounded number and grade
+    // against the unrounded one it came from, so the correct answer would carry a
+    // rounding the question never showed — which is the mistake `E-ROUND-EARLY`
+    // exists to name, committed by the generator.
+    const stated = upsideDown
+        ? drawValue(rng, 1 / shape.rateMax, 1 / shape.rateMin, rateFigures)
+        : drawValue(rng, shape.rateMin, shape.rateMax, rateFigures);
+    const rate = state(upsideDown ? 'p' : FLIPPED_RATE_SYMBOL, upsideDown ? shape.flippedName : shape.rateName, stated, rateFigures, upsideDown ? formatUnit(flippedUnit) : shape.rateUnit);
     const problem = {
         topic: 'FRACTIONS',
         tier,
         seed,
         answerSigFigs,
         amount: state('n', shape.amountName, amount, amountFigures, shape.amountUnit),
-        rate: state('r', shape.rateName, rate, rateFigures, shape.rateUnit),
+        rate,
+        upsideDown,
+        flippedUnit: parseUnit(shape.rateUnit),
         amountName: shape.amountName,
         rateName: shape.rateName,
         answerUnit: parseUnit(shape.answerUnit),
         prompt: `You have ${formatSigFigs(amount, amountFigures)} ${shape.amountUnit} — ${shape.amountName}. ` +
-            `${shape.rateName[0]?.toUpperCase()}${shape.rateName.slice(1)} is ` +
-            `${formatSigFigs(rate, rateFigures)} ${shape.rateUnit}. ` +
+            (upsideDown
+                ? `${shape.flippedName[0]?.toUpperCase()}${shape.flippedName.slice(1)} is ` +
+                    `${rate.written} ${formatUnit(flippedUnit)}. `
+                : `${shape.rateName[0]?.toUpperCase()}${shape.rateName.slice(1)} is ` +
+                    `${rate.written} ${shape.rateUnit}. `) +
             `How many ${shape.answerUnit}? Give it to ${answerSigFigs} significant figures.`,
     };
     return problem;
@@ -1448,6 +1628,22 @@ function chainsFor(substance, molarMassValue, densityValue) {
         consumes: 'mL',
         produces: 'g',
     };
+    const litresToMillilitres = {
+        label: 'a litre is 1000 mL',
+        value: 1000,
+        unit: 'mL/L',
+        consumes: 'L',
+        produces: 'mL',
+    };
+    // EVERY CHAIN IS AN EXPLICIT COMPOSITION, never links picked at random and
+    // asked what comes out — that is how the generator once posed "convert 522 mL
+    // into L·particles/g".
+    //
+    // The four-link chains exist because the third difficulty asked for a length
+    // the table did not have and the generator starved: six hundred attempts,
+    // "nothing drawable". Both are real chemistry — a volume of liquid weighed,
+    // turned into moles, and then into particles or into the volume it fills as a
+    // gas, which is the second one's whole point.
     return [
         [gramsToMoles, molesToParticles],
         [gramsToMoles, molesToLitres],
@@ -1455,6 +1651,8 @@ function chainsFor(substance, molarMassValue, densityValue) {
         [kilogramsToGrams, gramsToMoles, molesToLitres],
         [millilitresToGrams, gramsToMoles, molesToParticles],
         [millilitresToGrams, gramsToMoles, molesToLitres],
+        [litresToMillilitres, millilitresToGrams, gramsToMoles, molesToParticles],
+        [litresToMillilitres, millilitresToGrams, gramsToMoles, molesToLitres],
     ];
 }
 /** Substances with a molar mass, for the conversion chains. */
@@ -1474,7 +1672,11 @@ function draftUnits(rng, tier, seed) {
     const all = chainsFor(substance.name, substance.molarMass, substance.density);
     // Tier is chain LENGTH, which is the thing that actually gets harder: every
     // extra link is another place to put a factor upside down.
-    const wantedLength = tier === 1 ? 2 : 3;
+    //
+    // THREE BRANCHES, NOT TWO. This read `tier === 1 ? 2 : 3`, so tier 3 posed the
+    // same three-link chains as tier 2 and the third difficulty existed only in
+    // the constant. `tiers.test.ts` measures every step against the one below.
+    const wantedLength = tier === 1 ? 2 : tier === 2 ? 3 : 4;
     const candidates = all.filter((chain) => chain.length === wantedLength);
     if (candidates.length === 0)
         return null;
@@ -1482,8 +1684,12 @@ function draftUnits(rng, tier, seed) {
     const startUnit = chain[0].consumes;
     const startFigures = nextInt(rng, 3, MAX_ANSWER_SIG_FIGS);
     const band = START_BANDS[startUnit];
+    // A CHAIN WHOSE START HAS NO BAND IS A DEFECT IN THE TABLE, NOT AN UNDRAWABLE
+    // DRAW. This returned null, so the fourth link's arrival — starting from L,
+    // which START_BANDS did not carry — spent six hundred attempts and reported
+    // "nothing drawable", which names neither the unit nor the table.
     if (band === undefined)
-        return null;
+        throw new RangeError(`no starting band for ${startUnit}`);
     const startValue = drawValue(rng, band[0], band[1], startFigures);
     const factors = chain.map((link) => ({
         label: link.label,
@@ -1512,6 +1718,7 @@ const START_BANDS = {
     g: [0.5, 400],
     kg: [0.02, 4],
     mL: [1, 250],
+    L: [0.02, 2],
 };
 /** What a significant-figures problem combines. */
 const SIGFIG_SHAPES = [
@@ -1586,7 +1793,19 @@ const SIGFIG_SHAPES = [
 function draftSigfigs(rng, tier, seed) {
     // Tier 1 is the single-rule shapes; the mixed one is where two rules apply in
     // order and is the hardest case in the topic, so it starts at tier 2.
-    const shape = pick(rng, SIGFIG_SHAPES.filter((s) => tier === 1 ? s.operation !== 'ADD_THEN_MULTIPLY' && s.bands.length === 2 : true));
+    //
+    // AND TIER 3 IS THAT CASE RATHER THAN MERELY ALLOWING IT. The filter read
+    // `tier === 1 ? … : true`, so tier 3 drew from exactly the same pool as tier 2
+    // and landed on the mixed shape only by chance. A difficulty that might be
+    // harder is not a difficulty.
+    const allowed = SIGFIG_SHAPES.filter((s) => {
+        if (tier === 1)
+            return s.operation !== 'ADD_THEN_MULTIPLY' && s.bands.length === 2;
+        if (tier === 2)
+            return true;
+        return s.operation === 'ADD_THEN_MULTIPLY' || s.bands.length > 2;
+    });
+    const shape = pick(rng, allowed.length > 0 ? allowed : SIGFIG_SHAPES);
     const operands = shape.bands.map((band, i) => {
         const figures = nextInt(rng, 2, MAX_ANSWER_SIG_FIGS + 1);
         return state(`x${i + 1}`, shape.labels[i], drawValue(rng, band[0], band[1], figures), figures, shape.units[i]);

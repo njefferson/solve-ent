@@ -31,7 +31,7 @@
  * the catcher. Round from the truth, once.
  */
 
-import { TIERS, TOPICS, generateProblem, relationById, solve } from '../src/engine/problem.ts';
+import { TIERS, TOPICS, generateProblem, posesTier, relationById, solve } from '../src/engine/problem.ts';
 import { correctEntryFor, requiredSigFigs, stagesFor } from '../src/engine/taxonomy.ts';
 import { runChain } from '../src/num/units.ts';
 import { SCRATCH_SIG_FIGS } from '../src/engine/tolerance.ts';
@@ -83,6 +83,7 @@ const CONSTANT_TOLERANCE = 1e-3;
 function chainFactorsSeen() {
   const byLabel = new Map();
   for (const tier of TIERS) {
+    if (!posesTier('UNITS', tier)) continue;
     for (let index = 0; index < 300; index += 1) {
       const problem = generateProblem('VERIFY', 'UNITS', tier, index);
       for (const factor of problem.factors) byLabel.set(factor.label, factor.value);
@@ -145,6 +146,7 @@ function chainFactorsSeen() {
   let checked = 0;
   let worst = 0;
   for (const tier of TIERS) {
+    if (!posesTier('REARRANGE', tier)) continue;
     for (let index = 0; index < 400; index += 1) {
       const problem = generateProblem('VERIFY', 'REARRANGE', tier, index);
       const relation = relationById(problem.relationId);
@@ -192,7 +194,7 @@ function chainFactorsSeen() {
   for (const tier of TIERS) {
     for (let index = 0; index < 300; index += 1) {
       /* proportions — the mole ratio, worked by hand */
-      {
+      if (posesTier('PROPORTION', tier)) {
         const problem = generateProblem('VERIFY', 'PROPORTION', tier, index);
         const expected =
           (problem.have.quantity.value / problem.from.quantity.value) * problem.to.quantity.value;
@@ -202,7 +204,7 @@ function chainFactorsSeen() {
       }
 
       /* scientific notation — plain arithmetic, no notation involved */
-      {
+      if (posesTier('SCINOT', tier)) {
         const problem = generateProblem('VERIFY', 'SCINOT', tier, index);
         const first = problem.firstMantissa * 10 ** problem.firstExponent;
         const second = problem.secondMantissa * 10 ** problem.secondExponent;
@@ -220,7 +222,7 @@ function chainFactorsSeen() {
       }
 
       /* powers and roots */
-      {
+      if (posesTier('POWERS', tier)) {
         const problem = generateProblem('VERIFY', 'POWERS', tier, index);
         const base = problem.base.quantity.value;
         const expected =
@@ -233,16 +235,21 @@ function chainFactorsSeen() {
       }
 
       /* fractions — dividing by a rate */
-      {
+      if (posesTier('FRACTIONS', tier)) {
         const problem = generateProblem('VERIFY', 'FRACTIONS', tier, index);
-        const expected = problem.amount.quantity.value / problem.rate.quantity.value;
+        // BOTH WAYS UP, worked out here rather than asked for. Where the
+        // question states the reciprocal, dividing by what it printed is the
+        // mistake — the answer multiplies by it.
+        const expected = problem.upsideDown
+          ? problem.amount.quantity.value * problem.rate.quantity.value
+          : problem.amount.quantity.value / problem.rate.quantity.value;
         const got = solve(problem).answer;
         if (relative(expected, got) > 1e-12) fail(`FRACTIONS #${index}: by hand ${expected}, the app says ${got}`);
         checked += 1;
       }
 
       /* dimensional analysis — the chain, multiplied out here */
-      {
+      if (posesTier('UNITS', tier)) {
         const problem = generateProblem('VERIFY', 'UNITS', tier, index);
         let expected = problem.start.quantity.value;
         for (const factor of problem.factors) expected *= factor.value;
@@ -268,7 +275,7 @@ function chainFactorsSeen() {
       }
 
       /* significant figures — both rules, applied here */
-      {
+      if (posesTier('SIGFIGS', tier)) {
         const problem = generateProblem('VERIFY', 'SIGFIGS', tier, index);
         const values = problem.operands.map((o) => o.quantity.value);
 
@@ -364,6 +371,7 @@ function sigFigsOfSum(operands, raw) {
   let written = 0;
   for (const topic of TOPICS) {
     for (const tier of TIERS) {
+      if (!posesTier(topic, tier)) continue;
       for (let index = 0; index < 120; index += 1) {
         const problem = generateProblem('VERIFY', topic, tier, index);
         const solution = solve(problem);

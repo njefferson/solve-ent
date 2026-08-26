@@ -27,6 +27,8 @@ import assert from 'node:assert/strict';
 import {
   RELATIONS,
   TIERS,
+  laddersFor,
+  posesTier,
   TOPICS,
   checkGuarantees,
   generateProblem,
@@ -60,13 +62,18 @@ import { formatSigFigs, formatUnambiguous, measured } from '../src/num/sigfig.ts
 import { formatUnit } from '../src/num/units.ts';
 
 /**
- * How many problems per topic and tier the collision sweep runs over.
+ * How many problems per topic and difficulty the collision sweep runs over.
  *
- * 500 x 7 topics x 3 tiers is 10,500, which clears the ten thousand the
- * specification asks for with the number written here rather than implied by
- * an arithmetic somebody has to do.
+ * 600 x the eighteen difficulties the seven topics between them declare is
+ * 10,800, which clears the ten thousand the specification asks for.
+ *
+ * IT WAS 500 x 7 x 3, and that arithmetic stopped being true the day
+ * difficulty became a thing a topic declares rather than a thing every topic
+ * had three of: nine of the twenty-one squares are not questions this
+ * application poses, the sweep fell to 9,000, and the floor at the bottom of
+ * the test is what said so.
  */
-const SWEEP_PER_SET = 500;
+const SWEEP_PER_SET = 600;
 
 /** Write a value the way a student would type it at this stage. */
 function entryText(stage: Stage, value: number, sigFigs: number): string {
@@ -83,6 +90,7 @@ test('no two error classes predict something a student could not tell apart', ()
 
   for (const topic of TOPICS) {
     for (const tier of TIERS) {
+      if (!posesTier(topic, tier)) continue;
       for (let index = 0; index < SWEEP_PER_SET; index += 1) {
         const problem = generateProblem('COLLISION-SWEEP', topic, tier, index);
         const solution = solve(problem);
@@ -148,6 +156,7 @@ test('a stage where nothing can be attributed is counted, because the sweep cann
 
   for (const topic of TOPICS) {
     for (const tier of TIERS) {
+      if (!posesTier(topic, tier)) continue;
       for (let index = 0; index < 150; index += 1) {
         const problem = generateProblem('BLIND', topic, tier, index);
         const solution = solve(problem);
@@ -229,6 +238,7 @@ test('the generator does most of its separating structurally, not by comparing p
   const rejections: Record<string, number> = {};
   for (const topic of TOPICS) {
     for (const tier of TIERS) {
+      if (!posesTier(topic, tier)) continue;
       for (let index = 0; index < 120; index += 1) {
         generateProblem('CIRCULARITY', topic, tier, index);
         for (const [name, count] of Object.entries(generationReport('CIRCULARITY', topic, tier, index).rejected)) {
@@ -253,6 +263,7 @@ test('every predicted wrong value classifies as its own class and no other', () 
 
   for (const topic of TOPICS) {
     for (const tier of TIERS) {
+      if (!posesTier(topic, tier)) continue;
       for (let index = 0; index < 80; index += 1) {
         const problem = generateProblem('FIXTURES', topic, tier, index);
         const solution = solve(problem);
@@ -307,7 +318,7 @@ test('every predicted wrong value classifies as its own class and no other', () 
     'E-PROP-INVERTED', 'E-PROP-ADDED', 'E-PROP-DROPPED',
     'E-SCI-EXP-OP', 'E-SCI-EXP-SIGN', 'E-SCI-MANTISSA-OP', 'E-SCI-NORMALISE',
     'E-POW-MULTIPLIED', 'E-POW-INVERTED', 'E-POW-SWAPPED', 'E-POW-COEFF',
-    'E-FRAC-INVERTED', 'E-FRAC-RECIPROCAL', 'E-FRAC-RATE-IGNORED',
+    'E-FRAC-INVERTED', 'E-FRAC-RECIPROCAL', 'E-FRAC-RATE-IGNORED', 'E-FRAC-NOT-FLIPPED',
     'E-UNIT-FACTOR-INVERTED', 'E-UNIT-DROPPED', 'E-UNIT-CHAIN-INVERTED',
     'E-SIG-WRONG-RULE', 'E-SIG-ROUND-EARLY',
   ] as const) {
@@ -317,13 +328,15 @@ test('every predicted wrong value classifies as its own class and no other', () 
 
 /** The first problem of a topic for which a predicate holds. */
 function findProblem(topic: Topic, holds: (problem: Problem) => boolean): Problem {
-  for (const tier of TIERS) {
+  let looked = 0;
+  for (const difficulty of laddersFor(topic)) {
     for (let index = 0; index < 400; index += 1) {
-      const problem = generateProblem('CASES', topic, tier, index);
+      looked += 1;
+      const problem = generateProblem('CASES', topic, difficulty.tier, index);
       if (holds(problem)) return problem;
     }
   }
-  throw new Error(`no ${topic} problem in 1200 satisfied the fixture`);
+  throw new Error(`no ${topic} problem in ${String(looked)} satisfied the fixture`);
 }
 
 test('a number with no unit is its own diagnosis, and so is the wrong unit', () => {
@@ -417,7 +430,7 @@ test('every class has a fixture somewhere in this file', () => {
     'E-PROP-INVERTED', 'E-PROP-ADDED', 'E-PROP-DROPPED',
     'E-SCI-EXP-OP', 'E-SCI-EXP-SIGN', 'E-SCI-MANTISSA-OP', 'E-SCI-NORMALISE',
     'E-POW-MULTIPLIED', 'E-POW-INVERTED', 'E-POW-SWAPPED', 'E-POW-COEFF',
-    'E-FRAC-INVERTED', 'E-FRAC-RECIPROCAL', 'E-FRAC-RATE-IGNORED',
+    'E-FRAC-INVERTED', 'E-FRAC-RECIPROCAL', 'E-FRAC-RATE-IGNORED', 'E-FRAC-NOT-FLIPPED',
     'E-UNIT-FACTOR-INVERTED', 'E-UNIT-DROPPED', 'E-UNIT-CHAIN-INVERTED',
     'E-UNIT-MISSING', 'E-UNIT-WRONG',
     'E-SIG-FIGURES', 'E-SIG-WRONG-RULE', 'E-SIG-COUNT-ZEROS', 'E-SIG-ROUND-EARLY',
@@ -460,6 +473,7 @@ test('the unclassified rate over a sweep of realistic wrong answers', () => {
 
   for (const topic of TOPICS) {
     for (const tier of TIERS) {
+      if (!posesTier(topic, tier)) continue;
       for (let index = 0; index < 120; index += 1) {
         const problem = generateProblem('RATE', topic, tier, index);
         const solution = solve(problem);
@@ -518,6 +532,7 @@ test('a session answered correctly is never marked wrong', () => {
   let checked = 0;
   for (const topic of TOPICS) {
     for (const tier of TIERS) {
+      if (!posesTier(topic, tier)) continue;
       for (let index = 0; index < 60; index += 1) {
         const problem = generateProblem('CORRECT', topic, tier, index);
         const solution = solve(problem);
@@ -540,6 +555,7 @@ test('a session answered correctly is never marked wrong', () => {
 test('every generated problem keeps every guarantee it was generated under', () => {
   for (const topic of TOPICS) {
     for (const tier of TIERS) {
+      if (!posesTier(topic, tier)) continue;
       for (let index = 0; index < 100; index += 1) {
         const problem = generateProblem('GUARANTEES', topic, tier, index);
         assert.deepEqual(
@@ -555,6 +571,7 @@ test('every generated problem keeps every guarantee it was generated under', () 
 test('a stage that grades figures is the last one, and only one does', () => {
   for (const topic of TOPICS) {
     for (const tier of TIERS) {
+      if (!posesTier(topic, tier)) continue;
       const problem = generateProblem('STAGES', topic, tier, 0);
       const stages = stagesFor(problem);
       assert.ok(stages.length >= 2, `${topic} has only ${stages.length} stage`);
@@ -586,6 +603,7 @@ test('a choice stage and the grader read ONE derivation of the options', () => {
   // agree.
   for (const topic of TOPICS) {
     for (const tier of TIERS) {
+      if (!posesTier(topic, tier)) continue;
       for (let index = 0; index < 40; index += 1) {
         const problem = generateProblem('ONE-DERIVATION', topic, tier, index);
         const solution = solve(problem);

@@ -1119,6 +1119,111 @@ whole question and would otherwise never be measured. All six moves are offered
 unconditionally: a move quietly missing from a menu is worse than a loud failure
 at build time, and the test is what makes that safe.
 
+## Session 5: difficulty, and the six steps that changed nothing
+
+`TIERS` was `[1, 2, 3]` from the first commit and every screen opened at tier 1,
+so no reader had ever been given a tier-2 or tier-3 problem. Building the picker
+started with one question — *would choosing one change anything somebody could
+tell?* — and the honest answer for most of the ladder was no.
+
+### The measure is uniform, and that was the hard part
+
+`test/tiers.test.ts` samples three hundred problems per topic per difficulty and
+compares each difficulty against the one below it on two signals, passing on
+either: the share of STRUCTURAL SHAPES the tier below never produces (its stage
+list, how many parts it has, the precision asked for), and the largest relative
+shift in a uniform measure — stage count, part count, answer precision, and the
+size of the numbers with EXPONENT fields added back in, without which scientific
+notation reads as flat while its tiers genuinely run 7.6 to 21.5.
+
+**No topic gets a probe chosen for it**, which is hub LESSONS §141: a per-topic
+signal is a signal somebody tunes until the answer comes out right. The floor is
+12%, which sits under the real separations (33% to 100% on new shapes where a
+tier genuinely adds a link or a factor) and above the noise between two tiers
+that differ in nothing (1% to 3%).
+
+The first run:
+
+- `REARRANGE` 1→2 33% new shapes, 2→3 25% — real, both.
+- `SCINOT` 1→2 and 2→3, 56% and 52% more size — real, both.
+- `POWERS` 1→2 50% new shapes; 2→3 **nothing**.
+- `UNITS` 1→2 100% new shapes; 2→3 **nothing**.
+- `SIGFIGS` 1→2 67% new shapes; 2→3 **nothing**.
+- `PROPORTION` **nothing, either step**.
+- `FRACTIONS` **nothing, either step**.
+
+Six of fourteen. Three of the six were a draft function whose third branch had
+never been written: `tier === 1 ? x : y` reads as a ladder and is a step with two
+positions and three labels. Those were fixed — `POWERS` past a cube, `UNITS` at
+four links, `SIGFIGS` requiring the mixed rule rather than merely allowing it.
+
+### Two topics were flat all the way, and they are not the same case
+
+`PROPORTION` and `FRACTIONS` differed between tiers only in how big the numbers
+were and how awkward the ratio was. Neither is a different question.
+
+So **difficulty is declared per topic** now. `LADDERS` says what each has, and
+`generateProblem` REFUSES a tier a topic does not declare rather than clamping to
+one that exists — clamping would let a caller believe it had asked for something
+harder, which is how the flat tiers survived eleven releases. `startSession`
+checks the same thing at the start of a set rather than at the first problem.
+
+`FRACTIONS` earned a second difficulty rather than being given one. The topic is
+fractions and RECIPROCALS and it had never once posed a reciprocal: every rate
+arrived the way it was needed. The second difficulty states it the other way up
+— 0.250 L/mol rather than 4.00 mol/L — and asks for the flip on its own before
+anything is worked out.
+
+**That flip is a stage rather than a wording change, and the reason is a
+collision.** A reader who never turns the rate over divides by what was printed
+and lands on amount ÷ p; a reader who turns it over and then multiplies lands on
+exactly the same number. Two misconceptions, one value. The decomposition is
+what separates them — the flip is asked on its own, so by the time the answer is
+asked for, whether it happened is known rather than guessed. That is the
+alternative to a tiebreak, worked in the small.
+
+`PROPORTION` has ONE difficulty, and that is a question for whoever is teaching
+rather than a gap to fill quietly. The step that would be real is a second
+reaction in sequence — moles of A to moles of B to moles of C — which is a
+question shape this application has never posed. It is in scope by the fence's
+own test (a student cannot do a stoichiometry problem without it) and it is
+still new content, so it is asked for, not assumed.
+
+### What widening the sweep found
+
+Two defects, both of which had been green:
+
+- **A `PROPORTION` question could ask for a number already printed in it.** Two
+  recipes take one mole of the first substance, and "how many times the recipe
+  is that?" then has the answer that is written in the prompt. The no-leak check
+  had only ever looked at tier 2, and `PROPORTION` no longer has one. The
+  recipes stay in the table and are refused by `SCALE_IS_WORK`, like the
+  one-to-one pair above them.
+- **On a four-link chain, one factor inverted and the whole chain inverted could
+  be the same number.** They agree exactly when the OTHER links multiply to one,
+  which on a two-link chain means a link of 1 — already refused — and on four
+  links happens honestly with no single link near one. Found by the collision
+  sweep the day the fourth link arrived.
+
+The sweep's own floor caught a third thing: nine of the twenty-one topic-by-tier
+squares stopped existing, so the sweep fell from 10,500 problems to 9,000 and
+the assertion that it covers at least ten thousand went red. It is 600 per
+square now.
+
+### The picker, and what it must never do
+
+Named rather than numbered, and the name describes the QUESTION — "Four steps",
+"Past a cube", "Two rules in order". A name like "Hard" is a statement about
+whoever picks it, and this application does not make statements about whoever
+picks it. That is the same rule as the praise ban, one step further out.
+
+Every difficulty is present on the first visit. **Nothing is locked and nothing
+promotes or demotes itself**: a difficulty that arrives because of how the last
+run went is a verdict delivered as a feature, and one that has to be unlocked is
+the same verdict from the other side. A topic with a single difficulty shows no
+picker at all, because a screen asking somebody to agree with the only option
+there was is worse than no screen.
+
 ## What is NOT built, and it is most of the app
 
 Named here so nobody has to discover it by looking:
@@ -1127,8 +1232,6 @@ Named here so nobody has to discover it by looking:
   palette's own night page and accent. They are honest placeholders, and an icon
   is the one surface the accessibility gate cannot reach, which is why they take
   their colours from the palette file rather than from taste.
-- **One difficulty.** Every run opens at tier 1; nothing chooses or moves
-  between the three the generator supports.
 - **No assignment key on screen**, so nothing can be handed in and there is no
   page for whoever set the work. `completionCounts` produces what a code would
   carry and refuses to do it in practice mode, which is the only mode a screen

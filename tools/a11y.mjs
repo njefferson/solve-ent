@@ -119,6 +119,9 @@ const STATES = [
     async reach(page) {
       await page.click('#begin');
       await page.locator('#topics button').first().click();
+      // AND THEN A DIFFICULTY. The first topic has three, so pressing it opens
+      // the picker rather than starting a run.
+      await page.locator('#difficulties button').first().click();
     },
   },
   {
@@ -131,6 +134,9 @@ const STATES = [
     async reach(page) {
       await page.click('#begin');
       await page.locator('#topics button').first().click();
+      // AND THEN A DIFFICULTY. The first topic has three, so pressing it opens
+      // the picker rather than starting a run.
+      await page.locator('#difficulties button').first().click();
       await wrongStep(page);
     },
   },
@@ -141,7 +147,21 @@ const STATES = [
     async reach(page) {
       await page.click('#begin');
       await page.locator('#topics button').first().click();
+      // AND THEN A DIFFICULTY. The first topic has three, so pressing it opens
+      // the picker rather than starting a run.
+      await page.locator('#difficulties button').first().click();
       await finishRun(page);
+    },
+  },
+  {
+    // CHOOSING HOW THE QUESTIONS ARE SET. Its own screen, reached by pressing a
+    // topic that has more than one — which is five of the seven.
+    name: 'difficulty',
+    surface: 'difficulty',
+    path: '/',
+    async reach(page) {
+      await page.click('#begin');
+      await page.locator('#topics button').first().click();
     },
   },
   {

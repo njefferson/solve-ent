@@ -20,6 +20,7 @@
 
 import {
   TIERS,
+  posesTier,
   TOPICS,
   generateProblem,
   generationReport,
@@ -318,6 +319,7 @@ switch (command) {
 
     for (const topic of TOPICS) {
       for (const tier of TIERS) {
+        if (!posesTier(topic, tier)) continue;
         for (let index = 0; index < per; index += 1) {
           const problem = generateProblem('CLI-SCAN', topic, tier, index);
           const solution = solve(problem);

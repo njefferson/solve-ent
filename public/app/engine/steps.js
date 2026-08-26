@@ -31,7 +31,7 @@
  *
  * PURE apart from the clock handed to it.
  */
-import { generateProblem, solve } from "./problem.js";
+import { generateProblem, posesTier, TOPIC_NAMES, solve } from "./problem.js";
 import { classify, correctEntryFor, stagesFor, } from "./taxonomy.js";
 import { COUNTER_SKILLS } from "./taxonomy.js";
 import { SCRATCH_SIG_FIGS } from "./tolerance.js";
@@ -78,6 +78,13 @@ export const MAX_ROSTER_NUMBER = 4095;
 export function startSession(config, clock) {
     if (config.count < 1)
         throw new SessionError('a set has at least one problem in it');
+    // THE DIFFICULTY IS CHECKED HERE RATHER THAN AT THE FIRST PROBLEM. Topics do
+    // not all have the same number of difficulties, so a key or a screen naming
+    // one a topic does not pose is a thing to say plainly at the start rather
+    // than a generator throwing part-way into a set somebody has begun.
+    if (!posesTier(config.topic, config.tier)) {
+        throw new SessionError(`${TOPIC_NAMES[config.topic]} does not have that difficulty`);
+    }
     if (config.mode === 'assignment') {
         const roster = config.rosterNumber;
         if (roster === null || !Number.isInteger(roster) || roster < 1 || roster > MAX_ROSTER_NUMBER) {

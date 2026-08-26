@@ -24,7 +24,7 @@
  * the same key get the same drill in the same order — the same property that
  * lets one thing written on a board produce one set of problems.
  */
-import { TOPIC_NAMES, generateProblem } from "./problem.js";
+import { TOPIC_NAMES, generateProblem, laddersFor } from "./problem.js";
 import { hashString } from "./rng.js";
 import { stagesFor } from "./taxonomy.js";
 /**
@@ -85,6 +85,11 @@ function placesFor(skill) {
     const found = [];
     for (const tier of DRILL_TIERS) {
         for (const topic of TOPICS) {
+            // ONLY WHERE THE TOPIC HAS ONE. Difficulty is per topic — `PROPORTION`
+            // poses one and `FRACTIONS` two — and `generateProblem` refuses a tier a
+            // topic does not declare rather than quietly handing back tier 1.
+            if (!laddersFor(topic).some((difficulty) => difficulty.tier === tier))
+                continue;
             for (let attempt = 0; attempt < PROBE_ATTEMPTS; attempt += 1) {
                 const problem = generateProblem(`probe|${skill}|${topic}|${String(tier)}`, topic, tier, attempt);
                 if (stagesFor(problem).some((stage) => stage.counter === skill)) {

@@ -14,6 +14,8 @@ import {
   RELATIONS,
   shownSymbol,
   TIERS,
+  laddersFor,
+  posesTier,
   TOPICS,
   checkGuarantees,
   countSigFigs,
@@ -70,6 +72,7 @@ test('the generator is not Math.random wearing a hat', () => {
 test('every problem is one somebody could actually be set', () => {
   for (const topic of TOPICS) {
     for (const tier of TIERS) {
+      if (!posesTier(topic, tier)) continue;
       for (let index = 0; index < 120; index += 1) {
         const problem = generateProblem('REAL', topic, tier, index);
         const solution = solve(problem);
@@ -95,27 +98,33 @@ test('a problem carries no answer, and no intermediate', () => {
   // THE TYPE IS THE WALL. Checked over the serialised problem rather than by
   // reading the type, because what a screen gets handed is the object.
   for (const topic of TOPICS) {
-    const problem = generateProblem('WALL', topic, 2, 0);
-    const solution = solve(problem);
-    const serialised = JSON.stringify(problem);
-    // SCOPED TO THE STAGES THE PROBLEM ACTUALLY HAS. A value in `at` for a
-    // stage nobody is asked is not an answer that could leak — and the first
-    // version of this check, walking the whole map, reported one that was
-    // simply a stated value under another name.
-    const asked = new Set(stagesFor(problem).map((stage) => stage.id));
-    for (const [stageId, value] of Object.entries(solution.at)) {
-      if (!asked.has(stageId)) continue;
-      if (!Number.isFinite(value) || value === 0) continue;
-      for (const figures of [3, 4, 5, 6]) {
-        const written = value.toPrecision(figures);
-        assert.ok(
-          !serialised.includes(written),
-          `${topic}: the problem carries ${stageId}'s value (${written}) where a screen can read it`,
-        );
+    // EVERY DIFFICULTY THE TOPIC HAS, not a tier number written here. This read
+    // `generateProblem('WALL', topic, 2, 0)` — and two topics no longer have a
+    // tier 2, so the wall would have gone unchecked at the difficulty they do
+    // have.
+    for (const difficulty of laddersFor(topic)) {
+      const problem = generateProblem('WALL', topic, difficulty.tier, 0);
+      const solution = solve(problem);
+      const serialised = JSON.stringify(problem);
+      // SCOPED TO THE STAGES THE PROBLEM ACTUALLY HAS. A value in `at` for a
+      // stage nobody is asked is not an answer that could leak — and the first
+      // version of this check, walking the whole map, reported one that was
+      // simply a stated value under another name.
+      const asked = new Set(stagesFor(problem).map((stage) => stage.id));
+      for (const [stageId, value] of Object.entries(solution.at)) {
+        if (!asked.has(stageId)) continue;
+        if (!Number.isFinite(value) || value === 0) continue;
+        for (const figures of [3, 4, 5, 6]) {
+          const written = value.toPrecision(figures);
+          assert.ok(
+            !serialised.includes(written),
+            `${topic} ${difficulty.name}: the problem carries ${stageId}'s value (${written}) where a screen can read it`,
+          );
+        }
       }
+      // And the working, which is what a reveal shows, is on the SOLUTION.
+      assert.ok(solution.working.length > 0, `${topic} has no working to show after an attempt`);
     }
-    // And the working, which is what a reveal shows, is on the SOLUTION.
-    assert.ok(solution.working.length > 0, `${topic} has no working to show after an attempt`);
   }
 });
 
@@ -188,6 +197,7 @@ test('the generator refuses candidates, and says which guarantee refused them', 
   const named = new Set<string>();
   for (const topic of TOPICS) {
     for (const tier of TIERS) {
+      if (!posesTier(topic, tier)) continue;
       for (let index = 0; index < 60; index += 1) {
         generateProblem('REFUSALS', topic, tier, index);
         const report = generationReport('REFUSALS', topic, tier, index);
@@ -314,14 +324,26 @@ test('the mixed shape applies BOTH rules, in order, and rounds once', () => {
   assert.ok(checked > 30, `only ${checked} mixed problems were checked`);
 });
 
-test('a topic the generator cannot satisfy says so rather than lowering a guarantee', () => {
-  // The failure mode being refused here is a generator that relaxes its own
-  // conditions to find something to pose — which is a generator that poses the
-  // problem the guarantee existed to refuse.
+test('a difficulty a topic does not pose is refused rather than quietly served', () => {
+  // THIS USED TO ASK FOR TIER 0 and expect a `GenerationError`: no relation
+  // sits at tier 0, so the draft came back empty six hundred times and the
+  // generator gave up. That route is gone — difficulty is per topic now and the
+  // ladder is checked before anything is drafted, so an unposed difficulty is
+  // named and refused instead of being searched for.
+  //
+  // The claim the old name made — that a generator says so rather than
+  // relaxing its own conditions — is carried by 'every generated problem keeps
+  // every guarantee it was generated under', which re-checks the guarantees on
+  // what came back rather than trusting that they ran.
   assert.throws(
     () => generateProblem('IMPOSSIBLE', 'REARRANGE', 0, 0),
-    (error: unknown) => error instanceof Error && error.name === 'GenerationError',
-    'tier 0 has no relations in it and should have been refused',
+    /REARRANGE has no tier 0/,
+    'tier 0 is not a difficulty any topic declares',
+  );
+  assert.throws(
+    () => generateProblem('IMPOSSIBLE', 'FRACTIONS', 3, 0),
+    /FRACTIONS has no tier 3/,
+    'fractions has two difficulties; the third must not fall back to one that exists',
   );
 });
 
