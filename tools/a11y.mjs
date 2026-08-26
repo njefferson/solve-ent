@@ -145,6 +145,44 @@ const STATES = [
     },
   },
   {
+    // BLOCKED PRACTICE: choosing a move. Its own state because it is a screen
+    // a reader reaches by pressing something on the start screen, and a state
+    // this file does not name ships unmeasured.
+    name: 'drill-pick',
+    surface: 'drill-pick',
+    path: '/',
+    async reach(page) {
+      await page.click('#begin');
+      await page.click('#to-drill');
+    },
+  },
+  {
+    // And doing it. Drilled on the move this app is most about, which is also
+    // the one that was unreachable in every tier-1 problem — so a drill that
+    // silently could not pose it would show up here as an empty screen.
+    name: 'drill',
+    surface: 'drill',
+    path: '/',
+    async reach(page) {
+      await page.click('#begin');
+      await page.click('#to-drill');
+      await page.locator('#moves button').first().click();
+    },
+  },
+  {
+    // The diagnosis inside a drill, which is a different panel from the one on
+    // a whole question and would otherwise never be measured.
+    name: 'drill-diagnosed',
+    surface: 'drill',
+    path: '/',
+    async reach(page) {
+      await page.click('#begin');
+      await page.click('#to-drill');
+      await page.locator('#moves button').first().click();
+      await wrongDrillStep(page);
+    },
+  },
+  {
     name: 'info-dialog',
     surface: null,
     path: '/',
@@ -203,6 +241,21 @@ async function wrongStep(page) {
     if ((await buttons.count()) === 0) return;
     await buttons.first().click();
     if (!(await page.locator('#diagnosis').isHidden())) return;
+  }
+}
+
+/** Get one drill step wrong on purpose, so the diagnosis panel is on screen. */
+async function wrongDrillStep(page) {
+  if ((await page.locator('#drill-answer').count()) > 0) {
+    await page.fill('#drill-answer', '0.00042');
+    await page.locator('#drill-entry .primary').click();
+    return;
+  }
+  for (let i = 0; i < 6; i += 1) {
+    const buttons = page.locator('#drill-entry .choice');
+    if ((await buttons.count()) === 0) return;
+    await buttons.first().click();
+    if (!(await page.locator('#drill-diagnosis').isHidden())) return;
   }
 }
 

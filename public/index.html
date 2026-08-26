@@ -65,6 +65,30 @@
     <h2 tabindex="-1">What do you want to work on?</h2>
     <p>Pick one. Five questions, one step at a time. Nothing is recorded and nothing is scored.</p>
     <ul id="topics" class="topics"></ul>
+    <h3>Or practise one move on its own</h3>
+    <p>If one particular step is the one going wrong, doing whole questions makes you walk past it four times to reach it once.</p>
+    <button type="button" id="to-drill" class="primary">Practise one move</button>
+  </section>
+
+  <!-- ============ choosing a move to drill ============ -->
+  <section data-surface="drill-pick" hidden>
+    <h2 tabindex="-1">Which move do you want to practise?</h2>
+    <p>The same move, over and over, until it is yours. Whole questions make a move stick once you have it; a move you do not have yet is built by doing it again.</p>
+    <p class="aside">Nothing here is recorded and there is nothing to hand in.</p>
+    <ul id="moves" class="topics"></ul>
+    <button type="button" id="drill-back" class="ghost">Go back to whole questions</button>
+  </section>
+
+  <!-- ============ drilling one move ============ -->
+  <section data-surface="drill" hidden>
+    <h2 tabindex="-1"><span id="drill-label"></span></h2>
+    <div id="drill-question" class="question"></div>
+    <p id="drill-step" class="step"></p>
+    <p id="drill-unit" class="unit-hint" hidden></p>
+    <div id="drill-entry" class="entry"></div>
+    <div id="drill-diagnosis" class="diagnosis" hidden></div>
+    <div id="drill-note" class="run-note" hidden></div>
+    <button type="button" id="drill-stop" class="ghost">Stop and see what happened</button>
   </section>
 
   <!-- ============ working ============ -->

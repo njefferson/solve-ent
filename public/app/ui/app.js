@@ -30,9 +30,10 @@
  * hub LESSONS §28, and it has cost a release elsewhere. **Add a surface here and
  * to `tools/a11y.mjs` in the same commit.**
  */
-import { TOPIC_NAMES } from "../engine/problem.js";
+import { TOPIC_NAMES, solve } from "../engine/problem.js";
+import { drillItem } from "../engine/blocked.js";
 import { MAX_ROSTER_NUMBER, SessionError, currentProblem, currentStage, startSession, submit, } from "../engine/steps.js";
-import { CLASS_MEANINGS, REMEDIES, choiceItemsFor, formatUnit, readEntry, remediesFor, } from "../engine/taxonomy.js";
+import { CLASS_MEANINGS, COUNTER_SKILLS, REMEDIES, SKILL_NAMES, choiceItemsFor, classify, formatUnit, readEntry, remediesFor, } from "../engine/taxonomy.js";
 import { readRun } from "../report/drill.js";
 import { MAX_SHOWN, NOTES_PAGE, OLDER_THAN_SHOWN, RELEASES } from "../report/releases.js";
 import { APP_NAME, VERSION } from "../version.js";
@@ -115,7 +116,7 @@ function setPref(key, value) {
  * mean the app noticed a new version, said so, and then silently took the words
  * away the next time the reader pressed anything.
  */
-const SCREENS = ['welcome', 'start', 'work', 'done'];
+const SCREENS = ['welcome', 'start', 'drill-pick', 'drill', 'work', 'done'];
 function show(surface) {
     for (const node of document.querySelectorAll('[data-surface]')) {
         const name = node.dataset['surface'] ?? '';
@@ -263,7 +264,7 @@ function answer(entry) {
         renderWork();
         return;
     }
-    renderDiagnosis(result.classification.errorClass, result.classification.why, result.classification.logError);
+    renderDiagnosis(result.classification.errorClass, result.classification.why, result.classification.logError, $('#diagnosis'));
     // The step does NOT advance. A gate that opens on a wrong answer is a list of
     // questions rather than a thing that teaches a move.
     renderEntry(currentProblem(run.session), currentStage(run.session));
@@ -296,8 +297,7 @@ function asSentence(phrase) {
     const framed = whole ? text : `That answer ${text}`;
     return `${framed.charAt(0).toUpperCase()}${framed.slice(1)}.`;
 }
-function renderDiagnosis(errorClass, why, logError) {
-    const panel = $('#diagnosis');
+function renderDiagnosis(errorClass, why, logError, panel = $('#diagnosis')) {
     clear(panel);
     panel.hidden = false;
     panel.append(make('h3', {}, 'What happened at this step'));
@@ -360,6 +360,166 @@ function renderDuringRunNote() {
     clear(holder);
     holder.append(make('p', {}, latest.text));
 }
+let drill = null;
+/** Where the closing came from, so "again" goes back to the right place. */
+let closingFrom = 'run';
+function renderDrillPick() {
+    const list = $('#moves');
+    clear(list);
+    // ALL SIX, unconditionally. A move quietly missing from a menu is worse than
+    // a loud failure at build time, and `blocked.test.ts` holds every one of them
+    // reachable — including isolating the unknown, which lives in about one
+    // tier-3 rearrangement in twelve and in nothing else.
+    for (const skill of COUNTER_SKILLS) {
+        const item = make('li', {});
+        const button = make('button', { type: 'button', class: 'topic' }, SKILL_NAMES[skill]);
+        button.addEventListener('click', () => beginDrill(skill));
+        item.append(button);
+        list.append(item);
+    }
+    show('drill-pick');
+}
+function beginDrill(skill) {
+    drill = { skill, index: 0, item: null, attempts: [], saidNotes: new Set() };
+    $('#drill-note').hidden = true;
+    nextDrillItem();
+}
+function nextDrillItem() {
+    if (drill === null)
+        return;
+    const item = drillItem(drill.skill, PRACTICE_KEY, drill.index);
+    drill.item = item;
+    if (item === null) {
+        // SAY SO. A drill that cannot pose its move must not quietly serve a
+        // different one, and it must not sit there empty either.
+        say(`This app cannot build any more of those right now. ${SKILL_NAMES[drill.skill]} is the move; try another.`);
+        renderDrillPick();
+        return;
+    }
+    renderDrill(item);
+}
+function renderDrill(item) {
+    if (drill === null)
+        return;
+    $('#drill-label').textContent = SKILL_NAMES[drill.skill];
+    const question = $('#drill-question');
+    clear(question);
+    // THE QUESTION IS CONTEXT, not the task. A move drilled with no question
+    // around it is a move with nothing to hold on to; a whole question answered
+    // step by step is not a drill. So the question is shown and only the one step
+    // is asked.
+    question.append(make('p', { class: 'question-body' }, item.problem.prompt));
+    // The topic names are written lowercase because they are read mid-sentence
+    // elsewhere — "seven kinds of algebra: rearranging a formula, ...". Dropped
+    // after a full stop they read as a broken sentence, so this is a clause.
+    question.append(make('p', { class: 'aside' }, `Only this one step, from ${TOPIC_NAMES[item.problem.topic]}.`));
+    $('#drill-step').textContent = item.stage.prompt;
+    const unit = unitLabel(item.stage);
+    const unitNode = $('#drill-unit');
+    unitNode.textContent = unit === '' ? '' : `Answer in ${unit}.`;
+    unitNode.hidden = unit === '';
+    $('#drill-diagnosis').hidden = true;
+    renderDrillEntry(item);
+    show('drill');
+}
+function renderDrillEntry(item) {
+    const holder = $('#drill-entry');
+    clear(holder);
+    const answer = (entry) => answerDrill(item, entry);
+    if (item.stage.kind === 'CHOICE') {
+        const options = item.stage.options ?? choiceItemsFor(item.problem);
+        const group = make('div', { role: 'group', 'aria-labelledby': 'drill-step', class: 'choices' });
+        options.forEach((option, option_index) => {
+            const button = make('button', { type: 'button', class: 'choice' }, option);
+            button.addEventListener('click', () => answer({ kind: 'choice', option: option_index }));
+            group.append(button);
+        });
+        holder.append(group);
+        return;
+    }
+    const label = make('label', { for: 'drill-answer', class: 'entry-label' }, item.stage.kind === 'COUNT' ? 'How many' : 'Your answer');
+    const field = make('input', {
+        id: 'drill-answer',
+        type: 'text',
+        inputmode: item.stage.kind === 'COUNT' ? 'numeric' : 'text',
+        autocomplete: 'off',
+        autocapitalize: 'off',
+        spellcheck: 'false',
+    });
+    const go = make('button', { type: 'button', class: 'primary' }, 'Check this move');
+    const sendIt = () => {
+        if (readEntry(field.value) === null) {
+            say('That did not read as a number. A number, and a unit if the step asks for one.');
+            field.focus();
+            return;
+        }
+        answer({ kind: 'text', text: field.value });
+    };
+    go.addEventListener('click', sendIt);
+    field.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            sendIt();
+        }
+    });
+    holder.append(label, field, go);
+    field.focus();
+}
+function answerDrill(item, entry) {
+    if (drill === null)
+        return;
+    // The whole loop: solve, classify, say what happened. No session, no clock,
+    // nothing written down.
+    const result = classify(item.problem, solve(item.problem), item.stage, entry);
+    drill.attempts.push({ skill: item.stage.counter, errorClass: result.errorClass });
+    if (result.correct) {
+        say('That is the move. Here is another one.');
+        drill.index += 1;
+        nextDrillItem();
+        return;
+    }
+    renderDiagnosis(result.errorClass, result.why, result.logError, $('#drill-diagnosis'));
+    // THE MOVE DOES NOT ADVANCE ON A WRONG ANSWER, same as a whole question: a
+    // gate that opens on a wrong answer is a list of questions.
+    renderDrillEntry(item);
+    renderDrillNote();
+}
+function renderDrillNote() {
+    if (drill === null)
+        return;
+    const outcome = readRun(drill.attempts);
+    const latest = outcome.notes[outcome.notes.length - 1];
+    if (latest === undefined)
+        return;
+    const key = `${latest.errorClass}@${String(latest.afterAttempt)}`;
+    if (drill.saidNotes.has(key))
+        return;
+    drill.saidNotes.add(key);
+    const holder = $('#drill-note');
+    holder.hidden = false;
+    clear(holder);
+    holder.append(make('p', {}, latest.text));
+}
+function endDrill() {
+    if (drill === null)
+        return;
+    const outcome = readRun(drill.attempts);
+    const list = $('#closing');
+    clear(list);
+    if (outcome.closing.length === 0) {
+        // NOT A COUNT AND NOT A CONGRATULATION. A drill somebody stopped after two
+        // clean moves has nothing to report, and saying "nothing went wrong" is
+        // closer to true than any number would be.
+        list.append(make('li', {}, 'Nothing in those went wrong the same way twice.'));
+    }
+    for (const line of outcome.closing)
+        list.append(make('li', {}, line));
+    $('#drill-note').hidden = true;
+    drill = null;
+    closingFrom = 'drill';
+    $('#again').textContent = 'Practise another move';
+    show('done');
+}
 /* ------------------------------------------------------------------ *
  * The closing
  * ------------------------------------------------------------------ */
@@ -374,6 +534,8 @@ function renderDone() {
     for (const line of outcome.closing)
         list.append(make('li', {}, line));
     $('#run-note').hidden = true;
+    closingFrom = 'run';
+    $('#again').textContent = 'Work on something else';
     show('done');
 }
 /* ------------------------------------------------------------------ *
@@ -462,6 +624,10 @@ function route() {
     }
     if (globalThis.location.hash === '#/about') {
         openDialog('info');
+        return;
+    }
+    if (globalThis.location.hash === '#/practise') {
+        renderDrillPick();
         return;
     }
     if (run === null)
@@ -581,8 +747,20 @@ export function boot(storeForTests) {
     });
     $('#again').addEventListener('click', () => {
         run = null;
+        if (closingFrom === 'drill')
+            renderDrillPick();
+        else
+            renderStart();
+    });
+    $('#to-drill').addEventListener('click', () => {
+        run = null;
+        renderDrillPick();
+    });
+    $('#drill-back').addEventListener('click', () => {
+        drill = null;
         renderStart();
     });
+    $('#drill-stop').addEventListener('click', () => endDrill());
     for (const closer of document.querySelectorAll('[data-close]')) {
         closer.addEventListener('click', () => {
             const dialog = closer.closest('dialog');

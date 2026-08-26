@@ -148,11 +148,20 @@ has the full version, including the risk that follows from it.
   exclude them. Same gate. What is banned is second-person address assuming a
   room — "your teacher", "hand it in", a named gradebook — never the word
   *teacher* on its own.
+- **EVERY SYMBOL A QUESTION NAMES IS IN THE EQUATION IT SHOWS.** Keys are
+  identifiers and what a reader sees is not — `T(K)`, `V₁`, `ΔT` — so
+  `SymbolInfo.shown` carries the display form and everything reader-facing goes
+  through `shownSymbol`. Three relations asked for letters that were not in
+  their own equations for six releases with every gate green. And a
+  rearrangement option can only be read ONE way: brackets on a divisor of more
+  than one factor, nowhere else, because an option a reader cannot parse
+  attributes nothing and attribution is the product.
 - **BLOCKED PRACTICE IS ITS OWN SCREEN, and it is owed early.** A whole problem
   is interleaved practice; a skill somebody does not have yet is built by doing
-  the same move again. **Keep `classify` a pure function of (problem, stage,
-  entry)** — not for testability, but because that purity is what makes a drill
-  a loop around it with no session, no code and nothing recorded.
+  the same move again. **Keep `classify` a pure function of (problem, solution,
+  stage, entry)** with `solve` itself pure — not for testability, but because
+  that composition is what makes a drill a loop around it with no session, no
+  code and nothing recorded. `src/engine/blocked.ts` is the whole of it.
 - **`tools/cli.ts` PRINTS ANSWERS and is not a student surface.** Nothing
   student-facing may ever call it.
 - **Every numeric tolerance is a named constant** in `src/engine/tolerance.ts`,

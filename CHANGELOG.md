@@ -9,6 +9,45 @@ release changed something you can see or do, it is described below in the words
 you would use for it. If it changed something under the surface that you cannot
 see, it says that plainly rather than dressing it up.
 
+## 0.7.0 — CAPABILITY
+
+**You can practise one move on its own now**, instead of working whole questions
+and walking past the step you want four times to reach it once.
+
+Whole questions are what makes a move stick once you have it. A move you do not
+have yet is built the other way round: by doing that one thing again. So there
+is a second way in — pick one of six moves and get that move, over and over,
+with the question around it for context but only the one step to answer.
+
+The six are choosing the move, isolating the unknown, scaling by a ratio, doing
+the arithmetic, carrying and cancelling units, and significant figures. Stop
+whenever you like; it tells you what happened and there is no number anywhere.
+
+Nothing about a practice run is stored. There is no session, nothing to hand in,
+and nothing written to the device.
+
+**Three questions were asking for letters that were not in the equation.** This
+is the one worth knowing about, and it had been there since the first release.
+
+A question would show you `PV = nRT` and then ask you to rearrange it for `ng`.
+Another showed `n × M = m` and offered you `n = m ÷ (Mm)`. A third showed
+`T(K) = T(°C) + 273.15` and called them `TK` and `TC`. Those were names used
+inside the app, and they were never meant to reach anybody. All of them now show
+the letters that are actually in the equation.
+
+**And the answer choices could be read two ways.** One option came out as
+`V₁ = (P₁) ÷ P₂ × V₂`, which could mean two different things depending on where
+you put the brackets — and neither of them was the mistake the option was
+supposed to represent. Brackets go where they change the meaning now, and
+nowhere else.
+
+Both of those were found by building the practice screen, because it is the
+first thing that ever showed one of those steps on its own.
+
+**Still missing:** every question still arrives at the same difficulty when you
+work a whole set. Nothing can be handed in and there is no page for whoever set
+the work. The icon is still a simple drawing rather than a proper one.
+
 ## 0.6.0 — CAPABILITY
 
 **It works with no connection now**, which is the one that matters most for

@@ -262,7 +262,8 @@ who inverts a ratio walk five steps they can already do to reach the one they
 cannot. The single-skill drill is its own screen and it is owed early, not late.
 
 **It costs almost nothing because the classifier is a pure function of
-(problem, stage, entry).** A drill is a loop around that and `readRun`: no
+(problem, solution, stage, entry)**, and `solve` is itself a pure function of
+the problem, so the composition is pure. A drill is a loop around that and `readRun`: no
 session, no completion code, nothing recorded. That purity is a load-bearing
 property now rather than a testing convenience, and `taxonomy.test.ts` holds it.
 
@@ -1041,6 +1042,83 @@ measure whether an element is USABLE and never whether it belongs to the page it
 is on. Something can be perfectly legible, clickable and announced, and obviously
 broken to anybody looking at it.
 
+## Session 4: the drill, and the three questions it caught asking for letters that were not there
+
+### The drill itself is forty lines, and that is the point
+
+`src/engine/blocked.ts`: no `Session`, no completion code, no clock, nothing
+recorded. It is a loop around `classify`, which is a pure function of (problem,
+solution, stage, entry) with `solve` itself pure. That purity has been called
+load-bearing since session 1 and this is what it was load-bearing FOR.
+`blocked.test.ts` holds it by reading the source, because "there is nothing that
+accumulates" is a claim about what does not exist.
+
+### Finding where a move lives, and two wrong answers before the right one
+
+**`const DRILL_TIER = 1` was the first version** — the move on its own rather
+than the move plus a hard number, which is the right instinct resting on a false
+assumption: that every move exists at the easiest difficulty. `REARRANGE` does
+not. Its stage asks for a value AFTER the rearrangement and exists only where a
+relation has two or more factors to shift, which is 8% of tier-3 rearrangement
+problems and nothing else at all. So a drill on **isolating the unknown**, the
+move this application is most about, could not be built, and the menu would have
+been one item short.
+
+**The second version searched all three tiers and still failed six times in
+twenty**, because it picked ONE topic per attempt from the seed — six sevenths
+of every search spent on topics that could never carry the move. A drill that
+works two thirds of the time is not a drill.
+
+**The third asks the generator where each move lives, once,** and then looks only
+there. Bounded by construction: six skills, at most twenty-one places each. That
+bound matters in this engine specifically — an unbounded module-level map here
+grew to 2.8 MB over two thousand problems and was invisible until something
+looped the generator, which is exactly what a drill does. `drillItem` stays pure:
+the cache holds the result of a deterministic computation and clearing it would
+change nothing but speed. All six moves, every item, about a millisecond each.
+
+### Three relations were asking for letters that were not in their own equations
+
+Found by drilling `REARRANGE`, which is the first surface that ever showed that
+step on its own.
+
+`IDEAL_GAS` is written `PV = nRT` and keyed its symbols `ng` and `Vg`, so the
+question read *"Rearrange it for ng"* and the step read *"ng has to be separated
+from R and T"*. `MOLES_FROM_MASS` is written `n × M = m` and keyed `Mm`, so the
+choices read `n = m ÷ (Mm)`. `KELVIN` is written `T(K) = T(°C) + 273.15` and
+keyed `TK` and `TC`.
+
+Two were suffixes that were never needed — `symbols` is per-relation, three other
+relations use a plain `V` and two use a plain `n`, and nothing anywhere keyed off
+the strings. The third genuinely needs a display form, because `T(K)` is not a
+valid key. So `SymbolInfo` has an optional `shown`, everything reader-facing goes
+through `shownSymbol`, and `BOYLE` and `DILUTION` got their subscripts (`P₁`,
+`V₂`) and `HEAT` its `ΔT` at the same time.
+
+**It had shipped since 0.1.0 with every gate green**, and one instance of it was
+visible in the very first screenshot taken of this app — the choices read
+`n = m ÷ (Mm)` under an equation showing `M`, and it was read as a typo and not
+chased. `problem.test.ts` holds every symbol's shown form to appearing in the
+relation as written, and `taxonomy.test.ts` holds every token in an option to
+the same.
+
+### And the options could be read two ways
+
+`V₁ = (P₁) ÷ P₂ × V₂` parses as `(P₁ ÷ P₂) × V₂`, which is a third thing —
+neither the correct rearrangement nor the misconception the option is supposed to
+embody. **Attribution is the product, so an option a reader cannot parse
+attributes nothing.** Brackets go on a divisor of more than one factor and
+nowhere else; `n = m ÷ (M)` was noise where `n = m ÷ M` says the same thing.
+Both directions are tested and both plant red.
+
+### Where the drill sits in the surfaces
+
+`drill-pick` and `drill` are their own screens, and `drill-diagnosed` is its own
+a11y state — the diagnosis inside a drill is a different panel from the one on a
+whole question and would otherwise never be measured. All six moves are offered
+unconditionally: a move quietly missing from a menu is worse than a loud failure
+at build time, and the test is what makes that safe.
+
 ## What is NOT built, and it is most of the app
 
 Named here so nobody has to discover it by looking:
@@ -1049,10 +1127,6 @@ Named here so nobody has to discover it by looking:
   palette's own night page and accent. They are honest placeholders, and an icon
   is the one surface the accessibility gate cannot reach, which is why they take
   their colours from the palette file rather than from taste.
-- **No single-skill drill screen.** The engine half is built and `classify` is
-  pure, which is what makes the drill a loop around it with no session and
-  nothing recorded. The screen is not built, and it is the thing most worth
-  having when one particular move is the one going wrong.
 - **One difficulty.** Every run opens at tier 1; nothing chooses or moves
   between the three the generator supports.
 - **No assignment key on screen**, so nothing can be handed in and there is no

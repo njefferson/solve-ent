@@ -33,7 +33,8 @@
     "browser": "npm run a11y && npm run walk && npm run update-walk",
     "pwa": "node tools/pwa.mjs",
     "pwa:check": "node tools/pwa.mjs --check",
-    "update-walk": "node tools/update-walk.mjs"
+    "update-walk": "node tools/update-walk.mjs",
+    "generate": "npm run palette && npm run notes && npm run web && npm run pwa"
   },
   "devDependencies": {
     "@types/node": "22.19.4",

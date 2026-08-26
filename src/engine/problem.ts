@@ -154,10 +154,37 @@ function stateExact(symbol: string, label: string, value: number, unit: string):
 /* REARRANGE — the relations                                           */
 /* ------------------------------------------------------------------ */
 
+/**
+ * How a symbol is written where a reader sees it.
+ *
+ * The key otherwise. Exported because the stage prompts live in `taxonomy.ts`
+ * and there must be exactly one answer to this question.
+ */
+export function shownSymbol(relation: Relation, symbol: string): string {
+  return relation.symbols[symbol]?.shown ?? symbol;
+}
+
 /** What one symbol in a relation means, and what values it can take. */
 interface SymbolInfo {
   readonly name: string;
   readonly unit: string;
+  /**
+   * How the symbol is WRITTEN, where that differs from its key.
+   *
+   * A key has to be a plain identifier; a symbol a reader sees does not —
+   * `T(K)` and `T(°C)` are what the Kelvin relation is written with, and
+   * neither is a key. Everything a reader sees goes through {@link shownSymbol},
+   * and `problem.test.ts` holds every symbol's shown form to appearing in the
+   * relation as written.
+   *
+   * **Three relations were asking for letters that were not in their own
+   * equations** before this existed: `PV = nRT` asked to be rearranged for
+   * `ng`, `n × M = m` for `Mm`, and this one for `TK`. Two were fixed by
+   * dropping a suffix that was never needed; this one needs a real display
+   * form. It had shipped since the first release and was found by a drill on
+   * that exact move — the first surface that ever showed the step on its own.
+   */
+  readonly shown?: string;
   /** The band a drawn value comes from. A constant has neither. */
   readonly min?: number;
   readonly max?: number;
@@ -196,7 +223,15 @@ interface Relation {
  * whose bounds come from what a float can hold poses a kilogram of propane,
  * and every one of those problems is correct — which is why no test objects.
  */
-const RELATIONS: readonly Relation[] = [
+/**
+ * Exported so a test can hold every relation to its own written form.
+ *
+ * Not part of what a screen uses — a screen renders a `Problem`, which carries
+ * the relation already written out. This is here because the alternative was a
+ * test that re-read the source as text, and a symbol that is not in the
+ * equation it belongs to is a defect worth checking against the real table.
+ */
+export const RELATIONS: readonly Relation[] = [
   {
     id: 'MOLARITY',
     shape: 'PRODUCT',
@@ -228,14 +263,18 @@ const RELATIONS: readonly Relation[] = [
   {
     id: 'MOLES_FROM_MASS',
     shape: 'PRODUCT',
-    left: ['n', 'Mm'],
+    // `M`, and it used to be `Mm`. Same defect as IDEAL_GAS's `ng`, found by the
+    // same check: the relation is written `n × M = m` and named a symbol the
+    // reader cannot see, so the choices read `n = m ÷ (Mm)`. Distinct from the
+    // lowercase `m` for mass, which is what the written form already relies on.
+    left: ['n', 'M'],
     right: ['m'],
     written: 'n × M = m',
     about: 'moles, molar mass and mass',
     tier: 1,
     symbols: {
       n: { name: 'moles', unit: 'mol', min: 0.01, max: 6 },
-      Mm: { name: 'molar mass', unit: 'g/mol', min: 16, max: 260 },
+      M: { name: 'molar mass', unit: 'g/mol', min: 16, max: 260 },
       m: { name: 'mass', unit: 'g', min: 0.2, max: 1500 },
     },
   },
@@ -249,8 +288,8 @@ const RELATIONS: readonly Relation[] = [
     about: 'Celsius and Kelvin',
     tier: 1,
     symbols: {
-      TK: { name: 'temperature in kelvin', unit: 'K', min: 220, max: 620 },
-      TC: { name: 'temperature in Celsius', unit: '°C', min: -50, max: 350 },
+      TK: { name: 'temperature in kelvin', unit: 'K', min: 220, max: 620, shown: 'T(K)' },
+      TC: { name: 'temperature in Celsius', unit: '°C', min: -50, max: 350, shown: 'T(°C)' },
     },
   },
   {
@@ -262,10 +301,10 @@ const RELATIONS: readonly Relation[] = [
     about: 'a gas at two pressures',
     tier: 2,
     symbols: {
-      P1: { name: 'the first pressure', unit: 'atm', min: 0.4, max: 6 },
-      V1: { name: 'the first volume', unit: 'L', min: 0.5, max: 30 },
-      P2: { name: 'the second pressure', unit: 'atm', min: 0.4, max: 6 },
-      V2: { name: 'the second volume', unit: 'L', min: 0.5, max: 30 },
+      P1: { shown: 'P₁',  name: 'the first pressure', unit: 'atm', min: 0.4, max: 6 },
+      V1: { shown: 'V₁',  name: 'the first volume', unit: 'L', min: 0.5, max: 30 },
+      P2: { shown: 'P₂',  name: 'the second pressure', unit: 'atm', min: 0.4, max: 6 },
+      V2: { shown: 'V₂',  name: 'the second volume', unit: 'L', min: 0.5, max: 30 },
     },
   },
   {
@@ -277,10 +316,10 @@ const RELATIONS: readonly Relation[] = [
     about: 'diluting a stock solution',
     tier: 2,
     symbols: {
-      C1: { name: 'the stock concentration', unit: 'mol/L', min: 0.5, max: 12 },
-      Vd1: { name: 'the volume taken', unit: 'mL', min: 2, max: 250 },
-      C2: { name: 'the final concentration', unit: 'mol/L', min: 0.01, max: 4 },
-      Vd2: { name: 'the final volume', unit: 'mL', min: 10, max: 2000 },
+      C1: { shown: 'C₁',  name: 'the stock concentration', unit: 'mol/L', min: 0.5, max: 12 },
+      Vd1: { shown: 'V₁',  name: 'the volume taken', unit: 'mL', min: 2, max: 250 },
+      C2: { shown: 'C₂',  name: 'the final concentration', unit: 'mol/L', min: 0.01, max: 4 },
+      Vd2: { shown: 'V₂',  name: 'the final volume', unit: 'mL', min: 10, max: 2000 },
     },
   },
   {
@@ -295,21 +334,32 @@ const RELATIONS: readonly Relation[] = [
       q: { name: 'the heat', unit: 'J', min: 5, max: 400000 },
       m: { name: 'mass', unit: 'g', min: 4, max: 600 },
       c: { name: 'specific heat capacity', unit: 'J/(g·K)', min: 0.12, max: 4.2 },
-      dT: { name: 'the temperature change', unit: 'K', min: 2, max: 95 },
+      dT: { shown: 'ΔT',  name: 'the temperature change', unit: 'K', min: 2, max: 95 },
     },
   },
   {
     id: 'IDEAL_GAS',
     shape: 'PRODUCT',
-    left: ['P', 'Vg'],
-    right: ['ng', 'R', 'T'],
+    // PLAIN `V` AND `n`, and they used to be `Vg` and `ng`.
+    //
+    // Every symbol here reaches a reader: the question says "Rearrange it for
+    // n", the step says "n has to be separated from R and T", and the choices
+    // are written symbolically. The suffixed keys made this relation ask a
+    // student to rearrange `PV = nRT` for a letter that is not in it.
+    //
+    // `symbols` is per-relation, so the suffix was never needed for uniqueness —
+    // three other relations use a plain `V` and two use a plain `n`, in their
+    // own tables. `problem.test.ts` holds every symbol to appearing in the
+    // relation as written, which is the general form of this defect.
+    left: ['P', 'V'],
+    right: ['n', 'R', 'T'],
     written: 'PV = nRT',
     about: 'a gas at one set of conditions',
     tier: 3,
     symbols: {
       P: { name: 'pressure', unit: 'atm', min: 0.4, max: 6 },
-      Vg: { name: 'volume', unit: 'L', min: 0.4, max: 40 },
-      ng: { name: 'moles', unit: 'mol', min: 0.02, max: 6 },
+      V: { name: 'volume', unit: 'L', min: 0.4, max: 40 },
+      n: { name: 'moles', unit: 'mol', min: 0.02, max: 6 },
       R: { name: 'the gas constant', unit: 'L·atm/(mol·K)', constant: 0.082057 },
       T: { name: 'temperature', unit: 'K', min: 240, max: 520 },
     },
@@ -576,7 +626,7 @@ function solveRearrange(problem: RearrangeProblem): Solution {
       precisionAt: { R3: addSubtract(answer, [...givenQuantities(problem), exact(offset)]) },
       working: [
         `${relation.written}`,
-        `${problem.solveFor} = ${other} ${onLeft ? '+' : '−'} ${offset}`,
+        `${shownSymbol(relation, problem.solveFor)} = ${shownSymbol(relation, other)} ${onLeft ? '+' : '−'} ${offset}`,
       ],
     };
   }
@@ -601,7 +651,7 @@ function solveRearrange(problem: RearrangeProblem): Solution {
     },
     working: [
       relation.written,
-      `${problem.solveFor} = ${otherProduct} ÷ ${rest.map((r) => r.symbol).join(' ÷ ')}`,
+      `${shownSymbol(relation, problem.solveFor)} = ${otherProduct} ÷ ${rest.map((r) => shownSymbol(relation, r.symbol)).join(' ÷ ')}`,
     ],
   };
 }
@@ -1505,7 +1555,7 @@ function draftRearrange(rng: Rng, tier: number, seed: string): Problem | null {
     given,
     prompt:
       `${relation.written} relates ${relation.about}. ` +
-      `Rearrange it for ${solveFor} and work out ${info?.name ?? solveFor}, ` +
+      `Rearrange it for ${shownSymbol(relation, solveFor)} and work out ${info?.name ?? solveFor}, ` +
       `to ${answerSigFigs} significant figures.`,
   };
   return problem;

@@ -39,7 +39,7 @@
 import { formatSigFigs, formatUnambiguous, magnitudeOf, parseQuantity, roundToSigFigs, SigFigError, } from "../num/sigfig.js";
 import { flip, formatUnit, parseUnit, runChain, sameUnit } from "../num/units.js";
 import { hashString } from "./rng.js";
-import { countSigFigs, indistinguishable, normalise, rearrangeParts, relationById, sameAtPrecision, solve, statedValues, } from "./problem.js";
+import { countSigFigs, indistinguishable, normalise, rearrangeParts, relationById, sameAtPrecision, solve, statedValues, shownSymbol, } from "./problem.js";
 import { DISTINGUISHABLE_RELATIVE, ORDER_OF_MAGNITUDE_LIMIT, SCINOT_TRIGGER_LOG10, } from "./tolerance.js";
 /** Every class, for a test that insists each one has a fixture. */
 export const ERROR_CLASSES = [
@@ -155,7 +155,7 @@ export function stagesFor(problem) {
                         unit: NO_UNIT,
                         needsUnit: false,
                         gradesSigFigs: false,
-                        prompt: `Which rearrangement of ${relation.written} gives you ${problem.solveFor}?`,
+                        prompt: `Which rearrangement of ${relation.written} gives you ${shownSymbol(relation, problem.solveFor)}?`,
                         options: choiceItemsFor(problem),
                     },
                     {
@@ -178,7 +178,7 @@ export function stagesFor(problem) {
                     unit: NO_UNIT,
                     needsUnit: false,
                     gradesSigFigs: false,
-                    prompt: `Which rearrangement of ${relation.written} gives you ${problem.solveFor}?`,
+                    prompt: `Which rearrangement of ${relation.written} gives you ${shownSymbol(relation, problem.solveFor)}?`,
                     options: choiceItemsFor(problem),
                 },
             ];
@@ -190,7 +190,8 @@ export function stagesFor(problem) {
                     unit: NO_UNIT,
                     needsUnit: false,
                     gradesSigFigs: false,
-                    prompt: `${problem.solveFor} has to be separated from ${rest.map((r) => r.symbol).join(' and ')}. ` +
+                    prompt: `${shownSymbol(relation, problem.solveFor)} has to be separated from ` +
+                        `${rest.map((r) => shownSymbol(relation, r.symbol)).join(' and ')}. ` +
                         `Multiply those together — what do you have to divide by? A bare number is fine.`,
                 });
             }
@@ -457,25 +458,47 @@ function rearrangeOptions(problem) {
     if (relation === undefined)
         return buildOptions(seed, '?', []);
     const onLeft = relation.left.includes(problem.solveFor);
+    // EVERY SYMBOL HERE REACHES A READER, so every one goes through the shown
+    // form. The keys are identifiers — `Vd1`, `dT`, `TK` — and the equation on
+    // screen is written with `V₁`, `ΔT` and `T(K)`. Options built from keys ask
+    // somebody to pick a rearrangement of an equation they are not looking at.
+    const of = (symbol) => shownSymbol(relation, symbol);
+    const target = of(problem.solveFor);
     if (relation.shape === 'OFFSET') {
-        const other = (onLeft ? relation.right : relation.left)[0];
+        const other = of((onLeft ? relation.right : relation.left)[0]);
         const offset = relation.offset ?? 0;
-        const right = onLeft ? `${problem.solveFor} = ${other} + ${offset}` : `${problem.solveFor} = ${other} − ${offset}`;
-        const wrongWay = onLeft ? `${problem.solveFor} = ${other} − ${offset}` : `${problem.solveFor} = ${other} + ${offset}`;
+        const right = onLeft ? `${target} = ${other} + ${offset}` : `${target} = ${other} − ${offset}`;
+        const wrongWay = onLeft ? `${target} = ${other} − ${offset}` : `${target} = ${other} + ${offset}`;
         return buildOptions(seed, right, [{ errorClass: 'E-REARR-SIGN', text: wrongWay }]);
     }
     const { rest } = rearrangeParts(problem);
-    const other = (onLeft ? relation.right : relation.left).join(' × ');
-    const restText = rest.map((r) => r.symbol).join(' × ');
-    const correctText = `${problem.solveFor} = ${other} ÷ (${restText})`;
+    const otherSymbols = (onLeft ? relation.right : relation.left).map(of);
+    /**
+     * Brackets, and only where they change the reading.
+     *
+     * **A DIVISOR OF MORE THAN ONE FACTOR MUST BE BRACKETED.** Without it the
+     * upside-down option rendered as `V₁ = (P₁) ÷ P₂ × V₂`, which reads as
+     * `((P₁ ÷ P₂) × V₁)` — a third thing, neither the correct rearrangement nor
+     * the misconception the option is supposed to embody. In a question whose
+     * entire purpose is attributing a pick to a specific misunderstanding, an
+     * option a reader cannot parse attributes nothing.
+     *
+     * And a single symbol gets none: `n = m ÷ (M)` is noise where `n = m ÷ M`
+     * says the same thing.
+     */
+    const divisor = (parts) => parts.length > 1 ? `(${parts.join(' × ')})` : (parts[0] ?? '?');
+    const restSymbols = rest.map((r) => of(r.symbol));
+    const other = otherSymbols.join(' × ');
+    const restText = restSymbols.join(' × ');
+    const correctText = `${target} = ${other} ÷ ${divisor(restSymbols)}`;
     const wrong = [
-        { errorClass: 'E-REARR-MULTIPLIED', text: `${problem.solveFor} = ${other} × ${restText}` },
-        { errorClass: 'E-REARR-INVERTED', text: `${problem.solveFor} = (${restText}) ÷ ${other}` },
+        { errorClass: 'E-REARR-MULTIPLIED', text: `${target} = ${other} × ${restText}` },
+        { errorClass: 'E-REARR-INVERTED', text: `${target} = ${restText} ÷ ${divisor(otherSymbols)}` },
     ];
     if (rest.length >= 2) {
         const dropped = rest[0];
-        const kept = rest.filter((r) => r.symbol !== dropped.symbol).map((r) => r.symbol).join(' × ');
-        wrong.push({ errorClass: 'E-REARR-PARTIAL', text: `${problem.solveFor} = ${other} ÷ (${kept})` });
+        const keptSymbols = rest.filter((r) => r.symbol !== dropped.symbol).map((r) => of(r.symbol));
+        wrong.push({ errorClass: 'E-REARR-PARTIAL', text: `${target} = ${other} ÷ ${divisor(keptSymbols)}` });
     }
     return buildOptions(seed, correctText, wrong);
 }

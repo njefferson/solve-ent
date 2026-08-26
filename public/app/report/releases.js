@@ -32,9 +32,24 @@ export const NOTES_PAGE = '/whats-new';
  * it non-zero, which is also the first release on which that branch had ever
  * been reachable.
  */
-export const OLDER_THAN_SHOWN = 2;
+export const OLDER_THAN_SHOWN = 3;
 /** Newest first. */
 export const RELEASES = [
+    {
+        version: '0.7.0',
+        kind: 'CAPABILITY',
+        lines: [
+            'You can practise one move on its own now, instead of working whole questions and walking past the step you want four times to reach it once.',
+            'Whole questions are what makes a move stick once you have it. A move you do not have yet is built the other way round: by doing that one thing again. So there is a second way in — pick one of six moves and get that move, over and over, with the question around it for context but only the one step to answer.',
+            'The six are choosing the move, isolating the unknown, scaling by a ratio, doing the arithmetic, carrying and cancelling units, and significant figures. Stop whenever you like; it tells you what happened and there is no number anywhere.',
+            'Nothing about a practice run is stored. There is no session, nothing to hand in, and nothing written to the device.',
+            'Three questions were asking for letters that were not in the equation. This is the one worth knowing about, and it had been there since the first release.',
+            'A question would show you PV = nRT and then ask you to rearrange it for ng. Another showed n × M = m and offered you n = m ÷ (Mm). A third showed T(K) = T(°C) + 273.15 and called them TK and TC. Those were names used inside the app, and they were never meant to reach anybody. All of them now show the letters that are actually in the equation.',
+            'And the answer choices could be read two ways. One option came out as V₁ = (P₁) ÷ P₂ × V₂, which could mean two different things depending on where you put the brackets — and neither of them was the mistake the option was supposed to represent. Brackets go where they change the meaning now, and nowhere else.',
+            'Both of those were found by building the practice screen, because it is the first thing that ever showed one of those steps on its own.',
+        ],
+        stillMissing: 'every question still arrives at the same difficulty when you work a whole set. Nothing can be handed in and there is no page for whoever set the work. The icon is still a simple drawing rather than a proper one.',
+    },
     {
         version: '0.6.0',
         kind: 'CAPABILITY',
@@ -83,15 +98,5 @@ export const RELEASES = [
             'This was found by reading published research on what people actually get wrong, rather than by testing the app against itself. The app\'s own checks could never have found it: they only ever look at questions the app is able to ask.',
         ],
         stillMissing: 'there is no screen. Nothing here can be opened and used yet. Everything above lives in the part that works out the questions and marks the answers, and there is nothing to look at.',
-    },
-    {
-        version: '0.2.1',
-        kind: 'ITERATION',
-        lines: [
-            'Nothing this app says will ever suggest the problem is you.',
-            'An app that fails to teach someone should leave them thinking that app did not work for me, not I cannot be taught. So none of the words in it talk about effort, or about what someone ought already to know, or call anything easy. Calling something easy leaves only one explanation for why it did not go well, and that explanation is the person reading it.',
-            'This is now checked automatically every time the app changes, the same way the no-scores rule is, so it cannot quietly stop being true.',
-        ],
-        stillMissing: 'there is no screen, so none of these words have reached anybody yet. The check is in place for when they do.',
     },
 ];

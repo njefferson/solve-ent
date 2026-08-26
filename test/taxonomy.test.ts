@@ -25,6 +25,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  RELATIONS,
   TIERS,
   TOPICS,
   checkGuarantees,
@@ -39,6 +40,7 @@ import {
   CLASS_MEANINGS,
   COUNTER_SKILLS,
   ERROR_CLASSES,
+  choiceItemsFor,
   choiceOptionsFor,
   classify,
   collisionsFor,
@@ -708,3 +710,67 @@ test('two values a student could write the same answer to are indistinguishable'
   assert.equal(indistinguishable(2.13, 2.94, 3), false);
   assert.equal(indistinguishable(1, 1000, 4), false);
 });
+
+test('a rearrangement option can only be read one way', () => {
+  // ATTRIBUTION IS THE PRODUCT, so an option a reader cannot parse attributes
+  // nothing. The upside-down option used to render as `V₁ = (P₁) ÷ P₂ × V₂`,
+  // which reads as `(P₁ ÷ P₂) × V₂` — a third thing, neither the correct
+  // rearrangement nor the misconception the option is supposed to embody.
+  //
+  // The rule: after a division sign, anything with more than one factor is
+  // bracketed. And a single symbol is never bracketed, because `n = m ÷ (M)` is
+  // noise where `n = m ÷ M` says the same thing.
+  let checked = 0;
+  for (let i = 0; i < 400; i += 1) {
+    for (const tier of [1, 2, 3]) {
+      const problem = generateProblem('brackets', 'REARRANGE', tier, i);
+      if (problem.topic !== 'REARRANGE') continue;
+      for (const option of choiceItemsFor(problem)) {
+        checked += 1;
+        const after = option.split(' ÷ ')[1];
+        if (after === undefined) continue;
+        if (after.startsWith('(')) {
+          assert.ok(
+            after.includes(' × '),
+            `${option} brackets a single symbol, which reads as noise`,
+          );
+          continue;
+        }
+        assert.ok(
+          !after.includes(' × '),
+          `${option} divides by more than one factor without brackets, so it reads two ways`,
+        );
+      }
+    }
+  }
+  assert.ok(checked > 100, `only ${String(checked)} options were looked at`);
+});
+
+test('every symbol in a rearrangement option is one the equation shows', () => {
+  // The other half of the same defect: options built from KEYS asked somebody
+  // to pick a rearrangement of an equation they were not looking at — `n = m ÷
+  // (Mm)` under `n × M = m`, `T(K)` written as `TK`, `V₁` as `Vd1`.
+  for (let i = 0; i < 300; i += 1) {
+    for (const tier of [1, 2, 3]) {
+      const problem = generateProblem('option-symbols', 'REARRANGE', tier, i);
+      if (problem.topic !== 'REARRANGE') continue;
+      const relation = RELATIONS.find((r) => r.id === problem.relationId);
+      if (relation === undefined) continue;
+      for (const option of choiceItemsFor(problem)) {
+        // Everything that is not an operator, a bracket or a number. The minus
+        // is U+2212 and not a hyphen, which is what the copy actually uses.
+        const tokens = option
+          .split(/[=×÷()+\u2212-]/)
+          .map((piece) => piece.trim())
+          .filter((piece) => piece !== '' && !/^[\d.]+$/.test(piece));
+        for (const token of tokens) {
+          assert.ok(
+            relation.written.includes(token),
+            `${relation.id} is written "${relation.written}" and an option says "${token}": ${option}`,
+          );
+        }
+      }
+    }
+  }
+});
+

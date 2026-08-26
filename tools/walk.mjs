@@ -206,6 +206,86 @@ check(closing.trim().length > 0, 'and says what happened', closing.slice(0, 70).
 check(!/\b\d+\s*(?:\/|out of)\s*\d+\b/.test(closing), 'with no fraction of right answers');
 check(!/\b(?:streak|badge|great job|well done)\b/i.test(closing), 'and nothing congratulating anybody');
 
+/* ---- blocked practice: one move, again ----
+ *
+ * A whole question is interleaved practice. A move somebody does not have yet
+ * is built by doing it again — and an app with only whole questions makes the
+ * student who inverts a ratio walk five steps they can already do to reach the
+ * one they cannot.
+ */
+await page.goto(`${server.origin}/`);
+await page.evaluate(() => {
+  try {
+    globalThis.localStorage.setItem('solvent.welcomed', 'yes');
+  } catch { /* nothing to do */ }
+});
+await page.reload();
+await page.waitForTimeout(200);
+await page.click('#to-drill');
+await page.waitForTimeout(200);
+check((await visibleSurface(page)).join() === 'drill-pick', 'a reader can go straight to practising one move');
+const moves = await page.locator('#moves button').allInnerTexts();
+check(moves.length === 6, 'all six moves are offered', `${String(moves.length)} offered`);
+check(
+  moves.some((name) => /isolating the unknown/i.test(name)),
+  'including isolating the unknown, which lives in about one tier-3 problem in twelve',
+);
+
+const flagship = moves.findIndex((name) => /isolating the unknown/i.test(name));
+await page.locator('#moves button').nth(flagship === -1 ? 0 : flagship).click();
+await page.waitForTimeout(400);
+check((await visibleSurface(page)).join() === 'drill', 'picking a move starts the drill');
+const drillStep = await page.locator('#drill-step').innerText();
+check(drillStep.trim().length > 0, 'and there is a step to do', drillStep.slice(0, 60));
+check(
+  (await page.locator('#drill-question').innerText()).trim().length > 0,
+  'with the question around it for context, since a move with nothing to hold on to is not a move',
+);
+
+// Wrong on purpose: the move must not advance, exactly as a whole question.
+let drillDiagnosed = false;
+if ((await page.locator('#drill-answer').count()) > 0) {
+  await page.fill('#drill-answer', '0.00042');
+  await page.locator('#drill-entry .primary').click();
+  await page.waitForTimeout(200);
+  drillDiagnosed = !(await page.locator('#drill-diagnosis').isHidden());
+} else {
+  for (let i = 0; i < 6 && !drillDiagnosed; i += 1) {
+    await page.locator('#drill-entry .choice').first().click();
+    await page.waitForTimeout(150);
+    drillDiagnosed = !(await page.locator('#drill-diagnosis').isHidden());
+  }
+}
+check(drillDiagnosed, 'a wrong move in a drill is diagnosed, not just marked wrong');
+if (drillDiagnosed) {
+  check(
+    (await page.locator('#drill-step').innerText()) === drillStep,
+    'and the move does NOT advance',
+  );
+}
+
+// NOTHING IS RECORDED. The drill has no session, so there is nothing that could
+// become a completion code — asserted on what the page actually holds rather
+// than on the absence of a button.
+check(
+  await page.evaluate(() => {
+    try {
+      return Object.keys(globalThis.localStorage).every((key) => !/session|code|drill|attempt|score/i.test(key));
+    } catch {
+      return true;
+    }
+  }),
+  'a drill stores nothing about the run',
+);
+
+await page.click('#drill-stop');
+await page.waitForTimeout(200);
+check((await visibleSurface(page)).join() === 'done', 'stopping a drill says what happened');
+const drillClosing = await page.locator('#closing').innerText();
+check(drillClosing.trim().length > 0, 'in words', drillClosing.slice(0, 60).replace(/\n/g, ' | '));
+check(!/\b\d+\s*(?:\/|out of)\s*\d+\b/.test(drillClosing), 'with no fraction of right moves');
+check(!/\b(?:streak|badge|great job|well done)\b/i.test(drillClosing), 'and nothing congratulating anybody');
+
 /* ---- the release notes page, reached the way a reader reaches it ---- */
 await page.goto(`${server.origin}/whats-new`);
 await page.waitForTimeout(150);

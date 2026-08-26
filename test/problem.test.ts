@@ -11,6 +11,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  RELATIONS,
+  shownSymbol,
   TIERS,
   TOPICS,
   checkGuarantees,
@@ -321,4 +323,55 @@ test('a topic the generator cannot satisfy says so rather than lowering a guaran
     (error: unknown) => error instanceof Error && error.name === 'GenerationError',
     'tier 0 has no relations in it and should have been refused',
   );
+});
+
+test('every symbol a relation names appears in the relation as written', () => {
+  // A QUESTION THAT ASKS FOR A LETTER NOT IN THE EQUATION. IDEAL_GAS was
+  // written `PV = nRT` and its symbols were keyed `Vg` and `ng`, so the prompt
+  // read "Rearrange it for ng" and the step read "ng has to be separated from R
+  // and T". The suffix was never needed — `symbols` is per-relation and three
+  // other relations use a plain V — and nothing keyed off it. It had shipped
+  // since the first release and was found by a drill on that exact move, which
+  // is the first surface that ever showed the step on its own.
+  //
+  // Matched on the WRITTEN form with word-ish boundaries rather than by
+  // substring, or `n` would be satisfied by the `n` inside `nRT`... which it
+  // legitimately is. So: the symbol must appear, and a MULTI-CHARACTER symbol
+  // must appear as a run rather than accidentally across two others.
+  for (const relation of RELATIONS) {
+    const written = relation.written;
+    for (const symbol of Object.keys(relation.symbols)) {
+      const info = relation.symbols[symbol];
+      // A declared constant is not something a reader is asked to find in the
+      // equation — R is in `PV = nRT`, but a relation may legitimately carry a
+      // constant it does not print.
+      if (info !== undefined && info.constant !== undefined) continue;
+      const shown = shownSymbol(relation, symbol);
+      assert.ok(
+        written.includes(shown),
+        `${relation.id} is written "${written}" and names a symbol shown as "${shown}" that is not in it — ` +
+          'a question would ask a reader to rearrange for a letter they cannot see',
+      );
+    }
+  }
+});
+
+test('and the symbol a problem asks for is one of that relation\'s own', () => {
+  for (let i = 0; i < 300; i += 1) {
+    const problem = generateProblem('symbols', 'REARRANGE', 3, i);
+    // Narrowed rather than asserted: `Problem` is a union and only the
+    // rearrangement arm has a relation, which is the type doing its job.
+    if (problem.topic !== 'REARRANGE') continue;
+    const relation = RELATIONS.find((r) => r.id === problem.relationId);
+    assert.notEqual(relation, undefined, `${problem.relationId} is not a relation`);
+    if (relation === undefined) continue;
+    assert.ok(
+      Object.keys(relation.symbols).includes(problem.solveFor),
+      `${relation.id} asks for ${problem.solveFor}, which it does not define`,
+    );
+    assert.ok(
+      problem.prompt.includes(relation.written),
+      'the question does not show the relation it is asking about',
+    );
+  }
 });
