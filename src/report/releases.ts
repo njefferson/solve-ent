@@ -40,11 +40,31 @@ export const NOTES_PAGE = '/whats-new';
  * Carried so the app can say so. A panel showing five with no hint that there
  * are more implies five is all there has ever been, which is a small lie that
  * costs nothing to avoid.
+ *
+ * ANNOTATED `number` ON PURPOSE. Without it this infers the literal type of
+ * whatever today's count happens to be, and the screen's branch on it becomes a
+ * comparison between two literals — which type-checks while the count is one
+ * value and fails the day it changes. It failed on the release that first made
+ * it non-zero, which is also the first release on which that branch had ever
+ * been reachable.
  */
-export const OLDER_THAN_SHOWN = 0;
+export const OLDER_THAN_SHOWN: number = 1;
 
 /** Newest first. */
 export const RELEASES: readonly Release[] = [
+  {
+    version: '0.5.0',
+    kind: 'CAPABILITY',
+    lines: [
+      'There is something to open. Until now everything in here worked and none of it could be seen.',
+      'You get a short page saying what this is and what it is not, and then you pick one of the seven kinds of question and work through five of them, one step at a time. Get a step wrong and it tells you which mistake produces that exact number — and the step stays where it is until you get it, because a step you can walk past is just another question.',
+      'It can be made easier to read, and those settings never leave your device. Bigger text, more space between letters and lines, showing one thing at a time, and reading the question aloud where the device can do that. None of them is written into anything you hand in and none of them is sent anywhere. That is deliberate rather than an oversight: what somebody needs in order to read something is nobody else\'s business, and a tool that quietly passed it on would make them disclose it every time they used it.',
+      'Day and night colours, following the device unless you say otherwise. The colours were measured against a contrast standard before anything was drawn, in both, on every screen — including the ones that only appear after a wrong answer, which is where this kind of thing usually goes unchecked.',
+      'An information button in the corner, with what this is, how to keep it on your home screen on each kind of device, where the questions come from, what it stores, what changed, the accessibility statement and the licence. The page you see first is moved in there when you press Start, so it is still reachable rather than gone.',
+      'And a page listing every release, which the panel above links to. The panel itself never shows more than five, and says how many it is not showing.',
+    ],
+    stillMissing: 'it does not work offline yet — close the connection and it will not open, which is worst for exactly the people who need it on a bus. There is still no way to practise a single move over and over, which is the thing most worth having when one particular step is the one going wrong. Nothing can be handed in and there is no page for whoever set the work. Every question arrives at the same difficulty for now. And there is no way to be told when a newer version is waiting.',
+  },
   {
     version: '0.4.0',
     kind: 'CAPABILITY',
@@ -92,16 +112,5 @@ export const RELEASES: readonly Release[] = [
       'Also fixed: a multiple-choice question could mark the wrong option correct if it was one the marking had not been told about. On a rearranging question that meant the upside-down answer would have been accepted. Nobody could have run into this yet — there is no screen — but it would have been waiting.',
     ],
     stillMissing: 'there is no screen, so nothing above can be seen. And there is still no way to practise a single skill on its own, which is the thing most worth having if one particular move is the one going wrong.',
-  },
-  {
-    version: '0.1.0',
-    kind: 'CAPABILITY',
-    lines: [
-      'The first release. It works out questions and marks answers; there is nothing to look at yet.',
-      'What it covers. Seven kinds of algebra, and only these seven, because each one is something you cannot do a chemistry calculation without: rearranging a formula, proportions and cross-multiplying, scientific notation, powers and roots, fractions and rates, cancelling units through a chain, and significant figures.',
-      'What makes it different from a calculator. It does not just mark an answer wrong. It works out which mistake produces that exact number — the ratio used upside down, the exponent multiplied instead of raised, a conversion factor turned the wrong way — and says so.',
-      'And it refuses to guess. If two different mistakes would produce answers you could not tell apart, the app will not ask that question at all. It would rather stay quiet than tell somebody they have a misunderstanding they may not have. When it genuinely cannot tell what happened, it says that too, rather than picking something plausible.',
-    ],
-    stillMissing: 'no screen, nothing to open, no way to practise a single skill on its own, and nothing to hand to anybody at the end.',
   },
 ];

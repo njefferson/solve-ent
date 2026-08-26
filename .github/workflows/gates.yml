@@ -37,7 +37,7 @@ env:
   # canonical gates AT THIS SHA, so leaving it behind would mean every gate
   # going green while running a check that had never heard of the rule it is
   # supposed to enforce.
-  HUB_SHA: da458d8904ffea4429ab17632ee053c0318ac927
+  HUB_SHA: af6b0c5b638dd1cab10b1bfbe0c0cc9a2088ae9b
 
 jobs:
   gates:
@@ -116,6 +116,23 @@ jobs:
       - name: The hub pin and the doctrine marker agree
         run: npm run pin
 
+      # Every source file is in SOME project. `exclude` is inherited through
+      # `extends`, which is how a whole directory came to be checked by neither
+      # config while both exited 0 — two green runs over an empty set.
+      - name: Every source file is in a TypeScript project
+        run: npm run coverage
+
+      # The colours come from one file, and it is the file the hub's palette
+      # gate measures. Two declarations means what was measured and what a
+      # browser paints can differ.
+      - name: The palette, and the tokens generated from it
+        run: npm run palette:check
+
+      # public/ IS the site, so the engine a browser runs lives in the tree
+      # rather than being built at deploy time. That makes staleness the risk.
+      - name: The engine a browser runs matches its source
+        run: npm run web:check
+
       - name: The words
         run: npm run copy
 
@@ -139,6 +156,19 @@ jobs:
       # conversion factor to a value typed in from a published source.
       - name: The algebra, checked without asking the engine to mark its own work
         run: npm run algebra
+
+      # THE BROWSER GATES. Every surface in both modes, dialogs opened rather
+      # than skipped, and then the primary journey walked with a step wrong on
+      # purpose. A resting-state sweep reports a clean bill of health it has not
+      # earned: most of this app's controls live inside dialogs.
+      - name: Install Chromium for the browser gates
+        run: npx playwright install --with-deps chromium
+
+      - name: Accessibility, every surface in both modes
+        run: npm run a11y
+
+      - name: The walk
+        run: npm run walk
 
       - name: Install zizmor (version- and hash-pinned by the hub)
         run: |

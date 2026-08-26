@@ -2,8 +2,24 @@ node_modules/
 *.tsbuildinfo
 .hub/
 
-# Generated. Never committed: a build artefact in the tree is a build artefact
-# that goes stale in the tree.
-public/app/
+# Generated AND COMMITTED, deliberately, and this is the one exception worth
+# writing down. Hub LESSONS §150 says a build artefact in the tree goes stale in
+# the tree, and that a drift check against a gitignored file can never fail —
+# both true, and both about an INTERMEDIATE.
+#
+# public/app/ is not an intermediate. `public/` IS the site: it is what a Pages
+# project serves, with no build command and nothing to set correctly by hand.
+# Ignoring it would deploy an application with no JavaScript in it, silently,
+# and would make CI the first fresh clone this repository has ever had — §150's
+# own trap, arrived at from the other direction.
+#
+# So it is committed, and staleness is answered by a gate that CAN fail because
+# there is a committed file to disagree with: tools/web-build.mjs --check runs
+# on every commit and refuses a stale module, a missing one, or an orphan left
+# behind by a rename. Planted all three ways.
+#
+# Same reasoning for public/css/tokens.css and public/whats-new/index.html,
+# which are generated, committed and drift-checked for the same reason.
+
 public/icon-*.png
 og.png

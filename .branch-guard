@@ -31,3 +31,20 @@ also=tools/notes-check.mjs
 # skipping the second leaves CI enforcing rules from before the ones this repo
 # has already read — every gate green, the new rule enforced nowhere.
 also=tools/hub-pin-check.mjs
+
+# The colour tokens, which are GENERATED from palettes/solve-ent.json — the file
+# the hub's palette gate measures. Two declarations of one colour means the
+# values that were measured and the values a browser paints can differ, which is
+# the drift factory PALETTES.md says to close before there is more than one of
+# anything.
+also=tools/palette-check.mjs
+
+# The engine as a browser runs it, which lives in public/ because public/ IS the
+# site. That makes staleness the risk rather than a missing build, and this is
+# the gate for it.
+also=tools/web-check.mjs
+
+# And that every source file is in SOME TypeScript project. `exclude` is
+# inherited through `extends`, which is how the whole browser layer came to be
+# checked by neither config while both exited 0.
+also=tools/coverage-check.mjs

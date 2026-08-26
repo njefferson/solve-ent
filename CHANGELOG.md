@@ -9,6 +9,47 @@ release changed something you can see or do, it is described below in the words
 you would use for it. If it changed something under the surface that you cannot
 see, it says that plainly rather than dressing it up.
 
+## 0.5.0 — CAPABILITY
+
+**There is something to open.** Until now everything in here worked and none of
+it could be seen.
+
+You get a short page saying what this is and what it is not, and then you pick
+one of the seven kinds of question and work through five of them, one step at a
+time. Get a step wrong and it tells you which mistake produces that exact
+number — and **the step stays where it is until you get it**, because a step you
+can walk past is just another question.
+
+**It can be made easier to read, and those settings never leave your device.**
+Bigger text, more space between letters and lines, showing one thing at a time,
+and reading the question aloud where the device can do that. None of them is
+written into anything you hand in and none of them is sent anywhere. That is
+deliberate rather than an oversight: what somebody needs in order to read
+something is nobody else's business, and a tool that quietly passed it on would
+make them disclose it every time they used it.
+
+**Day and night colours**, following the device unless you say otherwise. The
+colours were measured against a contrast standard before anything was drawn,
+in both, on every screen — including the ones that only appear after a wrong
+answer, which is where this kind of thing usually goes unchecked.
+
+**An information button in the corner**, with what this is, how to keep it on
+your home screen on each kind of device, where the questions come from, what it
+stores, what changed, the accessibility statement and the licence. The page you
+see first is moved in there when you press Start, so it is still reachable
+rather than gone.
+
+**And a page listing every release**, which the panel above links to. The panel
+itself never shows more than five, and says how many it is not showing.
+
+**Still missing, and some of it matters:** it does not work offline yet — close
+the connection and it will not open, which is worst for exactly the people who
+need it on a bus. There is still no way to practise a single move over and over,
+which is the thing most worth having when one particular step is the one going
+wrong. Nothing can be handed in and there is no page for whoever set the work.
+Every question arrives at the same difficulty for now. And there is no way to be
+told when a newer version is waiting.
+
 ## 0.4.0 — CAPABILITY
 
 **When a new version arrives, this will be able to tell you what changed — and

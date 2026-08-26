@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Solve-ent — the algebra a chemistry problem needs</title>
+<meta name="description" content="Practice for the specific algebra moves a chemistry calculation needs. It works out which mistake produced a wrong answer, and says so.">
+<meta name="theme-color" content="#1a1a1a">
+<link rel="stylesheet" href="/css/tokens.css">
+<link rel="stylesheet" href="/css/app.css">
+<script src="/js/theme.js"></script>
+</head>
+<body>
+
+<!-- A KEYBOARD ROUTE, and it is not the only route to anywhere.
+     A skip link that is off-canvas until focused is reachable by tabbing and by
+     nothing else. This app is used on a tablet, by touch, where that control
+     does not exist — so it stays, because a keyboard needs it, and the place it
+     goes is also the top of the page a finger already sees. It is never the
+     sole way to reach anything. -->
+<a class="skip" href="#main">Skip to the work</a>
+
+<header class="bar">
+  <h1 class="wordmark">Solve-ent</h1>
+  <button type="button" id="open-info" class="icon" aria-label="About Solve-ent, settings and what changed">
+    <span aria-hidden="true">i</span>
+  </button>
+</header>
+
+<main id="main" tabindex="-1">
+
+  <!-- ============ first run ============ -->
+  <section data-surface="welcome" hidden>
+    <h2 tabindex="-1">Before you start</h2>
+    <!-- ONE COPY of these words. On "Start", this block is MOVED into the (i)
+         panel rather than copied, so the orientation survives the thing a
+         reader presses to begin and stays permanently reachable afterwards. -->
+    <div id="orientation">
+      <p><strong>This is practice for the algebra a chemistry calculation needs</strong> — rearranging a formula, using a ratio, moving powers of ten, cancelling units, and keeping the right number of figures. Seven kinds of move, and nothing else.</p>
+      <p><strong>It is not a calculator and it is not a solver.</strong> Free tools already work these out and already show the steps. What this does instead is look at a wrong answer and work out <em>which</em> mistake produces that exact number — the ratio used upside down, the exponent multiplied instead of raised, a conversion factor turned the wrong way — and tell you that.</p>
+      <p><strong>And it refuses to guess.</strong> When two different mistakes would produce answers nobody could tell apart, it will not ask that question at all. When it cannot work out what happened, it says so rather than picking something that sounds likely.</p>
+      <p>Nothing you type is sent anywhere. There is no account, no sign-in and nothing stored about you.</p>
+      <p class="aside">The name is a pun: solve, and solvent. That is the only time it will be mentioned.</p>
+    </div>
+    <button type="button" id="begin" class="primary">Start</button>
+  </section>
+
+  <!-- ============ choosing ============ -->
+  <section data-surface="start" hidden>
+    <h2 tabindex="-1">What do you want to work on?</h2>
+    <p>Pick one. Five questions, one step at a time. Nothing is recorded and nothing is scored.</p>
+    <ul id="topics" class="topics"></ul>
+  </section>
+
+  <!-- ============ working ============ -->
+  <section data-surface="work" hidden>
+    <h2 tabindex="-1"><span id="topic-label"></span></h2>
+    <div id="question" class="question"></div>
+    <p id="step-prompt" class="step"></p>
+    <p id="unit-hint" class="unit-hint" hidden></p>
+    <div id="read-aloud" hidden></div>
+    <div id="entry" class="entry"></div>
+    <div id="diagnosis" class="diagnosis" hidden></div>
+    <div id="run-note" class="run-note" hidden></div>
+  </section>
+
+  <!-- ============ the end of a run ============ -->
+  <section data-surface="done" hidden>
+    <h2 tabindex="-1">That is the end of the set</h2>
+    <ul id="closing" class="closing"></ul>
+    <button type="button" id="again" class="primary">Work on something else</button>
+  </section>
+
+</main>
+
+<!-- Everything said to a reader that is not part of the question goes here, so
+     a screen reader is told about it without the focus being taken away. -->
+<p id="said" class="visually-hidden" role="status" aria-live="polite"></p>
+
+<!-- ============ what's new ============ -->
+<dialog id="whats-new" aria-labelledby="whats-new-title">
+  <h2 id="whats-new-title">What changed</h2>
+  <ul id="whats-new-list" class="releases"></ul>
+  <p id="whats-new-more" class="aside"></p>
+  <p><a data-notes-page class="ghost linkish" href="/whats-new">Read the full list</a></p>
+  <button type="button" data-close class="primary">Close</button>
+</dialog>
+
+<!-- ============ the (i) panel ============ -->
+<dialog id="info" aria-labelledby="info-title">
+  <h2 id="info-title">Solve-ent <span id="version"></span></h2>
+
+  <div id="info-orientation-slot"></div>
+
+  <h3>How to keep it on your home screen</h3>
+  <p>It works offline once it has been opened, and it can sit next to your other apps.</p>
+  <ul>
+    <li><strong>iPhone and iPad (Safari):</strong> the Share button, then <em>Add to Home Screen</em>.</li>
+    <li><strong>Android (Chrome):</strong> the three-dot menu, then <em>Add to Home screen</em> or <em>Install app</em>.</li>
+    <li><strong>Windows and macOS (Chrome or Edge):</strong> the install icon in the address bar, or the three-dot menu, then <em>Install</em>.</li>
+    <li><strong>macOS (Safari):</strong> the Share button, then <em>Add to Dock</em>.</li>
+    <li><strong>Firefox:</strong> there is no install; a bookmark works and everything else is the same.</li>
+  </ul>
+
+  <h3>How it looks and sounds</h3>
+  <p>These stay on this device. They are never sent anywhere, never written into anything you hand in, and never shown to anybody else.</p>
+
+  <fieldset>
+    <legend>Colours</legend>
+    <button type="button" data-pref="mode" data-value="system">Match the device</button>
+    <button type="button" data-pref="mode" data-value="day">Day</button>
+    <button type="button" data-pref="mode" data-value="night">Night</button>
+  </fieldset>
+
+  <fieldset>
+    <legend>Text size</legend>
+    <button type="button" data-pref="textSize" data-value="normal">Normal</button>
+    <button type="button" data-pref="textSize" data-value="large">Large</button>
+    <button type="button" data-pref="textSize" data-value="largest">Largest</button>
+  </fieldset>
+
+  <fieldset>
+    <legend>Spacing</legend>
+    <button type="button" data-pref="spacing" data-value="normal">Normal</button>
+    <button type="button" data-pref="spacing" data-value="open">More space between letters and lines</button>
+  </fieldset>
+
+  <fieldset>
+    <legend>Reading</legend>
+    <button type="button" data-pref="oneStepAtATime">Show one thing at a time</button>
+    <span id="read-aloud-setting" hidden>
+      <button type="button" data-pref="readAloud">Read questions aloud</button>
+    </span>
+  </fieldset>
+
+  <h3>What changed</h3>
+  <p><a data-notes-page href="/whats-new">Every release, and what is still missing from each</a>.</p>
+
+  <h3>Where the questions come from</h3>
+  <p>They are worked out on this device, from a starting key, using constants taken from published reference values — the Avogadro constant, molar volumes, standard unit conversions. Nothing is downloaded and nothing is looked up while you work. The same key produces the same questions on every device, which is what lets a group work from one thing written on a board.</p>
+
+  <h3>What it stores</h3>
+  <p>Your settings, and which version you last saw this panel for. That is all, and it stays on this device. There is no account, no sign-in, no cookie and no analytics. If work is ever set with a number attached to it, that number is a number somebody assigned — never a name, and never anything that says who you are.</p>
+
+  <h3>Something is wrong with it</h3>
+  <p>Copy the lines below into a message. They say which version and which kind of device, which is usually the whole answer. <strong>They do not include your settings</strong>, on purpose.</p>
+  <pre id="diagnostic-text" class="diagnostic"></pre>
+
+  <h3>Accessibility</h3>
+  <p><a href="https://noahjefferson.pages.dev/accessibility">The accessibility statement</a> covers this and the other apps here.</p>
+
+  <h3>Licence</h3>
+  <p>PolyForm Noncommercial. Free to use for teaching and learning; not for commercial use.</p>
+  <p class="aside">Roster numbers, where work is assigned, run from 1 to <span id="roster-max"></span>.</p>
+
+  <button type="button" data-close class="primary">Close</button>
+</dialog>
+
+<script type="module">
+  import { boot } from '/app/ui/app.js';
+  boot();
+</script>
+</body>
+</html>

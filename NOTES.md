@@ -728,22 +728,223 @@ depend on the hub being checked out.
 It was never planted. It went red twice on real drift, unprompted — once on the
 §146 adopt and again on the §117 adopt an hour later.
 
+## Session 2: there is a screen, and what it cost to put one there
+
+**The engine had no browser problem until it had a browser.** Everything below
+is a decision that was not obvious, with what it was traded against.
+
+### A browser cannot run TypeScript, and the rule said no bundler
+
+"No build step beyond the type checker" was written when there was no screen and
+Node strips the types by itself. A browser does not. A second copy of the engine
+written in JavaScript would fork the one thing in this repository that must
+never have two versions.
+
+So the types are erased for the browser and **erasure is all that happens**.
+`erasableSyntaxOnly` in the base config is what makes that checkable rather than
+hopeful: it refuses any TypeScript whose meaning is not purely annotation, so
+removing the types is a deletion and never a transform. One file in, one file
+out, same name, same imports, same order, same target, comments intact. No
+module graph is flattened, nothing is minified, no dependency is resolved into
+the output, and nothing was added to the dependency list — the type checker was
+already here.
+
+**The output is COMMITTED rather than built at deploy time**, and that is the
+part worth arguing with later. `public/` is the site, in this repository and in
+every sibling. Building at deploy would mean the deployed directory does not
+exist in the tree and a Pages project that needs a build command set correctly
+by hand — a new way for a release to silently not arrive, which is hub LESSONS
+§53 and cost four releases elsewhere. The cost of committing it is staleness,
+and staleness is what a gate is for: `tools/web-build.mjs --check` runs on every
+commit and refuses a stale module, a missing one, or an orphan left behind by a
+rename.
+
+### The engine cannot reach the DOM, and that is the build rather than a habit
+
+`tsconfig.json` has `lib: es2023` and no DOM at all, and excludes `src/ui/`.
+`tsconfig.web.json` adds the DOM and covers everything. An engine file that
+reached for `document`, `localStorage` or `window` does not type-check — planted
+and watched failing.
+
+**And that split immediately produced its own defect, which is the better half
+of the story.** `exclude` is INHERITED THROUGH `extends`. The base config's
+exclusion of `src/ui/` therefore applied to the web config as well, so the
+entire browser layer was checked by NEITHER project. Both `tsc --noEmit` runs
+exited 0. The screen had two real type errors in it — a wrong field name and a
+property that does not exist — and it was found by asking `--listFilesOnly` how
+many files had actually been looked at, on a hunch that a screen written in one
+pass had no business compiling first time.
+
+`tools/coverage-check.mjs` now refuses a tree where any source file is in no
+project, and refuses a project that loads nothing at all. **A file in no project
+is not a file that passed**, and the two states are identical from the outside.
+
+### The palette: adopted, not invented, and declared once
+
+Instrument, the hub's recommended default — the only one of the four families
+whose worst text pairing is at or above 4.87 across all four of its palettes,
+with primary text AAA on every fill and an exact-neutral night chrome. No
+picker: one family, so palette and mode stay independent axes with only the mode
+axis populated.
+
+`palettes/solve-ent.json` is the ONE source. The hub's `palette-check.mjs`
+measures that file; `tools/palette.mjs` writes `public/css/tokens.css` from the
+same file. So the values that were measured and the values a browser paints
+cannot be different values — a property rather than a promise. PALETTES.md §6
+says consolidate before there is more than one of anything, and having no screen
+yet was the cheapest possible moment to do it.
+
+**Four cascade blocks, not two**, and the fourth is the one that gets dropped:
+a default outside every query, the system asking for light with nothing stored,
+an explicit day beating a system set to dark, and an explicit night beating a
+system set to light.
+
+**The generator's check printed a claim it did not measure.** It said "day
+arrives three ways, and night beats a system set to light" as an `ok` line while
+the explicit-night block had been deleted from the generator during a plant —
+because a drift check regenerates from the same generator and compares like with
+like, so it is structurally incapable of catching a wrong GENERATOR. The four
+cases are now read off the generated text, where a generator that stops emitting
+one of them fails.
+
+### The accessibility gate, and the three ways it lied before it worked
+
+`tools/a11y.mjs`: eight states by two modes, both dialogs opened rather than
+skipped, axe-core plus the checks axe cannot make. The surface list is
+**asserted** against every `[data-surface]` in the document, so a new screen that
+does not join it fails rather than shipping unmeasured (hub LESSONS §28).
+
+`work-diagnosed` is its own state on purpose. The diagnosis panel is the thing
+this app exists to show and it is only ever on screen after a wrong step, which
+a resting sweep never produces.
+
+**Contrast is enumerated, not sampled.** The body is a gradient between two
+known tokens, so text over it is checked against BOTH stops and the worse
+reading counts. Interpolation in sRGB stays between the endpoints channel by
+channel, so bounding the ends bounds every position — which is more than a
+sampled pixel can say, and it sidesteps the computed-style trap entirely rather
+than working around it.
+
+Three instrument defects, all found by results that looked absurd:
+
+- **Hex against rgb.** A custom property comes back from `getComputedStyle` as
+  AUTHORED (`#f4ecdd`); the colour that reached the screen comes back RESOLVED
+  (`rgb(244, 236, 221)`). The digit regex over `#f4ecdd` returns `[4, 44]`, and
+  the gate reported that every surface in the day palette mapped to no token.
+- **`.22` against `0.22`.** The hairline exemption compared border colours as
+  strings, so every decorative fieldset border was measured as a load-bearing
+  rail and failed at 1.54. This is PALETTES.md §7's string-comparison trap
+  wearing a second coat; everything compares numbers now.
+- **A false exemption.** The inline-in-a-sentence exemption asked only whether
+  the parent held other text, which let off a link sitting in a header beside
+  the wordmark — a real 44px target being quietly excused. An exemption that
+  fires where it should not reads exactly like a measurement.
+
+And **the panel was over everything it was trying to measure**: seeding "already
+seen" with a placeholder string means "seen an OLDER version", which is the
+condition that opens the what's-new panel. Every click timed out against its
+backdrop. A placeholder is not a neutral value when the thing stored is compared
+for equality.
+
+Four real defects survived the triage and were fixed: no level-one heading on
+any page, a 138x20 link target, a static `theme-color` on the release-notes page
+that was wrong in day mode, and the false exemption above.
+
+### The walk, and the two times the harness was wrong about the app
+
+`tools/walk.mjs` walks the primary journey: arrive, begin, get a step wrong on
+purpose, be told what happened, finish, reload, drop the network.
+
+**A wrong step does not advance, so a harness that keeps guessing never
+finishes.** The first version guessed four hundred times and reported that the
+run does not end. The app was right. The correct entries are now computed in
+Node from a session built with the same key, topic, tier and count — the
+problems are a pure function of those, so the two runs are step for step the
+same. That is a stronger check than finishing was: it says the browser's session
+and an independent one agree at every stage. Nothing student-facing does this;
+the screen is never told the answer, which is exactly why the harness has to
+work it out separately instead of reading it off the page.
+
+**And an init script undid what it was measuring.** Storage seeded through
+`addInitScript` runs on every load in that context INCLUDING the reload, so the
+walk re-seeded the old version on the way back in and then reported that
+dismissing the what's-new panel does not stick.
+
+The offline line is deliberately an assertion that it does NOT work: there is no
+service worker yet, and that line is how the absence stays known rather than
+being rediscovered.
+
+### The diagnosis had to be framed, and the frame is where the rule lives
+
+`CLASS_MEANINGS` are fragments — "used the ratio the wrong way up" — because the
+engine has no business deciding how a screen frames them. Rendered raw they
+arrived as a bold lowercase clause with no subject, which reads like an
+accusation with the accusing part cut off. The first screenshot showed exactly
+that.
+
+**The subject is THE ANSWER.** "That answer used the ratio the wrong way up" is
+a statement about a move; "you used the ratio the wrong way up" is a statement
+about a person, and this app does not make those. The frame is where that
+distinction actually gets made, so it lives in the screen rather than being left
+to whoever writes the next surface.
+
+### §146 happened four more times in one sitting
+
+The lesson written this session — a gate that bans a word cannot scan the copy
+that exists to say the word is absent — recurred four times after being written:
+
+- the release notes, which is where it came from;
+- a test asserting a session has no accommodation field, which failed on the
+  header sentence naming the fields it must never have;
+- the §7f diagnostic, whose `maxTouchPoints` line matched the ban on *points* —
+  and that property is the one thing that tells an iPad from a Mac, since iPadOS
+  Safari reports itself as macOS, so the doctrine effectively requires the line;
+- the walk, whose assertion that praise is absent has to spell the praise out.
+
+Two structural fixes rather than four exemptions. `tools/copy-check.mjs` now
+strips **regex literals** as well as comments — a pattern is not copy, nothing
+inside `/…/` is ever shown to anybody, and the same file's plain strings are
+still read, so a harness that actually printed praise is still caught. And the
+*points* rule now matches points-as-a-reward rather than the bare word. The
+stripper is conservative about what counts as a regex, because `/` is also
+division and a stripper that guessed wrong would silently delete real copy;
+anything ambiguous stays in and is therefore still scanned.
+
+### One more the type checker caught that nothing else could
+
+`OLDER_THAN_SHOWN` was generated as a bare literal, so its type was the exact
+number it happened to be. The screen's branch on it was a comparison between two
+literals — which type-checks while the count is one value and fails the day it
+changes. It failed on 0.5.0, the first release that made it non-zero, which is
+also the first release on which that branch had ever been reachable. It is
+annotated `number` now.
+
 ## What is NOT built, and it is most of the app
 
 Named here so nobody has to discover it by looking:
 
-- **No screen.** No student surface of any kind. `tools/cli.ts` prints answers
-  and says so on every command that shows one.
+- **No service worker, so it does not work offline.** Every app here is
+  offline-first and this one is not yet, which is worst for exactly the people
+  who need it on a bus. Doctrine §7h's stale-app offer depends on it and is
+  owed with it. The walk asserts the CURRENT behaviour — that it does not load
+  offline — so the absence stays known.
+- **No single-skill drill screen.** The engine half is built and `classify` is
+  pure, which is what makes the drill a loop around it with no session and
+  nothing recorded. The screen is not built, and it is the thing most worth
+  having when one particular move is the one going wrong.
+- **One difficulty.** Every run opens at tier 1; nothing chooses or moves
+  between the three the generator supports.
+- **No assignment key on screen**, so nothing can be handed in and there is no
+  page for whoever set the work. `completionCounts` produces what a code would
+  carry and refuses to do it in practice mode, which is the only mode a screen
+  can currently start.
+- **`tools/cli.ts` prints answers** and says so on every command that shows one.
 - **No completion code.** `completionCounts` produces what a code would carry;
   there is no codec, no MAC and no readout yet. When there is one, the readout
   must DECODE the code the student is holding rather than describe it, so it
   cannot drift from the truth.
-- **No what's-new panel and no `/whats-new` page.** The WORDS are built,
-  bounded and generated from one source; the surfaces that would show them are
-  not, because there is no screen to put them on. The contract they have to
-  keep is written above rather than left to be re-decided.
-- **No teacher's page**, no resume, no accessibility work, no palette, no
-  service worker, nothing deployed, and no repository metadata.
+- **No teacher's page**, no resume, nothing deployed, and no repository
+  metadata.
 - **Nothing is deployed and no Pages project exists.** That is the owner's to
   create — see below.
 

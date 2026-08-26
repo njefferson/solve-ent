@@ -20,5 +20,15 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["src/**/*.ts", "test/**/*.ts", "tools/**/*.ts"]
+  "include": ["src/**/*.ts", "test/**/*.ts", "tools/**/*.ts"],
+  // src/ui/ is the ONLY layer that touches a document, and it is checked by
+  // tsconfig.web.json instead — which is the config that has the DOM in `lib`.
+  //
+  // THE SPLIT IS THE POINT, not a convenience. This config has `lib: es2023`
+  // and no DOM at all, so an engine file that reached for `document`,
+  // `localStorage` or `window` does not type-check. The rule "the engine is
+  // pure and the screen is the only thing with a browser in it" is therefore a
+  // property of the build rather than a habit, and `npm run typecheck` runs
+  // BOTH projects so nothing is checked by neither.
+  "exclude": ["src/ui/**"]
 }

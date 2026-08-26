@@ -10,22 +10,32 @@
   },
   "scripts": {
     "test": "node --test 'test/**/*.test.ts'",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --project tsconfig.web.json --noEmit",
     "algebra": "node tools/verify-algebra.mjs",
     "version:check": "node tools/version-check.mjs",
     "copy": "node tools/copy-check.mjs",
     "notes": "node tools/changelog.mjs",
     "notes:check": "node tools/changelog.mjs --check",
     "cli": "node tools/cli.ts",
-    "check": "npm run typecheck && npm run version:check && npm run pin && npm run notes:check && npm run copy && npm test && npm run algebra",
+    "check": "npm run typecheck && npm run coverage && npm run version:check && npm run pin && npm run palette:check && npm run web:check && npm run notes:check && npm run copy && npm test && npm run algebra",
     "gates": "node ../noahjefferson/branch-guard.mjs --repo . && node ../noahjefferson/privacy-check.mjs --repo . && node ../noahjefferson/quote-check.mjs --repo . && node ../noahjefferson/docs-check.mjs . && node ../noahjefferson/pin-check.mjs --repo .",
     "doctrine": "node ../noahjefferson/doctrine-sync.mjs --repo .",
     "branch": "node ../noahjefferson/branch-guard.mjs --repo .",
     "prepare": "node ../noahjefferson/branch-guard.mjs --repo . --install >/dev/null 2>&1 || true",
-    "pin": "node tools/hub-pin-check.mjs"
+    "pin": "node tools/hub-pin-check.mjs",
+    "palette": "node tools/palette.mjs",
+    "palette:check": "node tools/palette.mjs --check",
+    "web": "node tools/web-build.mjs",
+    "web:check": "node tools/web-build.mjs --check",
+    "a11y": "node tools/a11y.mjs",
+    "coverage": "node tools/coverage-check.mjs",
+    "walk": "node tools/walk.mjs",
+    "browser": "npm run a11y && npm run walk"
   },
   "devDependencies": {
     "@types/node": "22.19.4",
+    "axe-core": "4.12.1",
+    "playwright": "1.56.1",
     "typescript": "5.9.3"
   }
 }

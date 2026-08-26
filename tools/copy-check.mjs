@@ -87,6 +87,29 @@
  * and only its STRING LITERALS are read — the generated header names a filename
  * on two lines and none of that reaches anybody.
  *
+ * ## Regex literals are stripped too, and for the same reason
+ *
+ * A harness that asserts the banned words are ABSENT has to write them down:
+ *
+ *     check(!/streak|badge|great job/i.test(closing), 'nothing congratulating anybody')
+ *
+ * That line is the rule being enforced, and this gate failed on it four times in
+ * one sitting — on the release notes, on a test about accommodations, on the
+ * §7f diagnostic, and on the walk. Every one of them was the same shape, and
+ * every one of them was the rule keeping itself.
+ *
+ * A REGEX LITERAL IS A PATTERN, NOT COPY. Nothing inside `/…/` is ever shown to
+ * anybody, so it is removed before matching, exactly as comments are. This is a
+ * rule about SYNTAX rather than an exemption for a file — the same file's plain
+ * strings are still read, so a harness that actually printed praise would still
+ * be caught.
+ *
+ * The stripping is CONSERVATIVE about what counts as a regex, because `/` is
+ * also division: only a literal preceded by an operator, a bracket, a comma or
+ * the start of an expression, containing no unescaped `/`. Anything ambiguous
+ * is left in and therefore still scanned, which is the direction that fails
+ * closed.
+ *
  * ## Comments are stripped first, and that is load-bearing
  *
  * The comments are exactly where the words that must NOT be built are written
@@ -135,7 +158,17 @@ const GENERATED_NOTES = 'src/report/releases.ts';
 const PRAISE = [
   [/\bstreaks?\b/i, 'a streak makes stopping feel like failing'],
   [/\bbadges?\b/i, 'a badge is a thing to chase instead of a thing to learn'],
-  [/\b(?:points|score|scored|scoring|high\s*score)\b/i, 'a score is a number about a person, not about a mistake'],
+  [/\b(?:score|scored|scoring|high\s*score)\b/i, 'a score is a number about a person, not about a mistake'],
+  // POINTS AS A REWARD, never the bare word. `points` on its own fired on
+  // `maxTouchPoints` in the §7f diagnostic — the one property that tells an
+  // iPad from a Mac, since iPadOS Safari reports itself as macOS, so the
+  // doctrine effectively requires that line to exist. A hardware count is not a
+  // number about a person, and a gate that cannot tell the difference gets
+  // worded around rather than obeyed. Same shape as the release notes needing
+  // to say "streaks" (hub LESSONS §146): the ban is on a MEANING and the
+  // pattern can only see a spelling, so the pattern has to carry the meaning.
+  [/\b\d+\s*points?\b|\bpoints?\s+(?:earned|awarded|scored|so\s+far)\b|\b(?:earn|win|lose|collect)\s+points?\b|\byour\s+points?\b/i,
+    'points are a thing to chase instead of a thing to learn'],
   [/\btrophy|trophies|medals?|stars?\s+earned\b/i, 'an award is a congratulation'],
   [/\b(?:great|nice|good|well|awesome|amazing|excellent|brilliant|perfect)\s+(?:job|work|going|done|one)\b/i, 'praise'],
   [/\bkeep\s+it\s+up\b|\byou'?re\s+on\s+a\s+roll\b|\bwell\s+done\b/i, 'praise'],
@@ -216,6 +249,21 @@ function stripComments(source) {
     .join('\n');
 }
 
+/**
+ * Remove regex literals. A pattern is not copy — see the header.
+ *
+ * Only where the `/` opens an expression: after `(`, `[`, `{`, `,`, `=`, `:`,
+ * `!`, `&`, `|`, `?`, `;`, `+`, `return`, or the start of a line. `/` is also
+ * division, and a stripper that guessed wrong in the other direction would
+ * silently delete real copy — so anything ambiguous stays in and is scanned.
+ */
+function stripRegexLiterals(source) {
+  return source.replace(
+    /(^|[(\[{,=:!&|?;+]\s*)\/(?![*/])((?:\\.|\[(?:\\.|[^\]])*\]|[^\\/\n])+)\/[gimsuyd]*/g,
+    (_match, before) => `${before}/…/`,
+  );
+}
+
 const files = sourceFiles().filter((file) => {
   const where = relative(REPO, file);
   return where !== SELF && where !== GENERATED_NOTES;
@@ -225,7 +273,7 @@ let scanned = 0;
 
 for (const file of files) {
   const where = relative(REPO, file);
-  const stripped = stripComments(readFileSync(file, 'utf8'));
+  const stripped = stripRegexLiterals(stripComments(readFileSync(file, 'utf8')));
   scanned += 1;
   const lines = stripped.split('\n');
   lines.forEach((line, i) => {

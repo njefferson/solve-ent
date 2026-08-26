@@ -169,9 +169,38 @@ has the full version, including the risk that follows from it.
   repo-local rather than a hub gate on purpose: CI fetches the hub AT that pin,
   so a shared gate validating the pin would be fetched at the commit it is
   checking. Hub LESSONS §117.
+- **THE BROWSER GETS TYPE ERASURE AND NOTHING ELSE.** A browser cannot run
+  TypeScript and a second copy of the engine would fork the one thing here that
+  must never have two versions, so `tsconfig.web.json` emits `public/app/` and
+  `erasableSyntaxOnly` is what makes "erasure only" checkable rather than
+  hopeful. **Not a bundler**: one file in, one file out, same names, same
+  imports, nothing flattened, nothing minified, no new dependency. The output is
+  COMMITTED because `public/` is the site — building at deploy would be a new
+  way for a release to silently not arrive (hub LESSONS §53) — so staleness is
+  the risk and `tools/web-build.mjs --check` runs on every commit.
+- **THE ENGINE CANNOT REACH THE DOM, AND THAT IS THE BUILD.** `tsconfig.json`
+  has no DOM in `lib` and excludes `src/ui/`; the web config adds it. An engine
+  file that touched `document` does not compile. **`exclude` is inherited
+  through `extends`**, which is how the whole browser layer once ended up
+  checked by neither project while both exited 0 —
+  `tools/coverage-check.mjs` refuses a source file that is in no project, and a
+  project that loads nothing, on every commit.
+- **COLOURS COME FROM ONE FILE.** `palettes/solve-ent.json` is the source the
+  hub's `palette-check.mjs` measures, and `tools/palette.mjs` generates
+  `public/css/tokens.css` from the same file, so what was measured and what is
+  painted cannot differ. The family is Instrument, adopted from the hub rather
+  than invented. **Never write a colour anywhere else** — the a11y gate
+  reverse-maps every rendered colour to a token and fails on one it does not
+  recognise.
+- **A NEW SURFACE JOINS `tools/a11y.mjs` IN THE SAME COMMIT.** The gate asserts
+  its state list against every `[data-surface]` in the document, so it refuses
+  rather than quietly not measuring. Eight states by two modes, dialogs opened
+  rather than skipped — most of this app's controls live inside them, and the
+  diagnosis panel only exists after a wrong step. Run `npm run browser` for the
+  gate and the walk together.
 - **No third-party runtime dependencies, and no network calls at runtime.** Node
-  strips the TypeScript, so there is no bundler and no test framework — the type
-  checker is the whole build.
+  strips the TypeScript for the tests and the tools, so there is no bundler and
+  no test framework — the type checker is the whole build.
 
 ## Running it
 
@@ -190,6 +219,12 @@ whether the engine agrees with itself — and `verify-algebra` is what answers
 that. Its strongest check substitutes the app's answer back INTO the relation
 and asks whether both sides balance, which cannot share a mistake with the
 solver.
+
+`npm run browser` runs the two that need a real browser: the accessibility gate
+over every surface in both modes with the dialogs open, and the walk — the
+primary journey with a step wrong on purpose. They are not on the commit hook
+because they take about a minute; they are in CI, and a change to any surface
+owes a local run.
 
 `npm run gates` runs the hub's shared gates. `README.md` has the harness.
 

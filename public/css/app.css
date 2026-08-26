@@ -1,0 +1,314 @@
+/* app.css — everything that is not a colour.
+ *
+ * COLOURS COME FROM tokens.css AND NOWHERE ELSE. That file is generated from
+ * palettes/solve-ent.json, which is the file the hub's palette gate measures —
+ * so a hex code written here would be a colour nothing has checked. There are
+ * none, and `tools/a11y.mjs` refuses one.
+ *
+ * Sizes are in rem against a base the reader controls, so "large" is genuinely
+ * larger and not a scale factor applied to something already fixed in pixels.
+ */
+
+:root {
+  --base: 1.0625rem;      /* 17px, which is the smallest this asks anybody to read */
+  --tap: 44px;            /* the floor for anything a finger has to hit */
+  --gap: 1rem;
+  --measure: 34rem;       /* a line length that can be read without losing the place */
+  --radius: 10px;
+  --track: 0em;
+  --leading: 1.55;
+}
+
+:root[data-text-size='large']   { --base: 1.25rem; }
+:root[data-text-size='largest'] { --base: 1.5rem; }
+
+/* Letter and line spacing, for readers who need it and nobody who does not. */
+:root[data-spacing='open'] { --track: 0.06em; --leading: 1.9; }
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: linear-gradient(180deg, var(--page), var(--page-alt));
+  background-attachment: fixed;
+  color: var(--text);
+  font: var(--base)/var(--leading) system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  letter-spacing: var(--track);
+  min-height: 100svh;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* ---------- focus ----------
+ * One rule, on :focus-visible, and it is never removed anywhere. A 3px outline
+ * with an offset, so it is visible against both the surface it sits on and the
+ * control's own edge. */
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---------- the skip link ----------
+ * Off-canvas until focused, which is a KEYBOARD route. It is not the only route
+ * to the work: the work is the first thing under the bar and a finger reaches
+ * it by looking at it. A control nobody can reach is worse than a missing one. */
+.skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--surface-raised);
+  color: var(--text);
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--rail);
+  border-radius: var(--radius);
+  z-index: 10;
+}
+.skip:focus { left: 0.5rem; top: 0.5rem; }
+
+main:focus { outline: none; }
+
+/* ---------- the bar ---------- */
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--hairline);
+}
+.wordmark {
+  /* The level-one heading. It is the app's name, which is what the page is,
+     and every page needs one — axe is right about that and a decorative span
+     was not doing the job. */
+  font-size: 1em;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  margin: 0;
+}
+
+.icon {
+  min-width: var(--tap);
+  min-height: var(--tap);
+  display: grid;
+  place-items: center;
+  font: inherit;
+  font-weight: 700;
+  font-style: italic;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--rail);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.icon:hover { background: var(--surface-raised); }
+.icon:active { background: var(--surface-pressed); }
+
+/* ---------- layout ---------- */
+main {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 1.25rem 0.9rem 4rem;
+}
+
+h2 {
+  font-size: 1.35em;
+  line-height: 1.25;
+  margin: 0 0 0.75rem;
+}
+/* The topic names are written lowercase in the engine, where they are read
+   mid-sentence. As a heading that looks like a mistake. Capitalised HERE, in the
+   presentation, rather than by changing data that other sentences depend on —
+   and only the first letter, since `capitalize` would title-case every word. */
+h2::first-letter { text-transform: uppercase; }
+h2:focus { outline: none; }
+h3 { font-size: 1.1em; margin: 1.5rem 0 0.4rem; }
+p { margin: 0 0 0.85rem; }
+.aside { color: var(--text-3); font-size: 0.94em; }
+
+/* ---------- controls ---------- */
+button {
+  font: inherit;
+  letter-spacing: inherit;
+  min-height: var(--tap);
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.primary {
+  background: var(--accent-soft);
+  color: var(--text);
+  border: 1px solid var(--rail);
+  font-weight: 600;
+}
+.primary:hover { background: var(--surface-raised); }
+.primary:active { background: var(--surface-pressed); }
+
+/* Also used on links. `min-height` does nothing to an inline box, so this is
+   inline-flex — a 138x20 link was the target the gate caught. */
+.ghost {
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--rail);
+  border-radius: var(--radius);
+  min-height: var(--tap);
+  padding: 0.6rem 1rem;
+  text-decoration: none;
+}
+a.ghost { color: var(--accent); }
+.ghost:hover { background: var(--surface); }
+
+/* ---------- choosing a topic ---------- */
+.topics { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; }
+.topic {
+  width: 100%;
+  text-align: left;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--rail);
+}
+.topic:hover { background: var(--surface-raised); }
+.topic:active { background: var(--surface-pressed); }
+
+/* ---------- the question ---------- */
+.question {
+  background: var(--surface);
+  border: 1px solid var(--rail);
+  border-radius: var(--radius);
+  padding: 0.9rem 1rem;
+  margin-bottom: 1rem;
+}
+.question-body { margin: 0; }
+.question .ghost { margin-top: 0.25rem; }
+
+.step { font-weight: 600; margin-bottom: 0.35rem; }
+.unit-hint { color: var(--text-2); font-size: 0.95em; }
+
+/* ---------- answering ---------- */
+.entry { display: grid; gap: 0.55rem; margin: 1rem 0; }
+.entry-label { color: var(--text-2); font-size: 0.95em; }
+
+input[type='text'] {
+  font: inherit;
+  letter-spacing: inherit;
+  min-height: var(--tap);
+  padding: 0.55rem 0.7rem;
+  background: var(--surface-raised);
+  color: var(--text);
+  border: 1px solid var(--rail);
+  border-radius: var(--radius);
+  width: 100%;
+}
+
+.choices { display: grid; gap: 0.6rem; }
+.choice {
+  width: 100%;
+  text-align: left;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--rail);
+}
+.choice:hover { background: var(--surface-raised); }
+.choice:active { background: var(--surface-pressed); }
+
+/* ---------- what happened at this step ----------
+ * A RAIL AND A HEADING, not a colour. Whether a step went wrong is carried by
+ * the words, so this reads the same to somebody who sees no colour at all. */
+.diagnosis {
+  background: var(--surface-raised);
+  border: 1px solid var(--rail);
+  border-left-width: 4px;
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+  margin-top: 1rem;
+}
+.diagnosis h3 { margin-top: 0; }
+.diagnosis h4 { font-size: 0.95em; color: var(--text-2); margin: 0.9rem 0 0.3rem; font-weight: 600; }
+.why { font-weight: 600; }
+.remedies { margin: 0.5rem 0 0; padding-left: 1.2rem; color: var(--text-2); }
+.remedies li { margin-bottom: 0.3rem; }
+
+.run-note {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  background: var(--surface);
+  border: 1px dashed var(--rail);
+  border-radius: var(--radius);
+}
+.run-note p { margin: 0; }
+
+.closing { margin: 0 0 1.25rem; padding-left: 1.2rem; }
+.closing li { margin-bottom: 0.5rem; }
+
+/* ---------- dialogs ---------- */
+dialog {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--rail);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.1rem 1.4rem;
+  max-width: min(38rem, calc(100vw - 1.5rem));
+  max-height: min(90svh, calc(100svh - 2rem));
+  overflow-y: auto;
+  margin: auto;
+}
+dialog::backdrop { background: rgb(0 0 0 / 0.55); }
+dialog h2 { margin-top: 0; }
+dialog fieldset {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  margin: 0 0 0.85rem;
+  padding: 0.6rem 0.75rem 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+dialog legend { color: var(--text-2); font-size: 0.92em; padding: 0 0.3rem; }
+dialog fieldset button {
+  background: var(--surface-raised);
+  color: var(--text);
+  border: 1px solid var(--rail);
+}
+dialog fieldset button[aria-pressed='true'] {
+  background: var(--accent-soft);
+  font-weight: 650;
+}
+/* A CHECK MARK, so "on" is not carried by the fill alone. */
+dialog fieldset button[aria-pressed='true']::before { content: '\2713\00a0'; }
+dialog ul { padding-left: 1.2rem; }
+dialog li { margin-bottom: 0.35rem; }
+dialog a { color: var(--accent); }
+
+.releases { list-style: none; padding: 0; }
+.releases > li { margin-bottom: 1.4rem; }
+.releases h3 { margin-top: 0; }
+.still-missing { color: var(--text-2); }
+
+.diagnostic {
+  font: 0.9em/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  background: var(--surface-raised);
+  border: 1px solid var(--rail);
+  border-radius: var(--radius);
+  padding: 0.7rem 0.8rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: auto;
+}
+
+/* ---------- for a screen reader only ---------- */
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  clip-path: inset(50%);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

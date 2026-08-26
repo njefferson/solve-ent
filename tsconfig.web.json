@@ -1,0 +1,43 @@
+{
+  // tsconfig.web.json — the ONLY thing this emits is the same type erasure Node
+  // already performs at runtime.
+  //
+  // `erasableSyntaxOnly` in the base config is what makes that claim checkable
+  // rather than hopeful: it refuses any TypeScript whose meaning is not purely
+  // annotation — no enums, no parameter properties, no namespaces — so removing
+  // the types is a deletion and never a transform. The engine already had to be
+  // written that way for `node --test` to run it. A browser needs the same
+  // erasure; the difference is only that it cannot do it itself.
+  //
+  // NOT A BUNDLER: no module graph is flattened, no dependency is resolved into
+  // the output, nothing is minified or downlevelled. One `.ts` in, one `.js`
+  // out, same names, same imports, same order. `target` matches the base config
+  // so no syntax is rewritten on the way through.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "public/app",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    // Source imports say `./foo.ts` because that is what Node runs. The emitted
+    // imports have to say `./foo.js`, which is what a browser fetches.
+    "rewriteRelativeImportExtensions": true,
+    "declaration": false,
+    "sourceMap": false,
+    "removeComments": false,
+    // The browser layer is the only thing that touches the DOM; the engine is
+    // held to `lib: es2023` by the base config and must stay that way.
+    "lib": ["es2023", "dom", "dom.iterable"],
+    "types": []
+  },
+  // `exclude` IS INHERITED THROUGH `extends`, and the base config excludes
+  // src/ui so the engine project has no DOM. Without this line that exclusion
+  // applies here too and the entire browser layer is checked by NEITHER
+  // project — which is exactly what happened: `tsc --noEmit` on both configs
+  // exited 0 over a screen that did not compile, and `--listFilesOnly` reported
+  // zero files under src/ui. `tools/coverage-check.mjs` now refuses a tree
+  // where any source file is in no project, because "checked by nobody" reads
+  // identical to "checked and fine".
+  "exclude": ["node_modules"],
+  "include": ["src/**/*.ts"]
+}
