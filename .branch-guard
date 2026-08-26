@@ -49,6 +49,14 @@ also=tools/web-check.mjs
 # checked by neither config while both exited 0.
 also=tools/coverage-check.mjs
 
+# The icons, GENERATED from palettes/solve-ent.json. An icon is the one surface
+# the accessibility gate cannot reach — it is not in the document, so nothing
+# reverse-maps its colours to a token and nothing measures its contrast. That
+# makes it the easiest place in the application for an unmeasured colour to
+# appear and stay, so the colours are read from the file the palette gate
+# measures rather than typed beside it.
+also=tools/icon-check.mjs
+
 # The service worker and the manifest, GENERATED from the version and the tree.
 # The cache name has to move with the release or everyone who already has the app
 # keeps the old shell forever — and the app cannot notice, which is what caching

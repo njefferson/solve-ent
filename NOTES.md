@@ -1435,14 +1435,39 @@ everything around it had changed. Every type check passed, the whole suite
 passed, and the run produced no code. **The arrival assertion added last session
 is what said so**, on a state whose whole job is to be the code on screen.
 
+## The icon, and why it is generated
+
+A conical flask with the liquid drawn as an EQUALS SIGN.
+
+**The equals rather than a plus, and that was a change to the first idea.** A
+plus names the one operation the seven topics barely touch — what this teaches
+is rearranging around an equals sign, using a ratio, moving powers of ten. And a
+flask with a cross on it sits in the visual grammar of pharmacy and first aid,
+which is a misread on a home screen; the instinct that goes with it pushes
+toward red, and a red cross on white is protected in many jurisdictions besides.
+
+**A solid silhouette with the sign knocked out**, not an outline with a sign
+inside it. At the size an icon is actually seen a solid shape reads first and
+thin interior strokes turn to mush. Checked by rendering it at 180, 96, 64, 32
+and 16 and looking, which is the only way to know.
+
+The corners are rounded by stroking the filled polygon in its own colour with
+`stroke-linejoin: round` — six points and one stroke width, rather than a path
+with a dozen arcs in it that nobody can adjust later.
+
+**GENERATED from `palettes/solve-ent.json` by `tools/icon.mjs`, and gated.** The
+icon is the one surface `tools/a11y.mjs` cannot reach: it is a picture rather
+than a page, so nothing reverse-maps its colours to a token and nothing measures
+its contrast. That makes it the easiest place in the application for an
+unmeasured colour to appear and stay — which is exactly what the placeholder had
+going for it, since its colours were typed with a comment saying where they came
+from. `tools/icon-check.mjs` runs on every commit and was watched going red on a
+planted `#ff0000`.
+
 ## What is NOT built, and it is most of the app
 
 Named here so nobody has to discover it by looking:
 
-- **A real icon.** The manifest points at two hand-drawn SVGs using the
-  palette's own night page and accent. They are honest placeholders, and an icon
-  is the one surface the accessibility gate cannot reach, which is why they take
-  their colours from the palette file rather than from taste.
 - **`tools/cli.ts` prints answers** and says so on every command that shows one.
 - **No resume**, nothing deployed, and no repository metadata.
 - **Nothing is deployed and no Pages project exists.** That is the owner's to

@@ -9,6 +9,32 @@ release changed something you can see or do, it is described below in the words
 you would use for it. If it changed something under the surface that you cannot
 see, it says that plainly rather than dressing it up.
 
+## 0.13.0 — ITERATION
+
+**There is a real icon now.** A conical flask, with the liquid in it drawn as an
+equals sign.
+
+The flask is the chemistry — it is the one piece of glassware everybody
+recognises at the size an icon is actually seen. The equals is the maths, and it
+is the right sign for this in particular: what this teaches is rearranging
+around an equals sign, using a ratio, moving powers of ten. A plus would have
+named the one operation the seven topics barely touch, and a flask with a cross
+on it looks like a first-aid app.
+
+It is a solid shape with the sign cut out of it rather than an outline with a
+sign inside, because at 32 pixels a solid shape reads and thin lines inside one
+do not. There is a second version for the phones and tablets that crop an icon
+to a circle, with the flask kept well inside what survives the crop.
+
+**The colours are read from the same file everything else here is coloured
+from.** An icon is the one part of an app that the readability checks cannot
+reach — it is a picture, not a page — so it was the easiest place for a colour
+nobody had ever measured to sit unnoticed. It is generated from the palette now,
+and a check refuses to let the two drift apart.
+
+**Still missing:** a set closed part-way through is still lost, since the code
+only exists at the end. Nothing is deployed yet.
+
 ## 0.12.0 — CAPABILITY
 
 **Codes are read a stack at a time.** Paste the whole lot into the box — one per

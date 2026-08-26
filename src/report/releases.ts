@@ -48,10 +48,21 @@ export const NOTES_PAGE = '/whats-new';
  * it non-zero, which is also the first release on which that branch had ever
  * been reachable.
  */
-export const OLDER_THAN_SHOWN: number = 8;
+export const OLDER_THAN_SHOWN: number = 9;
 
 /** Newest first. */
 export const RELEASES: readonly Release[] = [
+  {
+    version: '0.13.0',
+    kind: 'ITERATION',
+    lines: [
+      'There is a real icon now. A conical flask, with the liquid in it drawn as an equals sign.',
+      'The flask is the chemistry — it is the one piece of glassware everybody recognises at the size an icon is actually seen. The equals is the maths, and it is the right sign for this in particular: what this teaches is rearranging around an equals sign, using a ratio, moving powers of ten. A plus would have named the one operation the seven topics barely touch, and a flask with a cross on it looks like a first-aid app.',
+      'It is a solid shape with the sign cut out of it rather than an outline with a sign inside, because at 32 pixels a solid shape reads and thin lines inside one do not. There is a second version for the phones and tablets that crop an icon to a circle, with the flask kept well inside what survives the crop.',
+      'The colours are read from the same file everything else here is coloured from. An icon is the one part of an app that the readability checks cannot reach — it is a picture, not a page — so it was the easiest place for a colour nobody had ever measured to sit unnoticed. It is generated from the palette now, and a check refuses to let the two drift apart.',
+    ],
+    stillMissing: 'a set closed part-way through is still lost, since the code only exists at the end. Nothing is deployed yet.',
+  },
   {
     version: '0.12.0',
     kind: 'CAPABILITY',
@@ -97,19 +108,5 @@ export const RELEASES: readonly Release[] = [
       'And the closing screen had never been checked for readability. The accessibility sweep is supposed to walk every screen in both light and dark and measure the contrast, the tap targets and the focus outlines. The part of it that drives a set to the end could not actually finish one, so it sat on the question screen and reported everything it measured under the name of the closing screen — for every release there has been. It reaches the end properly now, and the closing screen passed the first time it was really looked at.',
     ],
     stillMissing: 'there is no way to do the arithmetic inside the app yet, so a calculator is still a second thing to have in front of you. Nothing can be handed in and there is no page for whoever set the work. The icon is still a simple drawing rather than a proper one.',
-  },
-  {
-    version: '0.8.0',
-    kind: 'CAPABILITY',
-    lines: [
-      'You can choose how the questions are set now. Pick a topic and it asks which kind of question you want before it starts.',
-      'They have names rather than numbers, and the name says what the question does: cancelling units offers two steps, three steps or four steps; powers offers squares, then cubes and roots, then past a cube; significant figures offers one rule, either rule, then two rules in order. Every one of them is there the first time you open it. Nothing is locked, nothing has to be earned, and nothing switches you to a different one because of how a run went.',
-      'Two topics were offering a choice that changed nothing. This is worth being plain about, because the setting has existed since the first release and every question you have ever been given came at the first one.',
-      'When each was measured against the one below it, six of the fourteen steps produced questions nobody could tell apart — bigger numbers, and nothing else. So the topics now offer what they actually have. Proportions has one kind of question. Fractions has two. The other five have three each.',
-      'Fractions can hand you the rate upside down. Instead of "the concentration is 4.00 mol/L" you get "the volume one mole takes up is 0.250 L/mol", and the first thing it asks is to turn that over. This is what the topic is named for and it had never once been asked.',
-      'Cancelling units goes up to four conversions in a row, which is where the long chemistry questions live — a volume of liquid weighed, turned into moles, and then into particles or into the volume it fills as a gas.',
-      'Two things were found while measuring all of this and both are fixed. A proportion question could ask you to work out a number that was already printed in the question, when a recipe took one mole of the first substance. And on a long conversion, turning one factor over and turning the whole chain over could come to the same answer, so being told which one happened would have been a guess.',
-    ],
-    stillMissing: 'nothing can be handed in and there is still no page for whoever set the work. Proportions has one kind of question because a second one means asking about two reactions in a row, and that is a question this has never posed — it is for whoever is teaching to ask for, not for this to decide. The icon is still a simple drawing rather than a proper one.',
   },
 ];
