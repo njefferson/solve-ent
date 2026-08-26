@@ -1,0 +1,27 @@
+{
+  "name": "solve-ent",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Algebra-skills trainer for chemistry — domain engine and error taxonomy.",
+  "type": "module",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "test": "node --test 'test/**/*.test.ts'",
+    "typecheck": "tsc --noEmit",
+    "algebra": "node tools/verify-algebra.mjs",
+    "version:check": "node tools/version-check.mjs",
+    "cli": "node tools/cli.ts",
+    "check": "npm run typecheck && npm run version:check && npm test && npm run algebra",
+    "gates": "node ../noahjefferson/branch-guard.mjs --repo . && node ../noahjefferson/privacy-check.mjs --repo . && node ../noahjefferson/quote-check.mjs --repo . && node ../noahjefferson/docs-check.mjs . && node ../noahjefferson/pin-check.mjs --repo .",
+    "doctrine": "node ../noahjefferson/doctrine-sync.mjs --repo .",
+    "branch": "node ../noahjefferson/branch-guard.mjs --repo .",
+    "prepare": "node ../noahjefferson/branch-guard.mjs --repo . --install >/dev/null 2>&1 || true"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.4",
+    "typescript": "5.9.3"
+  }
+}

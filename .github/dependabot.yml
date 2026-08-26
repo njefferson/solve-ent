@@ -1,0 +1,29 @@
+# Doctrine §16.1 — pin what executes, then keep the pins current.
+#
+# SHA-pinning actions makes them safe but frozen; without this file the pins
+# quietly rot and stop receiving security fixes. Dependabot updates the SHA and
+# the trailing version comment together.
+#
+# zizmor's own pin is NOT here: it lives in the hub's
+# `.github/requirements-ci.txt`, which this repository's CI checks out and
+# installs from rather than carrying a copy. One pin, every app.
+
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "Keep a build tool up to date"
+    labels:
+      - dependencies
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "Keep a build tool up to date"
+    labels:
+      - dependencies

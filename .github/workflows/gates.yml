@@ -1,0 +1,133 @@
+name: Gates
+
+# Everything that can be checked without a person looking at a screen.
+#
+# The privacy gate is here from this repository's FIRST workflow, per Doctrine
+# §9b: a repository that waits to be caught by somebody running the script by
+# hand is not gated. It runs the hub's CANONICAL copy rather than a fork, so a
+# pattern widened in the hub binds here on the next push with no copy to drift.
+#
+# Nothing in this job pushes, and nothing in it needs a token, so the checkout
+# leaves no credential in .git/config for whatever step gets added next year.
+#
+# THERE IS NO DEPLOY JOB, and that is not an omission. There is no screen and
+# no Cloudflare Pages project yet — a deploy job with nothing to deploy is a
+# workflow that goes green while doing nothing, which is the shape of a gate
+# nobody can trust.
+
+# `staging` and `main` only, deliberately. The harness's own `claude/*` branch
+# is kept pointing at the same commit as `staging`, so listing it here would buy
+# no coverage and cost a second full run of identical bytes on every push.
+on:
+  push:
+    branches: [main, staging]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gates-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # The hub commit this repository has reconciled with. Moved by
+  # `doctrine-sync.mjs --adopt`, and this pin moves with it — CI runs the hub's
+  # canonical gates AT THIS SHA, so leaving it behind would mean every gate
+  # going green while running a check that had never heard of the rule it is
+  # supposed to enforce.
+  HUB_SHA: 18e141243215589e7358f9d0576367acc9d9bb78
+
+jobs:
+  gates:
+    name: Gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The hub, at an untracked path, pinned by SHA. `.hub` is the name the
+      # hub's own gates know to skip when they walk a sibling's tree.
+      - name: Check the hub out for the shared gates
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: njefferson/noahjefferson
+          ref: ${{ env.HUB_SHA }}
+          path: .hub
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      # ---- the doctrine gates ----
+      #
+      # FIRST, deliberately. A step that fails stops the job, so anything after
+      # it is skipped — and a privacy gate sitting behind a long test run is a
+      # HARD gate that silently does not run on the day the tests break.
+      # Cheapest and most important first.
+
+      - name: The owner's person is not repo material
+        run: node .hub/privacy-check.mjs --repo .
+
+      - name: Every set-apart quotation says whose words it is
+        run: node .hub/quote-check.mjs --repo .
+
+      - name: No grids in anything the owner reads
+        run: node .hub/docs-check.mjs .
+
+      - name: npm hygiene
+        run: node .hub/pin-check.mjs --repo .
+
+      # --artefact, NOT the plain check. The plain check also asserts that
+      # `.git/hooks/pre-commit` is installed, which is a fact about ONE CLONE,
+      # and `actions/checkout` leaves `.git/hooks` empty by definition — so a
+      # runner can never satisfy it and the step would fail on every push. What
+      # a runner CAN check is that the tracked hook still matches what
+      # `.branch-guard` declares, which is the drift that matters. Never
+      # `--install` here instead: that WRITES the tracked file and repairs the
+      # one defect the step exists to find. (Hub LESSONS 107.)
+      - name: The branch guard has not drifted from what it declares
+        run: node .hub/branch-guard.mjs --repo . --artefact
+
+      # ---- the engine's own checks ----
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: The release triplet is written once
+        run: npm run version:check
+
+      # Prints the two numbers this project is measured by: the taxonomy
+      # collision count, which must be zero, and the unclassified rate.
+      - name: Tests
+        run: npm test
+
+      # FROM OUTSIDE THE ENGINE, which is the point. `npm test` is thorough and
+      # self-referential in one way: solve() produces the answer, the test
+      # writes it down, and classify accepts it — all three could share one
+      # mistake and stay green. This substitutes every rearranged answer back
+      # INTO its own relation, recomputes six topics by hand, and holds every
+      # conversion factor to a value typed in from a published source.
+      - name: The algebra, checked without asking the engine to mark its own work
+        run: npm run algebra
+
+      - name: Install zizmor (version- and hash-pinned by the hub)
+        run: |
+          python3 -m venv "$RUNNER_TEMP/zizmor"
+          "$RUNNER_TEMP/zizmor/bin/pip" install --quiet --only-binary=:all: \
+            --require-hashes -r .hub/.github/requirements-ci.txt
+
+      # --strict-collection is not optional. Without it an unparseable workflow
+      # is logged, skipped, and the audit still exits 0 with "No findings" — the
+      # file most likely to be wrong is the one excused.
+      - name: Workflow security audit
+        run: |
+          "$RUNNER_TEMP/zizmor/bin/zizmor" --offline --strict-collection \
+            .github/workflows/

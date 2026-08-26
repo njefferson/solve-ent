@@ -1,0 +1,12 @@
+# Solve-ent commits to `staging`. `main` is production: it is the Cloudflare
+# Pages production branch, so a commit landing there is a commit landing on the
+# address a class opens. Promotion is a merge, said out loud.
+work=staging
+promote=main
+escape=SOLVENT_PROMOTE
+
+# Run on EVERY commit, including a promote, because it is about what is being
+# committed rather than where. The release triplet is one number in several
+# places, and the failure mode is a build reporting a version its code is not —
+# which sends the next screenshot after a defect that was fixed two releases ago.
+also=tools/version-check.mjs
