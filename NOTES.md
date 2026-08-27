@@ -1643,10 +1643,23 @@ wrong in the comfortable direction: a green tick on a suspiciously fast run is
 exactly what a workflow looks like when a glob matched nothing.
 
 **Dependabot opened two pull requests within a minute of the first push** —
-TypeScript 5.9.3 to 7.0.2 and `@types/node` 22.19.4 to 26.2.0 — and both are
-green. Neither is merged. MoleBridge already pins TypeScript 7.0.2, so the
-family standard is the newer one; whether to take a major bump is the owner's
-call and not a session's.
+TypeScript 5.9.3 to 7.0.2 and `@types/node` 22.19.4 to 26.2.0. **Both are
+settled.** The TypeScript bump was taken, so this repository pins 7.0.2, which
+is the standard MoleBridge was already on; the `@types/node` bump was declined,
+so that pin stays at 22.19.4. Neither pull request is open.
+
+**This paragraph said "neither is merged" for a week after both were decided**,
+one screen away from a `package.json` that says 7.0.2 — and it was read back as
+an open question and offered as a choice that had already been made. There is
+no gate behind a sentence recording something as NOT YET DONE: nothing fails
+when it comes true, so it survives the event it describes and then outranks the
+manifest in the only place a session actually looks. It is the same shape the
+hub already corrected once, where one file gave two answers to which apps had
+patch notes.
+
+**So: the commit that settles a pending decision is the commit that edits the
+note recording it.** And when a note and a manifest disagree, the manifest is
+the answer — check it before handing the question back.
 
 ## Waiting on the owner
 
