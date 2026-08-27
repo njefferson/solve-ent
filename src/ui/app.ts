@@ -414,13 +414,20 @@ const SCRATCH_KEYS: readonly { readonly key: string; readonly says: string; read
  * the reader chose in the order they chose them, which is what a calculator on
  * the desk beside them would do — and the reason that is not a solver is that
  * choosing what to multiply is the entire thing being taught.
+ *
+ * IT LIVES IN THE CHROME, adopted from MoleBridge. It used to be a disclosure
+ * under the answer box, below the button that checks the step, which on a
+ * tablet with the keyboard raised is off the bottom of the screen — and a
+ * reader looking at a whole work screen reported there was no calculator. That
+ * reading was correct. The node also had to be MOVED between the work screen
+ * and the drill to exist on both, which is a mechanism that only exists because
+ * the control was inside a screen; in the chrome there is one of it and it
+ * never goes anywhere.
  */
-function wireScratch(): void {
-  const line = $('#scratch-line') as HTMLInputElement;
-  const result = $('#scratch-result');
-  const use = $('#scratch-use') as HTMLButtonElement;
-  const body = $('#scratch-body');
-  const toggle = $('#scratch-toggle');
+function wireCalculator(): void {
+  const line = $('#calc-line') as HTMLInputElement;
+  const result = $('#calc-result');
+  const use = $('#calc-use') as HTMLButtonElement;
 
   const show = (): void => {
     const worked = evaluate(line.value);
@@ -436,15 +443,9 @@ function wireScratch(): void {
     use.disabled = true;
   };
 
-  toggle.addEventListener('click', () => {
-    const open = body.hidden;
-    body.hidden = !open;
-    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    if (open) line.focus();
-  });
   line.addEventListener('input', show);
   for (const { key, says, puts } of SCRATCH_KEYS) {
-    const button = make('button', { type: 'button', class: 'scratch-key', 'aria-label': says }, key);
+    const button = make('button', { type: 'button', class: 'calc-key', 'aria-label': says }, key);
     button.addEventListener('click', () => {
       if (key === 'C') line.value = '';
       else if (key === '⌫') line.value = line.value.slice(0, -1);
@@ -452,55 +453,66 @@ function wireScratch(): void {
       show();
       line.focus();
     });
-    $('#scratch-keys').append(button);
+    $('#calc-keys').append(button);
   }
+
+  $('#open-calc').addEventListener('click', () => {
+    // WHETHER THERE IS ANYWHERE TO PUT A RESULT is a fact about the screen
+    // underneath, so it is read at the moment the panel opens rather than kept
+    // in a variable that some other path would have to remember to update.
+    const somewhere = answerField() !== null;
+    use.hidden = !somewhere;
+    $('#calc-nowhere').hidden = somewhere;
+    openDialog('calc');
+    show();
+    line.focus();
+  });
+
   use.addEventListener('click', () => {
     const worked = evaluate(line.value);
     if (worked.kind !== 'value') return;
-    // WHICHEVER ANSWER FIELD IS ON SCREEN. The scratch line serves the work
-    // screen and the drill, and they name their fields differently.
-    const field = document.querySelector<HTMLInputElement>('#answer, #drill-answer');
-    if (field === null) {
-      say('There is nowhere to put it on this step.');
-      return;
-    }
+    const field = answerField();
+    if (field === null) return;
     // THE VALUE, NOT A ROUNDED ONE. What the step asks for is a number written
     // to so many significant figures, and rounding it here would do that part
     // of the question — which is a topic in its own right — without saying so.
     field.value = String(worked.value);
+    // AND THE PANEL GETS OUT OF THE WAY. Putting the number in the box and then
+    // leaving a modal over the box is the friction this control exists to
+    // remove: the next thing the reader wants is the answer field.
+    ($('#calc') as HTMLDialogElement).close();
     field.focus();
     say('That is in the answer box. Round it to the figures the step asks for.');
   });
+
   show();
 }
 
 /**
- * Put the scratch line away between steps, and empty it.
+ * The answer box on whichever screen is up, or null where there is not one.
  *
- * AND HIDE IT ENTIRELY WHERE THERE IS NOTHING TO WORK OUT. On a step that asks
- * which of three rearrangements is right, a keypad and a "put this in the
- * answer" control say the step wants a number — so a reader looks for the
- * numbers, and there are none. The control could not even work there: the
- * button's own handler had a branch apologising that a choice step has nowhere
- * to put a result, which is a control admitting it was offered in the wrong
- * place rather than not being offered.
+ * The work screen and the drill name their fields differently, and a step that
+ * asks a reader to CHOOSE has no field at all.
  */
-function resetScratch(kind: string = 'NUMERIC', after: HTMLElement = $('#entry')): void {
-  const scratch = $('#scratch');
-  // MOVED, NEVER COPIED. A drill on "doing the arithmetic" had no way to do any
-  // arithmetic: the scratch line was built into the work screen and the drill
-  // is a different screen, so the whole point of it — that nothing else needs
-  // to be in front of you — held on one screen and not the other. Appending
-  // MOVES the node, so there is one of it and one set of listeners rather than
-  // two blocks to keep in step.
-  after.after(scratch);
-  scratch.hidden = kind === 'CHOICE';
-  const line = $('#scratch-line') as HTMLInputElement;
+function answerField(): HTMLInputElement | null {
+  return document.querySelector<HTMLInputElement>('#answer, #drill-answer');
+}
+
+/**
+ * Empty the calculator.
+ *
+ * PER QUESTION, NOT PER STEP — the same rule the working log follows. A number
+ * worked out on step one is often the number step two needs, so wiping it
+ * between steps would take away the thing that stops a reader reaching for a
+ * phone. Carrying it into a NEW question would leave one question's arithmetic
+ * sitting under another question's prompt, which is the failure the working log
+ * already names.
+ */
+function clearCalculator(): void {
+  const line = $('#calc-line') as HTMLInputElement;
   line.value = '';
-  $('#scratch-result').textContent = '';
-  ($('#scratch-use') as HTMLButtonElement).disabled = true;
-  $('#scratch-body').hidden = true;
-  $('#scratch-toggle').setAttribute('aria-expanded', 'false');
+  $('#calc-result').textContent = '';
+  ($('#calc-use') as HTMLButtonElement).disabled = true;
 }
 
 /**
@@ -537,7 +549,6 @@ function renderWork(): void {
   renderStepPlace(problem, stage);
   renderWorking();
   renderEntry(problem, stage);
-  resetScratch(stage.kind);
   $('#diagnosis').hidden = true;
   renderReadAloud(problem, stage);
   show('work');
@@ -593,7 +604,10 @@ function answer(entry: Parameters<typeof submit>[1]): void {
     // A NEW QUESTION STARTS AN EMPTY LIST. The working belongs to the question
     // it was done on; carrying it forward would put one question's numbers
     // beside another question's prompt, which is worse than showing nothing.
-    if (result.session.problemIndex !== wasOn) run.working = [];
+    if (result.session.problemIndex !== wasOn) {
+      run.working = [];
+      clearCalculator();
+    }
     say('That step is right. Next one.');
     if (run.session.finished) {
       renderDone();
@@ -830,7 +844,6 @@ function renderDrill(item: DrillItem): void {
   unitNode.hidden = unit === '';
 
   $('#drill-diagnosis').hidden = true;
-  resetScratch(item.stage.kind, $('#drill-entry'));
   renderDrillEntry(item);
   show('drill');
 }
@@ -1461,7 +1474,7 @@ export function boot(storeForTests?: Store): void {
     },
   });
 
-  wireScratch();
+  wireCalculator();
   globalThis.addEventListener('hashchange', route);
 
   const seenWelcome = store.get('solvent.welcomed') === VERSION || store.get('solvent.welcomed') === 'yes';

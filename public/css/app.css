@@ -115,6 +115,20 @@ main:focus { outline: none; }
   border-radius: 50%;
   cursor: pointer;
 }
+/* A DRAWN GLYPH ON A BUTTON STYLED FOR A LETTER. The (i) is an italic bold
+ * character and the calculator is a picture, so the picture carries its own
+ * size and inherits the colour — `currentColor` means the a11y gate reverse-maps
+ * it to the same text token as everything else rather than meeting a stroke
+ * colour it has never heard of. */
+.icon-glyph {
+  width: 1.15rem;
+  height: 1.15rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 .icon:hover { background: var(--surface-raised); }
 .icon:active { background: var(--surface-pressed); }
 
@@ -259,22 +273,30 @@ a.ghost { color: var(--accent); }
  * finger, and × and ÷ are two keyboard layers away on most of them — far enough
  * that a reader picks up a phone instead, which is the thing this exists to
  * stop. Every key is on the same `--tap` floor as everything else a finger has
- * to hit, and the field still takes typed input for whoever has a keyboard. */
-.scratch { margin: 0.25rem 0 1rem; }
-.scratch-body { display: grid; gap: 0.55rem; }
-.scratch-result {
+ * to hit, and the field still takes typed input for whoever has a keyboard.
+ *
+ * IN A DIALOG NOW rather than under the answer box. The rules below stopped
+ * needing a wrapper and a body of their own the moment the panel became the
+ * wrapper — the disclosure they were laid out for is what a reader could not
+ * find. */
+/* `[open]` IS LOAD-BEARING. A closed dialog is hidden by the user agent's own
+ * `dialog:not([open]) { display: none }`, and an id selector outranks it — so
+ * `#calc { display: grid }` would put the calculator on the screen permanently,
+ * on top of everything, with no way to close it. */
+#calc[open] { display: grid; gap: 0.15rem; }
+.calc-result {
   margin: 0.5rem 0;
   min-height: 1.4em;
   color: var(--text-2);
   font-weight: 600;
 }
-.scratch-keys {
+.calc-keys {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.4rem;
   margin: 0.6rem 0;
 }
-.scratch-key {
+.calc-key {
   font: inherit;
   min-height: var(--tap);
   min-width: var(--tap);
@@ -284,7 +306,7 @@ a.ghost { color: var(--accent); }
   color: var(--text);
   cursor: pointer;
 }
-.scratch-key:active { background: var(--surface-pressed); }
+.calc-key:active { background: var(--surface-pressed); }
 
 /* ---------- the completion code ----------
  *

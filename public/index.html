@@ -38,6 +38,33 @@
     contrast gate can see it.
   -->
   <span class="stamp" id="build-stamp" title="The version you are running"></span>
+  <!--
+    THE CALCULATOR IS IN THE CHROME, which is where MoleBridge has always kept
+    its own — same teacher, same students, and a tool that moves depending on
+    which screen you are on is a tool that has to be found again each time.
+
+    IT USED TO BE A DISCLOSURE UNDER THE ANSWER BOX, below "Check this step",
+    and on a tablet with the keyboard up that is off the bottom of the screen.
+    A reader looked at a whole work screen and reported that there was no
+    calculator — which is the honest reading of a control nobody can see. Its
+    presence in the source had been answering "can they do the arithmetic here"
+    for everybody afterwards while the answer on the screen was no.
+  -->
+  <button type="button" id="open-calc" class="icon" aria-haspopup="dialog" aria-label="Calculator">
+    <!-- A KEYPAD, drawn rather than written: the wordmark's italic serif makes
+         a poor calculator, and a glyph stroked in currentColor inherits the
+         text token, so the contrast gate measures it like everything else. -->
+    <svg class="icon-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <rect x="4.5" y="2.5" width="15" height="19" rx="2.5"/>
+      <line x1="8" y1="7" x2="16" y2="7"/>
+      <line x1="8.5" y1="12" x2="8.5" y2="12"/>
+      <line x1="12" y1="12" x2="12" y2="12"/>
+      <line x1="15.5" y1="12" x2="15.5" y2="12"/>
+      <line x1="8.5" y1="16.5" x2="8.5" y2="16.5"/>
+      <line x1="12" y1="16.5" x2="12" y2="16.5"/>
+      <line x1="15.5" y1="16.5" x2="15.5" y2="16.5"/>
+    </svg>
+  </button>
   <button type="button" id="open-info" class="icon" aria-label="About Solve-ent, settings and what changed">
     <span aria-hidden="true">i</span>
   </button>
@@ -65,7 +92,7 @@
          reader presses to begin and stays permanently reachable afterwards. -->
     <div id="orientation">
       <p><strong>This is practice for the algebra a chemistry calculation needs</strong> — rearranging a formula, using a ratio, moving powers of ten, cancelling units, and keeping the right number of figures. Seven kinds of move, and nothing else.</p>
-      <p><strong>It does not solve the question for you.</strong> There is a scratch line on every step for the arithmetic, because you should not need a second thing in front of you to work out a number — but choosing what to multiply, and which way up to put it, is the whole of what this is for and it never does that part. Free tools already work these out and already show the steps. What this does instead is look at a wrong answer and work out <em>which</em> mistake produces that exact number — the ratio used upside down, the exponent multiplied instead of raised, a conversion factor turned the wrong way — and tell you that.</p>
+      <p><strong>It does not solve the question for you.</strong> There is a calculator in the bar at the top, on every screen, because you should not need a second thing in front of you to work out a number — but choosing what to multiply, and which way up to put it, is the whole of what this is for and it never does that part. Free tools already work these out and already show the steps. What this does instead is look at a wrong answer and work out <em>which</em> mistake produces that exact number — the ratio used upside down, the exponent multiplied instead of raised, a conversion factor turned the wrong way — and tell you that.</p>
       <p><strong>And it refuses to guess.</strong> When two different mistakes would produce answers nobody could tell apart, it will not ask that question at all. When it cannot work out what happened, it says so rather than picking something that sounds likely.</p>
       <p>Nothing you type is sent anywhere. There is no account, no sign-in and nothing stored about you.</p>
       <p class="aside">The name is a pun: solve, and solvent. That is the only time it will be mentioned.</p>
@@ -162,30 +189,6 @@
     <p id="unit-hint" class="unit-hint" hidden></p>
     <div id="read-aloud" hidden></div>
     <div id="entry" class="entry"></div>
-    <!-- WORKING IT OUT, without leaving the app. A reader on a tablet who has
-         to open a calculator has left the question behind, and what they work
-         out there has to be carried back by hand. This is not a solver: it
-         multiplies the numbers the reader chose, in the order they chose, and
-         it never rounds — significant figures are one of the things being
-         taught, and rounding for them would do that step at the moment they
-         are being asked to do it. -->
-    <!-- A DIV RATHER THAN A NAMED SECTION. A named section is a landmark, and
-         one more landmark on every step is noise; the control below already
-         carries the name and says what it opens. The heading it used to have
-         was visually hidden, which put a clipped box at its own inset and made
-         the surface look as though its own styles were not applying. -->
-    <div id="scratch" class="scratch">
-      <button type="button" id="scratch-toggle" class="ghost" aria-expanded="false" aria-controls="scratch-body">
-        Work it out here
-      </button>
-      <div id="scratch-body" hidden>
-        <label for="scratch-line" class="entry-label">Anything you want to work out</label>
-        <input id="scratch-line" type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false">
-        <p id="scratch-result" class="scratch-result" role="status" aria-live="polite"></p>
-        <div id="scratch-keys" class="scratch-keys"></div>
-        <button type="button" id="scratch-use" class="ghost" disabled>Put this in the answer</button>
-      </div>
-    </div>
     <div id="diagnosis" class="diagnosis" tabindex="-1" hidden></div>
     <div id="run-note" class="run-note" hidden></div>
     <!-- A WAY OUT. Once a set had started the only exits were finishing it or
@@ -219,6 +222,34 @@
 <p id="said" class="visually-hidden" role="status" aria-live="polite"></p>
 
 <!-- ============ what's new ============ -->
+<!-- ============ the calculator ============
+
+     ARITHMETIC AND NOTHING ELSE, AND THE NOTHING ELSE IS THE FEATURE. It never
+     sees the question. It multiplies the numbers the reader chose in the order
+     they chose them, which is what a calculator on the desk beside them would
+     do — and the reason that is not a solver is that choosing what to multiply,
+     and which way up to put it, is the entire thing being taught.
+
+     IT NEVER ROUNDS. Significant figures are one of the seven topics, so a box
+     that quietly handed back 90.3 would be doing that step at the exact moment
+     a reader is being asked to do it. -->
+<dialog id="calc" aria-labelledby="calc-title">
+  <h2 id="calc-title">Calculator</h2>
+  <label for="calc-line" class="entry-label">Anything you want to work out</label>
+  <input id="calc-line" type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false">
+  <p id="calc-result" class="calc-result" role="status" aria-live="polite"></p>
+  <div id="calc-keys" class="calc-keys"></div>
+  <button type="button" id="calc-use" class="ghost" disabled>Put this in the answer</button>
+  <!-- WHY THE BUTTON IS NOT THERE, said rather than left to be worked out. On a
+       step that asks which of three rearrangements is right there is no box to
+       put a number in, and a control that vanishes with no explanation reads as
+       a fault. The calculator itself stays: somebody may still want to check
+       something before they choose. -->
+  <p id="calc-nowhere" class="aside" hidden>This step asks you to choose rather than to write a number, so there is nowhere to put one. The keys still work.</p>
+  <p class="aside">It hands back the whole number and never rounds it. How many figures an answer is entitled to is one of the things this is for, so that part is left to you.</p>
+  <button type="button" data-close class="primary">Close</button>
+</dialog>
+
 <dialog id="whats-new" aria-labelledby="whats-new-title">
   <h2 id="whats-new-title">What changed</h2>
   <ul id="whats-new-list" class="releases"></ul>

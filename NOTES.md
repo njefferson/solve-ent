@@ -1276,7 +1276,7 @@ targets against 176, which is the size of the screen that had been missing.
 that navigates before it measures needs to assert that it arrived.** The
 readings are the easy part.
 
-### The scratch line, and why it is not a solver
+### The calculator, and why it is not a solver
 
 The other half of the same requirement: the arithmetic has to be doable in the
 app. `src/num/arith.ts` reads a typed line as arithmetic and returns a number,
@@ -1286,14 +1286,14 @@ app. `src/num/arith.ts` reads a typed line as arithmetic and returns a number,
 PROGRAM in the page that also holds the grader. This grammar can produce nothing
 but a number because there is nothing else in it.
 
-**It never rounds.** Significant figures are one of the seven topics. A scratch
-line that handed back 90.3 would be doing that step for the reader at the moment
+**It never rounds.** Significant figures are one of the seven topics. A box
+that handed back 90.3 would be doing that step for the reader at the moment
 they are asked to do it — so it returns the whole value and the screen says to
 round it.
 
 **It never sees the question.** It multiplies the numbers the reader chose in
 the order they chose them. Choosing what to multiply and which way up is the
-entire thing being taught, and the scratch line has no part in it — which is
+entire thing being taught, and the calculator has no part in it — which is
 what makes a calculator here different from a solver.
 
 Two things the parser had to get right and one it got wrong first. `-2^2` is
@@ -1306,14 +1306,61 @@ one way this application cannot afford.
 The keypad exists because this is used by finger on a tablet, where × and ÷ are
 two keyboard layers away — far enough that a reader picks up a phone, which is
 the thing the requirement is about. Twenty keys, all on the `--tap` floor, and
-the a11y gate could not see a single one of them until `work-scratch` was added
-as a state: the sweep went from 180 targets to 240.
+the a11y gate could not see a single one of them until a state was added that
+opens the panel: the sweep went from 180 targets to 240.
 
-**One markup note worth keeping.** The scratch block was a `<section>` with a
+**One markup note worth keeping.** The block was a `<section>` with a
 visually-hidden heading, and the inset check went red on every `work` state: a
 clipped box sits at its own inset, so the surface read as though its own styles
-were not applying. It is a `<div>` now — the control already carries the name,
-and one more landmark per step is noise.
+were not applying. That is moot now the panel is a dialog, but the shape is
+worth carrying: a clipped box reads as broken styles rather than as a heading
+nobody can see.
+
+#### And then nobody could find it — 0.15.0
+
+**It was reported as absent, from a screenshot of the screen it was on.** The
+control was a disclosure directly under the answer box, which put it below
+*Check this step* — and on a tablet with the keyboard raised that is off the
+bottom of the screen. Everything above it read as the whole screen, so the
+honest reading of that screen was that this app has no calculator.
+
+**This is the unreachable-skip-link shape** (hub LESSONS §95, Doctrine §4): the
+feature was built, it was correct, every gate passed on it, and its presence in
+the source answered *can they do the arithmetic here* for everybody afterwards
+while the answer on the screen was no. The a11y gate measured its contrast and
+its target sizes in both modes and could not have said it was below the fold,
+because conformance is not reachability.
+
+**It is in the chrome now, beside the ⓘ, adopted from MoleBridge** — whose own
+source says the reason better than a new sentence would: a tool that moves
+depending on which screen you are on is a tool that has to be found again each
+time. Three things fell out of the move:
+
+- **The node no longer travels.** 0.14.2 made the block MOVE between the work
+  screen and the drill so it existed on both. That mechanism only existed
+  because the control lived inside a screen; in the chrome there is one of it
+  and it goes nowhere.
+- **The per-step reset became a per-question one**, matching the working log. A
+  number worked out on step one is often the number step two needs, and wiping
+  it between steps takes away the exact thing that stops a reader reaching for a
+  phone. Carrying it into a new question would put one question's arithmetic
+  under another question's prompt, which is the failure the working log already
+  names.
+- **"Put this in the answer" now closes the panel**, because the next thing
+  wanted is the box it just filled, and leaving a modal over that box is the
+  friction the control exists to remove.
+
+**A choice step has nowhere to put a number, and the panel says so.** 0.14.1
+hid the whole control there, reasoning that a keypad under a choice step says
+the step wants a number. In the chrome that reasoning no longer applies — the
+button is a permanent tool rather than a step affordance — but the *put it in*
+action still has nothing to act on, so it is withheld and the reason is
+written. A control that vanishes with no explanation reads as a fault.
+
+**`#calc[open]`, not `#calc`.** A closed dialog is hidden by the user agent's
+own `dialog:not([open]) { display: none }`, and an id selector outranks it, so
+laying the panel out as a grid without the attribute selector would have put the
+calculator permanently on screen over everything, with no way to close it.
 
 ### Two releases were pushed and no CI run was created
 

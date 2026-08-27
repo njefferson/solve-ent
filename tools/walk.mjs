@@ -253,24 +253,48 @@ for (let guard = 0; guard < 200; guard += 1) {
 
     /* ---- and the arithmetic can be done without leaving the question ---- */
     if ((await page.locator('#answer').count()) > 0) {
-      check(await page.locator('#scratch-keys').isHidden(), 'the keypad is put away until it is asked for');
-      await page.click('#scratch-toggle');
-      await page.fill('#scratch-line', '3.975×1000÷44.01');
+      // FROM THE BAR, on this screen and every other one. The control it
+      // replaced sat below the button that checks the step, which on a tablet
+      // with the keyboard up is off the bottom of the screen — so this asserts
+      // the route a finger actually has rather than that the markup exists.
+      check(await page.locator('#calc').isHidden(), 'the calculator is put away until it is asked for');
+      await page.click('#open-calc');
+      await page.fill('#calc-line', '3.975×1000÷44.01');
       await page.waitForTimeout(30);
-      const worked = (await page.locator('#scratch-result').innerText()).trim();
+      const worked = (await page.locator('#calc-result').innerText()).trim();
       const byHand = (3.975 * 1000) / 44.01;
-      check(worked === `= ${String(byHand)}`, 'a sum typed on the scratch line is worked out in the app', worked);
+      check(worked === `= ${String(byHand)}`, 'a sum typed into the calculator is worked out in the app', worked);
       check(
         !worked.includes('90.32') || String(byHand).startsWith(worked.slice(2, 7)),
         'and it is not rounded — significant figures are a step the reader is asked to do',
       );
-      await page.click('#scratch-use');
+      check(
+        await page.locator('#calc-use').isVisible(),
+        'and on a step with an answer box, it offers to put the number in it',
+      );
+      await page.click('#calc-use');
       await page.waitForTimeout(30);
       const carried = await page.locator('#answer').inputValue();
       check(carried === String(byHand), 'and it lands in the answer box rather than being copied by hand', carried);
+      check(
+        await page.locator('#calc').isHidden(),
+        'and the panel gets out of the way, since the next thing wanted is the box underneath it',
+      );
       // Put it back, so the run carries on from where it was.
       await page.fill('#answer', '');
-      await page.click('#scratch-toggle');
+    } else {
+      // A CHOICE STEP HAS NOWHERE TO PUT A NUMBER, and the panel says so rather
+      // than dropping a control with no explanation.
+      await page.click('#open-calc');
+      check(
+        await page.locator('#calc-use').isHidden(),
+        'on a step that asks for a choice, the calculator does not offer to put a number anywhere',
+      );
+      check(
+        await page.locator('#calc-nowhere').isVisible(),
+        'and it says why, rather than leaving a missing control to be read as a fault',
+      );
+      await page.locator('#calc [data-close]').click();
     }
   }
   if (shadow.problemIndex !== wasOn && !shadow.finished) {
@@ -350,19 +374,21 @@ check(
   (await page.locator('#drill-question').innerText()).trim().length > 0,
   'with the question around it for context, since a move with nothing to hold on to is not a move',
 );
-// THE SAME SCRATCH LINE, on this screen too. The whole point of it is that
-// nothing else has to be in front of you, and it held on the work screen only —
-// a drill on doing the arithmetic had no way to do any.
+// THE SAME CALCULATOR, on this screen too. It is in the chrome, so there is
+// nothing to follow the reader anywhere — which is the point. What is worth
+// asserting is that the button is still there and still knows whether this
+// screen has a box to put a number in.
 {
   const numeric = (await page.locator('#drill-answer').count()) > 0;
-  const scratchHere = (await page.locator('#drill-entry ~ #scratch').count()) > 0;
-  check(scratchHere, 'the scratch line follows the reader onto the drill screen rather than living on one screen');
+  check(await page.locator('#open-calc').isVisible(), 'the calculator is in the bar on the drill screen too');
+  await page.click('#open-calc');
   check(
-    numeric !== (await page.locator('#scratch').isHidden()),
+    numeric === (await page.locator('#calc-use').isVisible()),
     numeric
-      ? 'and it is offered on a drill step that asks for a number'
-      : 'and it stays away on a drill step that asks for a choice',
+      ? 'and it offers to put the number in the box on a drill step that asks for one'
+      : 'and it does not offer to, on a drill step that asks for a choice',
   );
+  await page.locator('#calc [data-close]').click();
 }
 
 // Wrong on purpose: the move must not advance, exactly as a whole question.

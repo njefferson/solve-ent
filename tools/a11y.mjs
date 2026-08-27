@@ -288,24 +288,41 @@ const STATES = [
     arrived: '#result',
   },
   {
-    // WORKING IT OUT, open. The keypad is behind a control, so a resting sweep
+    // THE CALCULATOR, open. The keypad is behind a control, so a resting sweep
     // never sees a single one of its keys — twenty targets and their contrast,
-    // in both modes, invisible to this gate unless the control is pressed.
-    name: 'work-scratch',
-    surface: 'work',
+    // in both modes, invisible to this gate unless the panel is opened.
+    name: 'calc-dialog',
+    surface: null,
     path: '/',
     async reach(page) {
       await page.click('#begin');
       await page.locator('#topics button').first().click();
       await page.locator('#difficulties button').first().click();
       // Past the choice, so the step is one where a worked-out number has
-      // somewhere to go.
+      // somewhere to go and the control offering to put it there is on screen.
       await driveCorrect(page, 1);
-      await page.click('#scratch-toggle');
-      await page.fill('#scratch-line', '3.975×1000÷44.01');
-      await page.locator('#scratch-line').press('End');
+      await page.click('#open-calc');
+      await page.fill('#calc-line', '3.975×1000÷44.01');
+      await page.locator('#calc-line').press('End');
     },
-    arrived: '#scratch-keys',
+    arrived: '#calc[open]',
+  },
+  {
+    // AND OPEN WHERE THERE IS NOWHERE TO PUT A NUMBER. The note explaining that
+    // is reader-facing copy on a path a resting sweep cannot reach: it needs a
+    // step that asks for a choice AND the panel open over it. Copy that is
+    // never measured is copy whose contrast nobody has checked.
+    name: 'calc-nowhere',
+    surface: null,
+    path: '/',
+    async reach(page) {
+      await page.click('#begin');
+      await page.locator('#topics button').first().click();
+      await page.locator('#difficulties button').first().click();
+      // NOT driven past anything: the first step of this topic is the choice.
+      await page.click('#open-calc');
+    },
+    arrived: '#calc-nowhere:not([hidden])',
   },
   {
     name: 'done',

@@ -9,6 +9,34 @@ release changed something you can see or do, it is described below in the words
 you would use for it. If it changed something under the surface that you cannot
 see, it says that plainly rather than dressing it up.
 
+## 0.15.0 — CAPABILITY
+
+**The calculator is in the bar at the top now, on every screen.** It was there
+before, but it sat underneath the answer box below the button that checks the
+step — which on a tablet, with the keyboard up, is off the bottom of the
+screen. Somebody working through a question read the whole screen and reported
+that there was no calculator, and they were right: a control you cannot see is
+not a control you have.
+
+Tap the keypad icon next to the ⓘ and it opens over whatever you are doing. It
+is in the same place during practice, during an assigned set and while you are
+drilling one move on its own, so it is not something to find again each time.
+
+**It still puts the number straight into the answer box**, and it closes itself
+when it does, because the next thing you want is the box it just filled. On a
+step that asks you to choose between rearrangements there is nowhere to put a
+number, so that button is not offered and the panel says why — the keys still
+work if you want to check something before choosing.
+
+**It still never rounds and it still never sees the question.** It multiplies
+the numbers you chose in the order you chose them. Working out how many figures
+an answer is entitled to is one of the seven things this is for, so that part
+is left to you.
+
+**Still missing:** it does not keep a history of what you worked out — only the
+line you are on. The working log above the question is what keeps your finished
+steps.
+
 ## 0.14.3 — ITERATION
 
 **The version you are running is on screen now**, quietly, next to the name at

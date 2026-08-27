@@ -48,10 +48,21 @@ export const NOTES_PAGE = '/whats-new';
  * it non-zero, which is also the first release on which that branch had ever
  * been reachable.
  */
-export const OLDER_THAN_SHOWN: number = 13;
+export const OLDER_THAN_SHOWN: number = 14;
 
 /** Newest first. */
 export const RELEASES: readonly Release[] = [
+  {
+    version: '0.15.0',
+    kind: 'CAPABILITY',
+    lines: [
+      'The calculator is in the bar at the top now, on every screen. It was there before, but it sat underneath the answer box below the button that checks the step — which on a tablet, with the keyboard up, is off the bottom of the screen. Somebody working through a question read the whole screen and reported that there was no calculator, and they were right: a control you cannot see is not a control you have.',
+      'Tap the keypad icon next to the ⓘ and it opens over whatever you are doing. It is in the same place during practice, during an assigned set and while you are drilling one move on its own, so it is not something to find again each time.',
+      'It still puts the number straight into the answer box, and it closes itself when it does, because the next thing you want is the box it just filled. On a step that asks you to choose between rearrangements there is nowhere to put a number, so that button is not offered and the panel says why — the keys still work if you want to check something before choosing.',
+      'It still never rounds and it still never sees the question. It multiplies the numbers you chose in the order you chose them. Working out how many figures an answer is entitled to is one of the seven things this is for, so that part is left to you.',
+    ],
+    stillMissing: 'it does not keep a history of what you worked out — only the line you are on. The working log above the question is what keeps your finished steps.',
+  },
   {
     version: '0.14.3',
     kind: 'ITERATION',
@@ -97,16 +108,5 @@ export const RELEASES: readonly Release[] = [
       'One thing that was quietly broken and is fixed: pressing through the opening screen went straight to the topics without checking for an unfinished set. The one route a person who had lost their place is most likely to take was the one route that never offered it back. Everything goes through the same check now.',
     ],
     stillMissing: 'nothing is deployed yet, so this all runs from a device that already has it.',
-  },
-  {
-    version: '0.13.0',
-    kind: 'ITERATION',
-    lines: [
-      'There is a real icon now. A conical flask, with the liquid in it drawn as an equals sign.',
-      'The flask is the chemistry — it is the one piece of glassware everybody recognises at the size an icon is actually seen. The equals is the maths, and it is the right sign for this in particular: what this teaches is rearranging around an equals sign, using a ratio, moving powers of ten. A plus would have named the one operation the seven topics barely touch, and a flask with a cross on it looks like a first-aid app.',
-      'It is a solid shape with the sign cut out of it rather than an outline with a sign inside, because at 32 pixels a solid shape reads and thin lines inside one do not. There is a second version for the phones and tablets that crop an icon to a circle, with the flask kept well inside what survives the crop.',
-      'The colours are read from the same file everything else here is coloured from. An icon is the one part of an app that the readability checks cannot reach — it is a picture, not a page — so it was the easiest place for a colour nobody had ever measured to sit unnoticed. It is generated from the palette now, and a check refuses to let the two drift apart.',
-    ],
-    stillMissing: 'a set closed part-way through is still lost, since the code only exists at the end. Nothing is deployed yet.',
   },
 ];
