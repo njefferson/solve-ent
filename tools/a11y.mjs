@@ -387,6 +387,21 @@ const STATES = [
     },
   },
   {
+    // REPORTING A PROBLEM. Its own state because the panel is only ever complete
+    // once a reason is picked — the reasons are buttons whose pressed state is
+    // carried in the accessibility tree, and an unpressed sweep measures none of
+    // the pressed colours.
+    name: 'report-dialog',
+    surface: null,
+    path: '/',
+    async reach(page) {
+      await page.click('#begin');
+      await page.click('#open-report');
+      await page.locator('[data-reason]').first().click();
+    },
+    arrived: '#report[open]',
+  },
+  {
     name: 'info-dialog',
     surface: null,
     path: '/',

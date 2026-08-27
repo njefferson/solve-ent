@@ -131,8 +131,30 @@ import { fileURLToPath } from 'node:url';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 
-/** Where reader-facing words can live. Grows to `public/` when there is a screen. */
-const ROOTS = ['src', 'tools'];
+/**
+ * Where reader-facing words can live.
+ *
+ * **`public/` IS MOST OF THE COPY IN THIS APP AND WAS NOT IN THIS LIST.** The
+ * line here used to say the roots would grow to `public/` when there was a
+ * screen; there had been a screen for many releases, and the ⓘ panel, the
+ * welcome, the update strip and every label on every control had never once
+ * been read by this gate. It printed a clean run over `src` and `tools` — where
+ * the words are mostly in code comments — and that read exactly like a clean
+ * run over the app.
+ *
+ * A stated intention in a gate is not a gate. This one had written down what it
+ * was going to cover and was believed on it.
+ */
+const ROOTS = ['src', 'tools', 'public'];
+
+/**
+ * The erased copy of `src/`, which is the same words twice.
+ *
+ * `public/app/` is `src/` with the types taken out — same strings, same
+ * comments. Scanning it would double every finding and make the count a
+ * measure of the build rather than of the copy.
+ */
+const ERASED = 'public/app';
 
 /**
  * This file is not scanned, and it is the only exemption.
@@ -153,6 +175,16 @@ const SELF = 'tools/copy-check.mjs';
  * name the thing it refuses.
  */
 const GENERATED_NOTES = 'src/report/releases.ts';
+
+/**
+ * The same notes again, as a page in the app.
+ *
+ * `public/whats-new/index.html` is generated from `CHANGELOG.md` by the same
+ * tool, so it is release-note copy living under a scanned root — and rules one
+ * to three would fail on it for the same reason they fail on the module: a note
+ * whose job is to say this app has no streaks has to say "streaks".
+ */
+const GENERATED_PAGE = 'public/whats-new/index.html';
 
 /** Rule one, with what each pattern is for. */
 const PRAISE = [
@@ -240,9 +272,18 @@ function sourceFiles() {
   return out;
 }
 
-/** Remove comments, conservatively. See the header. */
+/**
+ * Remove comments, conservatively. See the header.
+ *
+ * **HTML COMMENTS COUNT, and forgetting them is not a small miss.** The markup
+ * in this app carries long comments explaining why each control is the way it
+ * is, and those comments NAME the things the rules forbid — a comment saying
+ * there is no streak here has to say "streak". Line numbers are preserved by
+ * blanking rather than deleting, so a finding still points at the right line.
+ */
 function stripComments(source) {
   return source
+    .replace(/<!--[\s\S]*?-->/g, (block) => block.replace(/[^\n]/g, ' '))
     .replace(/\/\*[\s\S]*?\*\//g, (block) => block.replace(/[^\n]/g, ' '))
     .split('\n')
     .map((line) => (/^\s*\/\//.test(line) ? '' : line))
@@ -266,20 +307,87 @@ function stripRegexLiterals(source) {
 
 const files = sourceFiles().filter((file) => {
   const where = relative(REPO, file);
-  return where !== SELF && where !== GENERATED_NOTES;
+  if (where === SELF || where === GENERATED_NOTES || where === GENERATED_PAGE) return false;
+  // The erased build is the same words as `src/`, already scanned above it.
+  return !where.startsWith(`${ERASED}/`) && where !== ERASED;
 });
 const findings = [];
 let scanned = 0;
+
+/**
+ * A STYLESHEET HAS ONE PLACE COPY CAN REACH A READER FROM, and it is `content`.
+ *
+ * Scanning declarations reads `rgb(0 0 0 / 0.55)` as the fraction rule's "five
+ * out of seven", and would read a grid ratio or an opacity the same way. Those
+ * are not sentences and no reader ever sees them. Narrowing to `content` is not
+ * a hole: a generated `::before` label is real copy, and it is the only real
+ * copy a stylesheet has.
+ */
+function readerLines(where, stripped) {
+  if (!where.endsWith('.css')) return stripped.split('\n').map((line, i) => [i + 1, line]);
+  const out = [];
+  stripped.split('\n').forEach((line, i) => {
+    for (const [, quoted] of line.matchAll(/content\s*:\s*(['"])((?:\\.|(?!\1)[^\\])*)\1/g)) {
+      out.push([i + 1, quoted]);
+    }
+  });
+  return out;
+}
 
 for (const file of files) {
   const where = relative(REPO, file);
   const stripped = stripRegexLiterals(stripComments(readFileSync(file, 'utf8')));
   scanned += 1;
-  const lines = stripped.split('\n');
-  lines.forEach((line, i) => {
+  for (const [number, line] of readerLines(where, stripped)) {
     for (const [pattern, why] of [...PRAISE, ...BLAME, ...CLASSROOM]) {
-      if (pattern.test(line)) findings.push({ where, line: i + 1, why, text: line.trim().slice(0, 90) });
+      if (pattern.test(line)) findings.push({ where, line: number, why, text: line.trim().slice(0, 90), full: line.trim() });
     }
+  }
+}
+
+/* ---- the copy that NAMES a banned word in order to promise its absence ---- */
+//
+// A DECLARED LIST, NOT A PATTERN, and the hub's `.quote-allow` is the precedent
+// (LESSONS §108): three pattern rules measured against real violations flagged
+// 39, 138 and 227 files of honest prose, because ordinary writing and the thing
+// being forbidden are the same shape. A negation-detecting regex here would be
+// the same bet — "nothing is scored" and "you scored 5" differ by a word that
+// moves around.
+//
+// NOT A FILE EXEMPTION. This app already learned that one on `releases.ts`: a
+// whole-file pass is where material collects. Each line is declared on its own,
+// exactly, and a declaration that no longer matches anything FAILS — so
+// rewriting the sentence cannot silently leave the cover behind.
+const ALLOW = '.copy-allow';
+const declared = new Map();
+try {
+  for (const raw of readFileSync(join(REPO, ALLOW), 'utf8').split('\n')) {
+    const line = raw.trim();
+    if (line === '' || line.startsWith('#')) continue;
+    const cut = line.indexOf('|');
+    if (cut === -1) continue;
+    declared.set(`${line.slice(0, cut).trim()}\t${line.slice(cut + 1).trim()}`, false);
+  }
+} catch {
+  // No declarations is the ordinary case: nothing is covered.
+}
+const covered = [];
+for (let i = findings.length - 1; i >= 0; i -= 1) {
+  const key = `${findings[i].where}\t${findings[i].full ?? ''}`;
+  if (declared.has(key)) {
+    declared.set(key, true);
+    covered.push(findings[i]);
+    findings.splice(i, 1);
+  }
+}
+for (const [key, used] of declared) {
+  if (used) continue;
+  const [where, text] = key.split('\t');
+  findings.push({
+    where: ALLOW,
+    line: 0,
+    why: 'declares a line that is not there any more — the cover outlived the copy',
+    text: `${where}: ${text.slice(0, 70)}`,
   });
 }
 
@@ -323,6 +431,15 @@ try {
 }
 
 console.log('\n=== the words · Solve-ent ===\n');
+
+// EVERY COVERED LINE IS PRINTED, pass or fail. A declaration nobody sees is a
+// hole nobody audits, which is the failure mode a file exemption has and the
+// reason this is a list.
+for (const finding of covered) {
+  console.log(`  cover ${finding.where}:${String(finding.line)} names "${finding.why.split(' is ')[0]}" to promise its absence`);
+  console.log(`        ${finding.text}`);
+}
+if (covered.length > 0) console.log('');
 
 // A GATE THAT SCANS NOTHING MUST SAY SO. There is no screen yet, so most of
 // what this exists to cover does not exist — and a check reporting "no

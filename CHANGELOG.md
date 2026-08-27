@@ -33,9 +33,28 @@ the numbers you chose in the order you chose them. Working out how many figures
 an answer is entitled to is one of the seven things this is for, so that part
 is left to you.
 
-**Still missing:** it does not keep a history of what you worked out — only the
-line you are on. The working log above the question is what keeps your finished
-steps.
+**Reporting a problem is in the bar too, next to it.** It was five headings
+down inside the ⓘ panel before, which is where you look when you are curious
+about the app — not when it has just done something wrong and you want to say
+so. Tap the flag, pick whichever line is closest to what happened, and copy the
+report.
+
+**There is nowhere in that panel to type anything, and that is the point.** It
+means there is nothing in the report about you. It carries the version, the
+size of the screen, the kind of device and whether anything is stored — and it
+does not carry your settings. If you have text size, spacing, one-step-at-a-time
+or read-aloud switched on, none of that goes in, so reporting a fault never
+tells anybody how you have the app set up. The report says so in its own last
+line rather than asking you to take it on trust.
+
+**Under the surface:** the check that keeps score-and-praise language out of
+this app had only ever been reading the code, never the screen. It reads both
+now, which is most of the words you actually see.
+
+**Still missing:** the calculator does not keep a history of what you worked
+out — only the line you are on. The working log above the question is what
+keeps your finished steps. And the report cannot be sent from inside the app;
+it has to be copied and pasted, because nothing here reaches the internet.
 
 ## 0.14.3 — ITERATION
 

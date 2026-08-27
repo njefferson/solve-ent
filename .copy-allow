@@ -1,0 +1,17 @@
+# .copy-allow — lines that NAME a banned word in order to promise its absence.
+#
+# A gate that bans a word cannot scan the copy that says the word is absent.
+# This app already met that on `src/report/releases.ts`, where the release note
+# whose job was to say there are no streaks here had to say "streaks"; that one
+# is held to a different rule set. This file is the same problem in ordinary
+# screen copy, and it is a LIST rather than a pattern for the reason the hub's
+# `.quote-allow` is (LESSONS 108): honest prose and the thing being forbidden
+# are the same shape, so a rule that tries to tell them apart flags the app's
+# own voice.
+#
+# One line per declaration, `path | the exact line, trimmed`. A declaration that
+# matches nothing FAILS, so rewriting a sentence cannot leave its cover behind.
+# Never declare a line that actually does the banned thing — the point of the
+# entry is that the sentence PROMISES the absence.
+
+public/index.html | <p>Pick one. Five questions, one step at a time. Nothing is recorded and nothing is scored.</p>

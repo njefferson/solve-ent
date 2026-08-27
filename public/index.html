@@ -65,6 +65,21 @@
       <line x1="15.5" y1="16.5" x2="15.5" y2="16.5"/>
     </svg>
   </button>
+  <!--
+    RAPID ON PURPOSE, and adopted from MoleBridge for the reason its own source
+    gives: a bug report buried behind the ⓘ is a bug report nobody files. A
+    fifteen-year-old who hits a fault closes the tab. This app's diagnostic was
+    five headings down inside the ⓘ panel, which is where somebody looks when
+    they are already curious about the app rather than annoyed with it.
+  -->
+  <button type="button" id="open-report" class="icon" aria-haspopup="dialog" aria-label="Report a problem with Solve-ent">
+    <!-- A flag: reporting a problem is planting one rather than shouting about
+         it, and an exclamation mark beside a calculator reads as arithmetic. -->
+    <svg class="icon-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <line x1="6" y1="2.5" x2="6" y2="21.5"/>
+      <path d="M6 4h11l-2.5 4 2.5 4H6z"/>
+    </svg>
+  </button>
   <button type="button" id="open-info" class="icon" aria-label="About Solve-ent, settings and what changed">
     <span aria-hidden="true">i</span>
   </button>
@@ -222,6 +237,47 @@
 <p id="said" class="visually-hidden" role="status" aria-live="polite"></p>
 
 <!-- ============ what's new ============ -->
+<!-- ============ reporting a problem ============
+
+     NOWHERE TO TYPE, ON PURPOSE. There is no free-text box in this panel, so
+     there is nothing in a report about the person sending it — no name, no
+     roster number, no message. The report is what the app can say about itself.
+
+     AND NO ACCOMMODATION EVER REACHES IT. Text size, spacing, one-step-at-a-time
+     and read-aloud are disability information; a report carrying one would make
+     somebody disclose it by the act of reporting a fault, over a channel they
+     cannot opt out of when something is broken. The diagnostic says so in its
+     own last line rather than leaving it to be trusted. -->
+<dialog id="report" aria-labelledby="report-title">
+  <h2 id="report-title">Report a problem</h2>
+  <p>Pick whatever is closest. There is nowhere here to type anything, which is deliberate — it means there is nothing in the report about you.</p>
+
+  <fieldset>
+    <legend>What went wrong</legend>
+    <button type="button" data-reason="question">A question looked wrong</button>
+    <button type="button" data-reason="marking">A right answer was marked wrong</button>
+    <button type="button" data-reason="reason">It named a mistake that was not the mistake</button>
+    <button type="button" data-reason="reading">Something was hard to read or hard to press</button>
+    <button type="button" data-reason="stuck">Something would not work at all</button>
+    <button type="button" data-reason="other">Something else</button>
+  </fieldset>
+
+  <h3>What gets sent</h3>
+  <p>This is the whole report. Nothing else is collected.</p>
+  <pre id="diagnostic-text" class="diagnostic"></pre>
+  <button type="button" id="copy-report" class="ghost">Copy this report</button>
+
+  <h3>How to send it</h3>
+  <ol>
+    <li>Press <strong>Copy this report</strong>.</li>
+    <li>Paste it into a message to whoever you got this from. An email works; so does anything else you would send a message in.</li>
+    <li>That is all. There is nothing to explain — the report says what Solve-ent was doing.</li>
+  </ol>
+  <p class="aside">Solve-ent cannot send anything itself. It has no way to reach the internet while you use it, which is also why it keeps working when the wifi does not.</p>
+
+  <button type="button" data-close class="primary">Close</button>
+</dialog>
+
 <!-- ============ the calculator ============
 
      ARITHMETIC AND NOTHING ELSE, AND THE NOTHING ELSE IS THE FEATURE. It never
@@ -315,8 +371,10 @@
   <p>Your settings, and which version you last saw this panel for. That is all, and it stays on this device. There is no account, no sign-in, no cookie and no analytics. If work is ever set with a number attached to it, that number is a number somebody assigned — never a name, and never anything that says who you are.</p>
 
   <h3>Something is wrong with it</h3>
-  <p>Copy the lines below into a message. They say which version and which kind of device, which is usually the whole answer. <strong>They do not include your settings</strong>, on purpose.</p>
-  <pre id="diagnostic-text" class="diagnostic"></pre>
+  <!-- MOVED, NEVER COPIED (§7e). One diagnostic, in one place, reachable from
+       the bar. A second copy here would be a second thing to keep in step and a
+       second answer to "where do I report this". -->
+  <p>The flag in the bar at the top opens a report you can copy and send on. It says which version and which kind of device, which is usually the whole answer.</p>
 
   <h3>Accessibility</h3>
   <p><a href="https://noahjefferson.pages.dev/accessibility">The accessibility statement</a> covers this and the other apps here.</p>

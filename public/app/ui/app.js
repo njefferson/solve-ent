@@ -1135,13 +1135,70 @@ function diagnosticText() {
  * stamp above reports the code that is RUNNING, and on a stale app that is the
  * old code reporting itself perfectly accurately. The cache names are the only
  * thing that can tell "current" from "what this device still has".
+ *
+ * HELD RATHER THAN APPENDED. It used to be pushed onto the end of the rendered
+ * text, which was fine while the report was rendered once — the moment picking
+ * a reason re-renders it, an appended line is a line that disappears the first
+ * time somebody touches the panel.
  */
+let cacheLine = '';
 async function addCacheLine() {
     const held = await heldCaches();
-    const line = held.length === 0 ? 'stored copies: none' : `stored copies: ${held.join(', ')}`;
+    cacheLine = held.length === 0 ? 'stored copies: none' : `stored copies: ${held.join(', ')}`;
+    renderReport();
+}
+/** What went wrong, in the reader's terms rather than the app's. */
+const REPORT_REASONS = {
+    question: 'a question looked wrong',
+    marking: 'a right answer was marked wrong',
+    reason: 'the mistake it named was not the mistake',
+    reading: 'something was hard to read or hard to press',
+    stuck: 'something would not work at all',
+    other: 'something else',
+};
+/** Which one was picked, or none. Never stored, never sent, never left behind. */
+let reportReason = null;
+/**
+ * The report, rebuilt from scratch every time.
+ *
+ * WHOLE-TEXT RATHER THAN PATCHED, so what is on screen is always exactly what a
+ * copy would produce. A panel that edits its own text in place ends up with a
+ * displayed version and a copied version, and only one of them is checked.
+ */
+function renderReport() {
     const node = document.getElementById('diagnostic-text');
-    if (node !== null)
-        node.textContent = `${node.textContent ?? ''}\n${line}`;
+    if (node === null)
+        return;
+    const reason = reportReason === null ? 'not said' : (REPORT_REASONS[reportReason] ?? 'not said');
+    node.textContent = [`what went wrong: ${reason}`, diagnosticText(), cacheLine].filter((line) => line !== '').join('\n');
+    for (const button of document.querySelectorAll('[data-reason]')) {
+        button.setAttribute('aria-pressed', button.dataset['reason'] === reportReason ? 'true' : 'false');
+    }
+}
+/**
+ * The report control, in the chrome.
+ *
+ * A BUG REPORT BURIED BEHIND THE ⓘ IS A BUG REPORT NOBODY FILES — MoleBridge's
+ * reasoning, adopted whole. Somebody who has just hit a fault is annoyed, not
+ * curious, and the ⓘ is where curiosity goes.
+ */
+function wireReport() {
+    for (const button of document.querySelectorAll('[data-reason]')) {
+        button.addEventListener('click', () => {
+            // PRESSING THE SAME ONE AGAIN TAKES IT BACK. Nothing here is compulsory,
+            // and a choice with no way out is a choice somebody is stuck with.
+            reportReason = reportReason === button.dataset['reason'] ? null : (button.dataset['reason'] ?? null);
+            renderReport();
+        });
+    }
+    $('#open-report').addEventListener('click', () => {
+        renderReport();
+        openDialog('report');
+    });
+    $('#copy-report').addEventListener('click', () => {
+        const text = $('#diagnostic-text').textContent ?? '';
+        void navigator.clipboard?.writeText(text).then(() => say('The report is copied.'), () => say('Copying is not available here, so the lines can be typed out instead.'));
+    });
 }
 /* ------------------------------------------------------------------ *
  * Boot
@@ -1278,7 +1335,7 @@ export function boot(storeForTests) {
     else if (decision.remember !== null) {
         store.set(NOTES_SEEN_KEY, decision.remember);
     }
-    $('#diagnostic-text').textContent = diagnosticText();
+    renderReport();
     void addCacheLine();
     // A NEWER VERSION IS READY. The worker waits rather than taking over under
     // this page; this puts the words on screen and the reader decides when.
@@ -1300,6 +1357,7 @@ export function boot(storeForTests) {
         },
     });
     wireCalculator();
+    wireReport();
     globalThis.addEventListener('hashchange', route);
     const seenWelcome = store.get('solvent.welcomed') === VERSION || store.get('solvent.welcomed') === 'yes';
     if (seenWelcome) {

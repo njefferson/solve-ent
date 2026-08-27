@@ -43,8 +43,11 @@ export const RELEASES = [
             'Tap the keypad icon next to the ⓘ and it opens over whatever you are doing. It is in the same place during practice, during an assigned set and while you are drilling one move on its own, so it is not something to find again each time.',
             'It still puts the number straight into the answer box, and it closes itself when it does, because the next thing you want is the box it just filled. On a step that asks you to choose between rearrangements there is nowhere to put a number, so that button is not offered and the panel says why — the keys still work if you want to check something before choosing.',
             'It still never rounds and it still never sees the question. It multiplies the numbers you chose in the order you chose them. Working out how many figures an answer is entitled to is one of the seven things this is for, so that part is left to you.',
+            'Reporting a problem is in the bar too, next to it. It was five headings down inside the ⓘ panel before, which is where you look when you are curious about the app — not when it has just done something wrong and you want to say so. Tap the flag, pick whichever line is closest to what happened, and copy the report.',
+            'There is nowhere in that panel to type anything, and that is the point. It means there is nothing in the report about you. It carries the version, the size of the screen, the kind of device and whether anything is stored — and it does not carry your settings. If you have text size, spacing, one-step-at-a-time or read-aloud switched on, none of that goes in, so reporting a fault never tells anybody how you have the app set up. The report says so in its own last line rather than asking you to take it on trust.',
+            'Under the surface: the check that keeps score-and-praise language out of this app had only ever been reading the code, never the screen. It reads both now, which is most of the words you actually see.',
         ],
-        stillMissing: 'it does not keep a history of what you worked out — only the line you are on. The working log above the question is what keeps your finished steps.',
+        stillMissing: 'the calculator does not keep a history of what you worked out — only the line you are on. The working log above the question is what keeps your finished steps. And the report cannot be sent from inside the app; it has to be copied and pasted, because nothing here reaches the internet.',
     },
     {
         version: '0.14.3',

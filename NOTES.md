@@ -1395,6 +1395,75 @@ rather than letting a skipped case pass silently. Hub LESSONS §168.
 
 It was found by looking at a screenshot.
 
+### The problem report, out from behind the ⓘ
+
+The third of MoleBridge's three chrome controls, and the last of the gaps the
+enumeration found. Its reasoning is adopted whole and is worth restating: **a
+bug report buried behind the ⓘ is a bug report nobody files.** Somebody who has
+just hit a fault is annoyed rather than curious, and the ⓘ is where curiosity
+goes. This app's §7f diagnostic was five headings down inside that panel.
+
+**MOVED, never copied.** One diagnostic, in one place, reachable from the bar;
+the ⓘ carries a line pointing at the control and no second `<pre>`. A duplicate
+would be a second thing to keep in step and a second answer to *where do I
+report this*.
+
+**There is nowhere in the panel to type anything**, which is the privacy
+property rather than an omission: no free-text box means nothing in a report
+about the person sending it. What went wrong is picked from six lines, and
+pressing the same one again takes it back — nothing here is compulsory.
+
+**And no accommodation reaches it, asserted rather than assumed.** Text size,
+spacing, one-step-at-a-time and read-aloud are disability information; a report
+carrying one would make somebody disclose it by the act of reporting a fault,
+over the one channel they cannot avoid when something is broken. The walk sets
+every accommodation to a value a leak would show, reloads, opens the panel and
+reads the whole report back for any of them.
+
+**One mechanism note.** The cache line used to be APPENDED to the rendered text
+after `caches.keys()` answered. That was fine while the report rendered once —
+the moment picking a reason re-renders it, an appended line is a line that
+vanishes the first time anybody touches the panel. It is held in a variable and
+the whole text is rebuilt from scratch, so what is on screen is always exactly
+what a copy produces.
+
+### The words gate had never read the screen
+
+`tools/copy-check.mjs` declared `ROOTS = ['src', 'tools']` with a comment saying
+the list would grow to `public/` **when there was a screen**. There had been a
+screen for many releases. The ⓘ panel, the welcome, the update strip and every
+label on every control had never once been read by the gate that exists to keep
+score-and-praise language out of this app — and it printed a clean run over the
+code, where most of the words are in comments, which reads exactly like a clean
+run over the app.
+
+**A stated intention in a gate is not a gate.** This one had written down what
+it was going to cover and was believed on it.
+
+Growing it took three things beyond the root:
+
+- **HTML comments are comments.** The markup carries long comments explaining
+  why each control is as it is, and those comments NAME the forbidden words — a
+  comment saying there is no streak here has to say *streak*. They are blanked
+  rather than deleted so line numbers still point somewhere.
+- **`public/app/` is skipped as the same words twice.** It is `src/` with the
+  types erased; scanning it would double every finding and make the count a
+  measure of the build.
+- **A stylesheet's only reader-facing copy is `content`.** Scanning declarations
+  read `rgb(0 0 0 / 0.55)` as the fraction rule's *five out of seven*, and would
+  read a grid ratio the same way.
+
+**And the app's own promise tripped it**, which is the shape this repository has
+already met once: the start screen says *nothing is recorded and nothing is
+scored*, and a gate that bans the word cannot scan the copy that says the word
+is absent. The answer is `.copy-allow`, a DECLARED LIST rather than a pattern —
+hub LESSONS §108's reasoning, that honest prose and the thing being forbidden
+are the same shape, so a negation-detecting rule is a bet. It is not a file
+exemption, which is where material collects: each line is declared exactly, a
+declaration matching nothing FAILS so a rewrite cannot leave its cover behind,
+and **every covered line is printed on every run** whether it passes or not.
+The stale-declaration path was watched failing on a local plant.
+
 ### Two releases were pushed and no CI run was created
 
 0.9.0 and 0.10.0 both went to `staging`, both were verified against the remote —

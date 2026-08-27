@@ -662,6 +662,52 @@ check(!/\b(?:streak|badge|great job|well done)\b/i.test(drillClosing), 'and noth
 }
 
 /* ---- the release notes page, reached the way a reader reaches it ---- */
+/* ---- reporting a problem, from the bar rather than from behind the ⓘ ---- */
+//
+// THE POINT OF THE CONTROL is that somebody who has just hit a fault is annoyed
+// rather than curious, and the ⓘ is where curiosity goes. So this asserts the
+// route, that the report carries no accommodation, and that there is nowhere in
+// the panel to type anything.
+await page.goto(`${server.origin}/`);
+// The welcome only stands in front of a first visit, and by here this browser
+// has seen it. Clicking it unconditionally is how this block first failed.
+if (await page.locator('#begin').isVisible()) await page.click('#begin');
+{
+  check(await page.locator('#open-report').isVisible(), 'a problem can be reported from the bar, on every screen');
+  await page.click('#open-report');
+  check(await page.locator('#report[open]').isVisible(), 'and it opens a panel rather than a page');
+  const before = (await page.locator('#diagnostic-text').innerText()).trim();
+  check(before.includes('what went wrong: not said'), 'which says nothing went wrong until somebody says so', before.split('\n')[0]);
+  check(before.includes(VERSION), 'and carries the running version, which is usually the whole answer');
+  await page.locator('[data-reason]').first().click();
+  const after = (await page.locator('#diagnostic-text').innerText()).trim();
+  check(after !== before && !after.includes('not said'), 'picking a reason writes it into the report', after.split('\n')[0]);
+  // NOTHING ABOUT THE READER, and nothing about their accommodations. A report
+  // carrying one would make somebody disclose a disability by reporting a fault.
+  await page.evaluate(() => {
+    // Every accommodation this app has, set to something a report would show if
+    // it carried any of them. The keys are the app's own.
+    globalThis.localStorage.setItem('solvent.text-size', 'largest');
+    globalThis.localStorage.setItem('solvent.spacing', 'wide');
+    globalThis.localStorage.setItem('solvent.read-aloud', 'yes');
+    globalThis.localStorage.setItem('solvent.one-step', 'yes');
+  });
+  await page.reload();
+  if (await page.locator('#begin').isVisible()) await page.click('#begin');
+  await page.click('#open-report');
+  const carried = (await page.locator('#diagnostic-text').innerText()).toLowerCase();
+  check(
+    !/largest|wide|read.?aloud|one.?step|spacing|text ?size/.test(carried),
+    'and no accommodation reaches the report, however they are set',
+  );
+  check(carried.includes('settings: not included'), 'which the report says itself rather than leaving it to be trusted');
+  check(
+    (await page.locator('#report input, #report textarea').count()) === 0,
+    'there is nowhere in the panel to type anything, so there is nothing in it about the reader',
+  );
+  await page.locator('#report [data-close]').click();
+}
+
 await page.goto(`${server.origin}/whats-new`);
 await page.waitForTimeout(150);
 const notes = await page.locator('main').innerText();
