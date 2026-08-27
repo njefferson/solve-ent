@@ -1585,10 +1585,22 @@ rounding, because rounding makes the significant-figures decision that is itself
 a graded step. Two apps reaching the same three rules separately is worth more
 than either of them stating it.
 
+**And then its GUI was read too, which found a doctrine violation.** MoleBridge
+shows the running version in its chrome; this application had it only in the ⓘ
+panel title — and Doctrine §7b says in as many words that an About panel does
+not count, because the point is that the number lands in a screenshot nobody
+thought to compose. **That is exactly how this application's defects have been
+arriving**, and not one of those screenshots carried a version: there was no way
+to tell a live defect from one already fixed, or from a stale cached shell. It
+is in the chrome now, selectable, dimmed with a colour token rather than opacity
+so the contrast gate can see it, and the walk asserts it matches `VERSION`.
+
 **The general form, and it is the reason to read a sibling at all: a defect
 another app in this family has already found is a defect this one probably has,
 and their NOTES is where it is written down.** Ten minutes of reading against
-several sessions of finding these the hard way.
+several sessions of finding these the hard way — and the same ten minutes of
+reading their SCREEN found a rule the doctrine had been carrying the whole
+time.
 
 ## What is NOT built, and it is most of the app
 

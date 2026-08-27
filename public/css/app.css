@@ -78,6 +78,19 @@ main:focus { outline: none; }
   padding: 0.5rem 0.75rem;
   border-bottom: 1px solid var(--hairline);
 }
+/* THE RUNNING VERSION (Doctrine §7b). A serial number, not a badge: quiet, and
+   dimmed with a colour token rather than opacity so the contrast gate measures
+   what a reader actually sees. Tabular figures so it does not wobble between
+   releases, and selectable so it can be pasted instead of transcribed. */
+.stamp {
+  color: var(--text-3);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  user-select: text;
+  margin-inline-start: 0.5rem;
+  margin-inline-end: auto;
+}
+
 .wordmark {
   /* The level-one heading. It is the app's name, which is what the page is,
      and every page needs one — axe is right about that and a decorative span

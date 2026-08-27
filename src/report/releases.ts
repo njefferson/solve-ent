@@ -48,10 +48,19 @@ export const NOTES_PAGE = '/whats-new';
  * it non-zero, which is also the first release on which that branch had ever
  * been reachable.
  */
-export const OLDER_THAN_SHOWN: number = 12;
+export const OLDER_THAN_SHOWN: number = 13;
 
 /** Newest first. */
 export const RELEASES: readonly Release[] = [
+  {
+    version: '0.14.3',
+    kind: 'ITERATION',
+    lines: [
+      'The version you are running is on screen now, quietly, next to the name at the top. It was only inside the ⓘ panel before, which is no use for the thing a version is actually for: when you send a screenshot of something going wrong, the number has to be IN the screenshot. Without it there is no way to tell a problem that still exists from one already fixed, or from an old copy the device had kept.',
+      'It is small, it is selectable so it can be copied rather than typed out, and it is the real running number rather than one written down twice.',
+    ],
+    stillMissing: 'nothing new.',
+  },
   {
     version: '0.14.2',
     kind: 'ITERATION',
@@ -99,16 +108,5 @@ export const RELEASES: readonly Release[] = [
       'The colours are read from the same file everything else here is coloured from. An icon is the one part of an app that the readability checks cannot reach — it is a picture, not a page — so it was the easiest place for a colour nobody had ever measured to sit unnoticed. It is generated from the palette now, and a check refuses to let the two drift apart.',
     ],
     stillMissing: 'a set closed part-way through is still lost, since the code only exists at the end. Nothing is deployed yet.',
-  },
-  {
-    version: '0.12.0',
-    kind: 'CAPABILITY',
-    lines: [
-      'Codes are read a stack at a time. Paste the whole lot into the box — one per line — and press once. Each gets its own block, in the order they were pasted, headed by the number so it can be found against a list on paper.',
-      'A line that does not read stays where it is rather than being dropped, and says what was wrong with it and what was on the line. Underneath there are two counts: how many read and how many did not. Two numbers rather than one over the other, because one over the other reads like a mark out of something.',
-      'A number that turns up twice is pointed out and not decided about. It happens when a code is written down twice and it happens when two people were given the same number, and this cannot tell those apart, so it says which line the number appeared on before and leaves it there.',
-      'And the moves are added up across the whole stack, ordered by how much went wrong. That is the part worth taking back to the next lesson: it says what to teach again, not who to talk to.',
-    ],
-    stillMissing: 'the icon is still a simple drawing rather than a proper one, and nothing is deployed yet, so this runs from a device that already has it.',
   },
 ];

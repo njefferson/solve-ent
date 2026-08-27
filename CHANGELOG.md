@@ -9,6 +9,20 @@ release changed something you can see or do, it is described below in the words
 you would use for it. If it changed something under the surface that you cannot
 see, it says that plainly rather than dressing it up.
 
+## 0.14.3 — ITERATION
+
+**The version you are running is on screen now**, quietly, next to the name at
+the top. It was only inside the ⓘ panel before, which is no use for the thing a
+version is actually for: when you send a screenshot of something going wrong,
+the number has to be IN the screenshot. Without it there is no way to tell a
+problem that still exists from one already fixed, or from an old copy the device
+had kept.
+
+It is small, it is selectable so it can be copied rather than typed out, and it
+is the real running number rather than one written down twice.
+
+**Still missing:** nothing new.
+
 ## 0.14.2 — ITERATION
 
 Three more of the same, two of them found by reading how MoleBridge — the

@@ -30,6 +30,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { serve } from './serve.mjs';
 import { TOPIC_NAMES } from '../src/engine/problem.ts';
+import { VERSION } from '../src/version.ts';
 import { currentProblem, currentStage, startSession, submit } from '../src/engine/steps.ts';
 import { solve } from '../src/engine/problem.ts';
 import { COUNTER_SKILLS, correctEntryFor } from '../src/engine/taxonomy.ts';
@@ -87,6 +88,17 @@ check(
   'and there is exactly ONE copy of those words',
 );
 check((await page.locator('#topics button').count()) === 7, 'seven topics, and the list is closed');
+
+/* ---- the running version is on screen without opening anything ---- */
+//
+// DOCTRINE §7b, and it says an About panel does not count. The whole point is
+// that the number lands in a screenshot nobody thought to compose — which is
+// exactly how this app's defects have been arriving.
+{
+  const stamp = (await page.locator('#build-stamp').innerText()).trim();
+  check(stamp === VERSION, 'the running version is in the chrome, not only behind the (i)', stamp);
+  check(await page.locator('#build-stamp').isVisible(), 'and it is on screen without opening anything');
+}
 
 /* ---- choosing how the questions are set ---- */
 await page.locator('#topics button').first().click();

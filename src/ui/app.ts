@@ -1314,6 +1314,10 @@ export function boot(storeForTests?: Store): void {
   renderWhatsNew();
 
   $('#version').textContent = VERSION;
+  // AND IN THE CHROME, where it is on screen without anybody opening anything.
+  // Doctrine §7b: an About panel does not count, because the point is that the
+  // number lands in a screenshot nobody thought to compose.
+  $('#build-stamp').textContent = VERSION;
   $('#roster-max').textContent = String(MAX_ROSTER_NUMBER);
 
   for (const button of document.querySelectorAll<HTMLButtonElement>('[data-pref]')) {
