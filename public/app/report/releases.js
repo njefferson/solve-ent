@@ -32,9 +32,19 @@ export const NOTES_PAGE = '/whats-new';
  * it non-zero, which is also the first release on which that branch had ever
  * been reachable.
  */
-export const OLDER_THAN_SHOWN = 15;
+export const OLDER_THAN_SHOWN = 16;
 /** Newest first. */
 export const RELEASES = [
+    {
+        version: '1.0.0',
+        kind: 'VERSION',
+        lines: [
+            'This is version one. Nothing changed in it. The number moved because everything that was meant to be here is here, has been used on a real device, and has been fixed where using it showed a problem.',
+            'What that means in practice: seven topics, each one a move you cannot do a chemistry calculation without. Every question worked one step at a time, with what you have already written kept in front of you. A wrong answer that gets told back to you as which mistake produces that exact number, or says plainly that it cannot tell — never a guess. A calculator and a way to report a problem in the bar, on every screen. Difficulty chosen by you and never changed on your behalf. It works with no internet after the first visit, keeps nothing about you, and asks for nothing.',
+            'What it still will not do, on purpose. It will not solve the question. It will not tell you how you did overall, give you a score, count a streak, or say anything about you as a person — only about the move in front of you. And it will not guess between two mistakes that would produce answers you could not tell apart; it says so instead, and that is counted rather than hidden.',
+        ],
+        stillMissing: 'the calculator keeps only the line you are on. Reports have to be copied and pasted, because nothing here reaches the internet. And the check that makes sure things are on the screen on a small phone works from a written-down list of moments — a new control has to be added to it by hand.',
+    },
     {
         version: '0.16.0',
         kind: 'CAPABILITY',
@@ -80,17 +90,5 @@ export const RELEASES = [
             'Also: when a mistake keeps happening, the note during a run and the summary at the end used to say what the mistake was CALLED — "what fixes it is undoing an operation on both sides". They now say the same thing the panel says, which is what to actually do about it.',
         ],
         stillMissing: 'nothing new.',
-    },
-    {
-        version: '0.14.1',
-        kind: 'ITERATION',
-        lines: [
-            'Four things found by using it on a phone, which is where it will actually be used.',
-            'A question is several steps, and the screen never said so. You saw a box with a chemistry question in it and then, underneath, a question about rearranging letters — with nothing to say the second was a piece of the first. On a phone the box scrolls away and they are simply two questions. Each step now says where it sits: Step 1 of 2 in this question — choosing the move.',
-            'When a step went wrong it read like a shout. A panel appeared with "What happened at this step" at the top of it, which is a verdict in the loudest place on the screen at the worst moment. It says Have another look now.',
-            'And it did not say what to do. It named the mistake and then named the topic the mistake belonged to — "the move underneath this step: undoing an operation on both sides" — which tells you which chapter you are in and leaves you holding the same wrong answer. It now says what to actually do: to get a letter on its own, undo what is being done to it, and do the same to both sides — a letter that is multiplying the one you want is a letter you divide by. And it ends by saying you get to try again, which it never did except when it could not work out what happened at all.',
-            'The scratch line was offered where there was nothing to work out. On a step asking which of three rearrangements is right, a keypad and a "put this in the answer" button say the step wants a number, so you go looking for numbers that are not there. It only appears on steps that ask for one now.',
-        ],
-        stillMissing: 'nothing new. The icon and the deploy landed in the two releases before this.',
     },
 ];

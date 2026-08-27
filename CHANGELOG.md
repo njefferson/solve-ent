@@ -9,6 +9,32 @@ release changed something you can see or do, it is described below in the words
 you would use for it. If it changed something under the surface that you cannot
 see, it says that plainly rather than dressing it up.
 
+## 1.0.0 — VERSION
+
+**This is version one.** Nothing changed in it. The number moved because
+everything that was meant to be here is here, has been used on a real device,
+and has been fixed where using it showed a problem.
+
+What that means in practice: seven topics, each one a move you cannot do a
+chemistry calculation without. Every question worked one step at a time, with
+what you have already written kept in front of you. A wrong answer that gets
+told back to you as *which* mistake produces that exact number, or says plainly
+that it cannot tell — never a guess. A calculator and a way to report a problem
+in the bar, on every screen. Difficulty chosen by you and never changed on your
+behalf. It works with no internet after the first visit, keeps nothing about
+you, and asks for nothing.
+
+**What it still will not do, on purpose.** It will not solve the question. It
+will not tell you how you did overall, give you a score, count a streak, or say
+anything about you as a person — only about the move in front of you. And it
+will not guess between two mistakes that would produce answers you could not
+tell apart; it says so instead, and that is counted rather than hidden.
+
+**Still missing:** the calculator keeps only the line you are on. Reports have
+to be copied and pasted, because nothing here reaches the internet. And the
+check that makes sure things are on the screen on a small phone works from a
+written-down list of moments — a new control has to be added to it by hand.
+
 ## 0.16.0 — CAPABILITY
 
 **The bar stays with you now.** The calculator and the report used to scroll off
