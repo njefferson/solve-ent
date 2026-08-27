@@ -1519,14 +1519,19 @@ Named here so nobody has to discover it by looking:
 
 - **`tools/cli.ts` prints answers** and says so on every command that shows one.
 - **Nothing deployed, and no repository metadata.**
-- **Nothing is deployed yet.** The Pages project does not exist, but **creating
-  it is not a manual step and never was** — `deploy.yml` runs
-  `pages project create` before it deploys, exactly as the hub's own deploy
-  does, and that command is a no-op once the project is there. This was recorded
-  here as the owner's job to do by hand for several releases and that was simply
-  wrong; the hub had been creating its own project in CI the whole time.
-  What IS the owner's: the two repository secrets the job reads. It skips with a
-  message rather than failing when they are absent, so the log says which.
+- **It deploys now, and the first one ran.** `deploy.yml` on `main` at
+  `5eb3dd0`: thirty files uploaded, `Deployment complete`, wrangler 4.126.0.
+  The two repository secrets were already on this repository — the deploy and
+  project-create steps are gated on them and both executed, which is what says
+  so. **Creating the Pages project was never a manual step**; the job runs
+  `pages project create` first and that is a no-op once it exists, exactly as
+  the hub has been doing for its own project the whole time. It was written down
+  here as the owner's job for several releases and that was simply wrong.
+  **WHAT HAS NOT BEEN VERIFIED FROM A SESSION: that the address answers.** This
+  environment's egress policy refuses `*.pages.dev`, so the deploy log is the
+  end of what a session can see. A log saying `Deployment complete` is not a
+  page — same family as hub LESSONS §53, one step further out — so the website
+  field in the hub's `METADATA.md` stays `proposed` until somebody opens it.
 
 ## The first CI run, read rather than trusted
 
