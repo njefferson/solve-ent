@@ -1756,7 +1756,6 @@ time.
 Named here so nobody has to discover it by looking:
 
 - **`tools/cli.ts` prints answers** and says so on every command that shows one.
-- **Nothing deployed, and no repository metadata.**
 - **It deploys now, and the first one ran.** `deploy.yml` on `main` at
   `5eb3dd0`: thirty files uploaded, `Deployment complete`, wrangler 4.126.0.
   The two repository secrets were already on this repository — the deploy and
