@@ -1427,6 +1427,103 @@ vanishes the first time anybody touches the panel. It is held in a variable and
 the whole text is rebuilt from scratch, so what is on screen is always exactly
 what a copy produces.
 
+### The fallback class was handing out a verdict — 1.1.0
+
+**Six findings from one reader working one question**, and the first is the
+worst thing found in this application so far.
+
+`E-ARITH` said *"has the right method and a slip in the arithmetic"*. It is
+reached from the branch commented `no mistake accounts for it` — nothing has
+matched, and the only established fact is the distance. **It awarded a method on
+proximity.** On a step asking what multiplying does to two exponents, using the
+wrong operation is precisely what puts somebody near, so the reader most in need
+of being told they used the wrong move was told their move was right.
+
+That breaks two rules written in this repository's own CLAUDE.md: *E-UNCLASSIFIED
+is the app's limit, never a verdict*, and *never tell a reader something about
+themselves where a statement about the move belongs*. It also flatters the
+attribution rate, because every near miss counted as attributed and never
+reached the metric that exists to say whether the taxonomy needs work.
+
+It is `E-NEAR-UNACCOUNTED` now and says only what is true: the answer is close,
+and this cannot say which move produced it.
+
+**The measure was wrong as well as the sentence, and that was the larger half.**
+It was `log10(abs(entered / correct))` — a log RATIO, which asks how many times
+bigger one number is than another. On a COUNT stage the answer already IS a
+count, so the ratio of two of them is not a distance on the thing being asked.
+And `abs` threw the sign away: against a correct −9, the entries −10 and 10 came
+back with the SAME distance, and 1 read as inside an order of magnitude.
+Practically every whole number in either sign was called near, which is what the
+reader meant by *any garbage input gave the same answer*.
+
+A count is near now when it is out by one or two — `COUNT_NEAR_LIMIT` — a log
+ratio is computed only for a NUMERIC stage, and a flipped sign is never near
+because a sign flip is a different move.
+
+**THE WHOLE SUITE PASSED ON THE OLD BEHAVIOUR.** 119 tests, and not one reached
+that branch. The class was a year old. What is there now asserts the sign, the
+count distance, and that no class meaning claims anything about the reader's
+thinking — the last of those over every class at once, so a future one cannot
+quietly reintroduce a compliment.
+
+### A counter is not a label, and it was doing both jobs
+
+The working log named each finished line by its counter SKILL, so a
+scientific-notation question read "choosing the move, doing the arithmetic,
+significant figures and rounding, doing the arithmetic". The third of those was
+the exponent after normalising, and the reader correctly did not recognise it as
+anything they had done about significant figures.
+
+Two different questions were being answered by one string. *Which skill does
+this count towards* is about reporting; *what did I just do* is about the line in
+front of the reader. `STEP_DID` answers the second, keyed by stage id and
+checked exhaustively in both directions, because a new stage with no entry would
+fall back to the counter name and silently restore the defect.
+
+**And the counter itself was wrong, which is not cosmetic.** N3 shifts the front
+number into range and asks what the exponent becomes. That is arithmetic on an
+exponent; it was tagged `PRECISION`. The counter feeds the completion code and
+the teacher's page, so a normalising slip was being reported as a
+significant-figures weakness — a misattribution in the output of an application
+whose product is attribution. It counts as `EVALUATE` now.
+
+### Binary noise is not precision
+
+The calculator handed back `29.281100000000002` for 3.49 × 8.39, and put it in
+the answer box. In decimal that product is 29.2811 exactly; the tail is an
+artefact of how a double is stored. **An application that teaches significant
+figures gave a reader a seventeen-figure number.**
+
+`asWritten` is the display and `evaluate` stays exact — the distinction is
+between what is computed and what is shown. Fifteen significant digits is far
+past anything a step here asks for, so nothing the reader is being asked to do
+is done for them, and the refusal to round to the ANSWER's figures is untouched.
+
+The walk had been asserting the raw double, which is a value no reader is ever
+shown; it asserts the displayed one now.
+
+### The landing screen, the ⓘ, and naming the calculator where it is wanted
+
+The opening screen was five paragraphs and read as something to get past. The
+orientation is three short ones now and still MOVES into the ⓘ on Start rather
+than being copied (§7e, asserted by the walk); the fuller *what it is and is
+not* lives in the ⓘ under its own heading, where it is read by somebody who
+wants it rather than by somebody trying to begin.
+
+The ⓘ has a sticky head with a close in the corner, adopted from MoleBridge. Its
+only way out had been a button past the end of a long panel, so leaving meant
+scrolling the whole thing first.
+
+**And the calculator is named on the step where it is wanted.** It has been in
+the bar on every screen for two releases, which makes it always available and
+not the same as noticed — a reader working a step that says *carry all the
+digits* reported not knowing there was one. The line appears only on a step that
+asks for a number. The panel also carries the question and the step it was
+opened over, because a modal that covers the thing you opened it to work on is
+the friction it exists to remove; both are read from what is already rendered,
+so it cannot show anything the reader has not already been given.
+
 ### Conformance is not reachability, and now there is a gate for it — 0.16.0
 
 `tools/fold-check.mjs`. Every other browser gate here runs at 390x844, a phone

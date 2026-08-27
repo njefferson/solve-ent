@@ -80,11 +80,11 @@ export function readRun(attempts) {
         if (attempt.errorClass === null)
             return;
         const errorClass = attempt.errorClass;
-        // E-ARITH is a slip with the right method and E-UNCLASSIFIED means the app
+        // E-NEAR-UNACCOUNTED is a slip with the right method and E-UNCLASSIFIED means the app
         // cannot tell. Neither is a misconception, so neither is a pattern worth
         // naming — telling somebody they keep making a mistake the app could not
         // identify is telling them nothing they can act on.
-        if (errorClass === 'E-ARITH' || errorClass === 'E-UNCLASSIFIED')
+        if (errorClass === 'E-NEAR-UNACCOUNTED' || errorClass === 'E-UNCLASSIFIED')
             return;
         const count = (seen.get(errorClass) ?? 0) + 1;
         seen.set(errorClass, count);

@@ -106,11 +106,9 @@
          panel rather than copied, so the orientation survives the thing a
          reader presses to begin and stays permanently reachable afterwards. -->
     <div id="orientation">
-      <p><strong>This is practice for the algebra a chemistry calculation needs</strong> — rearranging a formula, using a ratio, moving powers of ten, cancelling units, and keeping the right number of figures. Seven kinds of move, and nothing else.</p>
-      <p><strong>It does not solve the question for you.</strong> There is a calculator in the bar at the top, on every screen, because you should not need a second thing in front of you to work out a number — but choosing what to multiply, and which way up to put it, is the whole of what this is for and it never does that part. Free tools already work these out and already show the steps. What this does instead is look at a wrong answer and work out <em>which</em> mistake produces that exact number — the ratio used upside down, the exponent multiplied instead of raised, a conversion factor turned the wrong way — and tell you that.</p>
-      <p><strong>And it refuses to guess.</strong> When two different mistakes would produce answers nobody could tell apart, it will not ask that question at all. When it cannot work out what happened, it says so rather than picking something that sounds likely.</p>
-      <p>Nothing you type is sent anywhere. There is no account, no sign-in and nothing stored about you.</p>
-      <p class="aside">The name is a pun: solve, and solvent. That is the only time it will be mentioned.</p>
+      <p><strong>Practice for the algebra a chemistry calculation needs</strong> — rearranging a formula, using a ratio, moving powers of ten, cancelling units, keeping the right number of figures. Seven kinds of move, and nothing else.</p>
+      <p><strong>It does not solve the question.</strong> When an answer is wrong it works out <em>which</em> mistake produces that exact number and tells you — and when it cannot tell, it says so instead of guessing.</p>
+      <p>Nothing you type is sent anywhere. There is no account and nothing stored about you.</p>
     </div>
     <button type="button" id="begin" class="primary">Start</button>
   </section>
@@ -204,6 +202,13 @@
     <p id="unit-hint" class="unit-hint" hidden></p>
     <div id="read-aloud" hidden></div>
     <div id="entry" class="entry"></div>
+    <!-- THE CALCULATOR, NAMED WHERE IT IS WANTED. It is in the bar on every
+         screen, which makes it always available and not always noticed — a
+         reader working a step that says "carry all the digits" reported not
+         knowing there was one. Shown only on a step that asks for a number:
+         on a step that asks you to choose it would point at a tool with
+         nothing to do. -->
+    <p id="calc-hint" class="unit-hint" hidden>Working this out? The keypad in the bar at the top does the arithmetic and puts the number straight into the box.</p>
     <div id="diagnosis" class="diagnosis" tabindex="-1" hidden></div>
     <div id="run-note" class="run-note" hidden></div>
     <!-- A WAY OUT. Once a set had started the only exits were finishing it or
@@ -291,6 +296,15 @@
      a reader is being asked to do it. -->
 <dialog id="calc" aria-labelledby="calc-title">
   <h2 id="calc-title">Calculator</h2>
+  <!-- WHAT YOU ARE WORKING ON, kept in view. This is a modal, so opening it
+       covered the question a reader had opened it to work on, and closing it to
+       re-read the numbers is the friction the calculator exists to remove. It
+       is the question and the step ALREADY ON THE SCREEN behind it, copied at
+       open — so it can carry no answer, because neither of those does. -->
+  <div id="calc-context" class="calc-context" hidden>
+    <p id="calc-question"></p>
+    <p id="calc-step"></p>
+  </div>
   <label for="calc-line" class="entry-label">Anything you want to work out</label>
   <input id="calc-line" type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false">
   <p id="calc-result" class="calc-result" role="status" aria-live="polite"></p>
@@ -316,7 +330,16 @@
 
 <!-- ============ the (i) panel ============ -->
 <dialog id="info" aria-labelledby="info-title">
-  <h2 id="info-title">Solve-ent <span id="version"></span></h2>
+  <!-- A HEAD THAT STAYS PUT, adopted from MoleBridge. This panel is long and its
+       only way out was a button past the end of it, so leaving meant scrolling
+       the whole thing first. The close is in reach from anywhere now. -->
+  <div class="info-head">
+    <h2 id="info-title">Solve-ent <span id="version"></span></h2>
+    <button type="button" data-close class="icon" aria-label="Close">
+      <span aria-hidden="true">✕</span>
+    </button>
+  </div>
+  <div class="info-body">
 
   <div id="info-orientation-slot"></div>
 
@@ -361,6 +384,12 @@
     </span>
   </fieldset>
 
+  <h3>What it is, and what it is not</h3>
+  <p>Free tools already solve these and already show the steps. What this adds is looking at a wrong answer and working out which mistake produces that exact number — the ratio used upside down, the exponent multiplied instead of raised, a conversion factor turned the wrong way — and telling you that.</p>
+  <p><strong>It refuses to guess.</strong> When two different mistakes would produce answers nobody could tell apart, it will not ask that question at all. When it cannot work out what happened, it says so rather than picking something that sounds likely.</p>
+  <p>There is a calculator in the bar at the top, on every screen, because you should not need a second thing in front of you to work out a number. Choosing what to multiply, and which way up to put it, is the whole of what this is for, and it never does that part.</p>
+  <p class="aside">The name is a pun: solve, and solvent. That is the only time it will be mentioned.</p>
+
   <h3>What changed</h3>
   <p><a data-notes-page href="/whats-new">Every release, and what is still missing from each</a>.</p>
 
@@ -383,7 +412,8 @@
   <p>PolyForm Noncommercial. Free to use for teaching and learning; not for commercial use.</p>
   <p class="aside">Roster numbers, where work is assigned, run from 1 to <span id="roster-max"></span>.</p>
 
-  <button type="button" data-close class="primary">Close</button>
+    <button type="button" data-close class="primary">Close</button>
+  </div>
 </dialog>
 
 <script type="module">

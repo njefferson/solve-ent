@@ -9,6 +9,53 @@ release changed something you can see or do, it is described below in the words
 you would use for it. If it changed something under the surface that you cannot
 see, it says that plainly rather than dressing it up.
 
+## 1.1.0 — CAPABILITY
+
+**It was telling you your method was right when it had no idea.** A wrong answer
+that happened to be near the correct one got the message "has the right method
+and a slip in the arithmetic" — and it was chosen purely by how close the number
+was, not by working anything out. On a step asking what multiplying does to two
+powers of ten, using the wrong operation is exactly what puts you near, so the
+one message you got was the opposite of what happened. It now says only what is
+true: that the answer is close, and that it cannot tell which move produced it.
+
+**And almost any number was getting that message.** The way it measured "close"
+was wrong for a step that asks for a whole number like an exponent, and it
+ignored minus signs entirely — so against a correct −9, both −10 and 10 counted
+as equally close, and 1 counted as close too. A count is close now when it is
+out by one or two, and a flipped sign is never close.
+
+**The step that asked for the exponent was filed under significant figures.**
+Shifting the front number into range and saying what the exponent becomes has
+nothing to do with rounding, so if you got it wrong it was recorded as a
+significant-figures problem — and that is what a teacher's page would have
+shown. It is counted as arithmetic now, which is what it is.
+
+**The list of what you have done says what each step WAS.** It used to name the
+skill each step counts towards, so a scientific-notation question read "choosing
+the move, doing the arithmetic, significant figures and rounding, doing the
+arithmetic". Now it says "what multiplying does to the exponents", "the front
+numbers", "the exponent after shifting", "the whole answer in scientific
+notation".
+
+**The calculator gave you 29.281100000000002.** That is 3.49 × 8.39, which every
+handheld calculator in the room calls 29.2811 — the extra digits are an artefact
+of how computers store numbers, not precision you have. It shows the number you
+would write down. It still does not round your answer for you, because that is a
+step you are being asked to do.
+
+**The calculator says what you are working on**, so opening it no longer covers
+the question you opened it for. And on a step that asks for a number, a line
+under the box points out that the calculator is there — it has been in the bar
+on every screen for two releases and that is not the same as being noticed.
+
+**The opening screen is short now**, and the fuller explanation of what this is
+and is not lives in the ⓘ, where it can be read whenever. The ⓘ also has a close
+in its top corner, so leaving it no longer means scrolling the whole panel first.
+
+**Still missing:** each step tells you the mechanics of the move without saying
+what the move is FOR in that question. That is the next thing.
+
 ## 1.0.0 — VERSION
 
 **This is version one.** Nothing changed in it. The number moved because

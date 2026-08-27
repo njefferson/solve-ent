@@ -40,6 +40,7 @@ import {
 } from '../src/engine/problem.ts';
 import {
   CLASS_MEANINGS,
+  STEP_DID,
   COUNTER_SKILLS,
   ERROR_CLASSES,
   choiceItemsFor,
@@ -421,7 +422,7 @@ test('a small slip with the right method is an arithmetic slip, not a misconcept
     kind: 'text',
     text: `${formatUnambiguous(value * 1.04, problem.answerSigFigs)} ${formatUnit(stage.unit)}`,
   });
-  assert.equal(slip.errorClass, 'E-ARITH');
+  assert.equal(slip.errorClass, 'E-NEAR-UNACCOUNTED');
 });
 
 test('every class has a fixture somewhere in this file', () => {
@@ -434,7 +435,7 @@ test('every class has a fixture somewhere in this file', () => {
     'E-UNIT-FACTOR-INVERTED', 'E-UNIT-DROPPED', 'E-UNIT-CHAIN-INVERTED',
     'E-UNIT-MISSING', 'E-UNIT-WRONG',
     'E-SIG-FIGURES', 'E-SIG-WRONG-RULE', 'E-SIG-COUNT-ZEROS', 'E-SIG-ROUND-EARLY',
-    'E-ARITH', 'E-UNCLASSIFIED',
+    'E-NEAR-UNACCOUNTED', 'E-UNCLASSIFIED',
   ]);
   for (const errorClass of ERROR_CLASSES) {
     assert.ok(namedHere.has(errorClass), `${errorClass} has no fixture`);
@@ -451,7 +452,7 @@ test('every class means something, routes somewhere, and gives away no number', 
     // over the answer, and at an intermediate stage nothing grades figures, so
     // the grader would then accept it typed back in.
     assert.ok(!/\d/.test(meaning), `${errorClass}'s meaning contains a digit: "${meaning}"`);
-    if (errorClass === 'E-ARITH') continue;
+    if (errorClass === 'E-NEAR-UNACCOUNTED') continue;
     assert.ok(
       remediesFor(errorClass, null).length > 0,
       `${errorClass} is a diagnosis that leads nowhere — which is the failure this app exists to fix`,
@@ -460,8 +461,8 @@ test('every class means something, routes somewhere, and gives away no number', 
   // An arithmetic slip big enough to be a decimal place in the wrong spot gets
   // the magnitude help; a mistyped digit gets nothing, because there is
   // nothing to teach about it.
-  assert.deepEqual(remediesFor('E-ARITH', null), []);
-  assert.deepEqual(remediesFor('E-ARITH', 0.9), ['A4-MAGNITUDE']);
+  assert.deepEqual(remediesFor('E-NEAR-UNACCOUNTED', null), []);
+  assert.deepEqual(remediesFor('E-NEAR-UNACCOUNTED', 0.9), ['A4-MAGNITUDE']);
 });
 
 test('the unclassified rate over a sweep of realistic wrong answers', () => {
@@ -792,3 +793,105 @@ test('every symbol in a rearrangement option is one the equation shows', () => {
   }
 });
 
+
+/**
+ * The fallback class must never award a method.
+ *
+ * ## Why this exists
+ *
+ * `E-NEAR-UNACCOUNTED` is reached from the branch commented "no mistake
+ * accounts for it": nothing matched, and the only established fact is the
+ * distance. It used to say **"has the right method and a slip in the
+ * arithmetic"**, which is a verdict on the reader's thinking handed out on
+ * proximity alone — and on a step asking what multiplying does to two
+ * exponents, using the wrong operation is exactly what puts somebody near.
+ * A reader entering a wrong exponent was told their method was right.
+ *
+ * **The distance was wrong as well as the sentence.** It was
+ * `log10(abs(entered / correct))`, which on a COUNT stage asks how many times
+ * bigger one count is than another, and which `abs` made blind to sign: against
+ * a correct −9, the entries −10 and 10 came back with the SAME distance, and 1
+ * read as inside an order of magnitude. Practically every whole number in
+ * either sign was called near.
+ *
+ * **The whole suite passed on the old behaviour**, which is why this is here.
+ */
+test('a fallback class states the distance and never a method', () => {
+  // Every class meaning is a statement about the answer, not about the reader.
+  for (const [name, meaning] of Object.entries(CLASS_MEANINGS)) {
+    assert.ok(
+      !/\bright method\b|\bright idea\b|\bright track\b|\bunderstands\b|\bknows\b/i.test(meaning),
+      `${name} claims something about the reader's thinking: "${meaning}"`,
+    );
+  }
+
+  const problem = generateProblem('TEST-NEARNESS', 'SCINOT', 1, 0);
+  const solution = solve(problem);
+  const first = stagesFor(problem)[0];
+  assert.ok(first !== undefined);
+  assert.equal(first.kind, 'COUNT', 'this test is about a counted answer');
+
+  const wanted = correctEntryFor(problem, solution, first, SCRATCH_SIG_FIGS);
+  assert.equal(wanted.kind, 'text');
+  const correct = Number(wanted.kind === 'text' ? wanted.text : NaN);
+  assert.ok(Number.isFinite(correct));
+
+  const classOf = (text: string): string | null =>
+    classify(problem, solution, first, { kind: 'text', text }).errorClass;
+
+  // A COUNT is near when it is off by a step or two, and not otherwise.
+  assert.equal(classOf(String(correct - 1)), 'E-NEAR-UNACCOUNTED', 'off by one is near');
+  assert.equal(classOf(String(correct - 2)), 'E-NEAR-UNACCOUNTED', 'off by two is near');
+  assert.equal(classOf(String(correct - 5)), 'E-UNCLASSIFIED', 'off by five is not near');
+
+  // THE SIGN IS NOT A DETAIL. A flipped sign is a different move, and calling
+  // it near is the defect this whole test exists for.
+  assert.equal(classOf(String(-correct)), 'E-UNCLASSIFIED', 'the same magnitude with the other sign is NOT near');
+  assert.equal(classOf(String(-correct + 1)), 'E-UNCLASSIFIED', 'nor is it near when it is also off by one');
+
+  // And a count is never measured in orders of magnitude.
+  assert.equal(classOf('1'), 'E-UNCLASSIFIED', 'a small positive count is not near a negative exponent');
+});
+
+/**
+ * Every stage says what it WAS, and the fallback is never reached.
+ *
+ * `STEP_DID` is keyed by stage id, away from the stage definitions, so the
+ * failure it can have is a new stage arriving without an entry — which would
+ * fall back to the counter name and quietly reintroduce the defect it exists to
+ * fix. That failure is silent by construction, so it is checked here.
+ */
+test('every stage a reader can reach says what it was, in its own words', () => {
+  const reached = new Map<string, string>();
+  for (const topic of TOPICS) {
+    for (const difficulty of laddersFor(topic)) {
+      for (let index = 0; index < 25; index += 1) {
+        let problem;
+        try {
+          problem = generateProblem('TEST-DID', topic, difficulty.tier, index);
+        } catch {
+          continue;
+        }
+        for (const stage of stagesFor(problem)) reached.set(stage.id, stage.counter);
+      }
+    }
+  }
+  assert.ok(reached.size > 0);
+
+  for (const id of reached.keys()) {
+    const did = STEP_DID[id];
+    assert.ok(did !== undefined, `stage ${id} has no STEP_DID entry, so its log line falls back to a skill name`);
+    assert.ok(did.trim().length > 0, `stage ${id}'s label is empty`);
+  }
+
+  // AND NO ENTRY FOR A STAGE THAT IS NOT THERE, in the other direction, so a
+  // renamed stage cannot leave a label behind that nothing uses.
+  for (const id of Object.keys(STEP_DID)) {
+    assert.ok(reached.has(id), `STEP_DID names ${id}, which no problem poses`);
+  }
+
+  // The step that started this: normalising is arithmetic on an exponent and is
+  // counted as such, never as significant figures.
+  assert.equal(reached.get('N3'), 'EVALUATE', 'normalising must not count towards significant figures');
+  assert.equal(STEP_DID['N3'], 'the exponent after shifting');
+});

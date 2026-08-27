@@ -153,7 +153,7 @@ test('no run of any shape produces a score, a fraction or a congratulation', () 
   // WALKED OVER EVERY SHAPE rather than argued. The type has no field for a
   // count, so this is checking that none is assembled into a sentence.
   const classes: ErrorClass[] = [
-    'E-PROP-INVERTED', 'E-SIG-ROUND-EARLY', 'E-UNIT-DROPPED', 'E-ARITH', 'E-UNCLASSIFIED',
+    'E-PROP-INVERTED', 'E-SIG-ROUND-EARLY', 'E-UNIT-DROPPED', 'E-NEAR-UNACCOUNTED', 'E-UNCLASSIFIED',
   ];
   const banned = /\b\d+\s*(?:\/|out of)\s*\d+\b|\bstreak\b|\bbadge\b|\bscore\b|\bpoints\b|great job|well done|keep it up/i;
   let shapes = 0;
@@ -177,10 +177,10 @@ test('no run of any shape produces a score, a fraction or a congratulation', () 
 });
 
 test('a slip and an unreadable answer are never called a pattern', () => {
-  // E-ARITH is a slip with the right method; E-UNCLASSIFIED means the app could
+  // E-NEAR-UNACCOUNTED is a slip with the right method; E-UNCLASSIFIED means the app could
   // not tell. Telling somebody they keep making a mistake the app could not
   // identify is telling them nothing they can act on.
-  for (const errorClass of ['E-ARITH', 'E-UNCLASSIFIED'] as const) {
+  for (const errorClass of ['E-NEAR-UNACCOUNTED', 'E-UNCLASSIFIED'] as const) {
     const outcome = readRun([wrong(errorClass), wrong(errorClass), wrong(errorClass), wrong(errorClass)]);
     assert.deepEqual(outcome.notes, [], `${errorClass} was named mid-run as a pattern`);
     assert.ok(

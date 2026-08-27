@@ -9,7 +9,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluate } from '../src/num/arith.ts';
+import { asWritten, evaluate } from '../src/num/arith.ts';
 
 /** The value, or a failure that says what came back instead. */
 const value = (line: string): number => {
@@ -75,4 +75,24 @@ test('it never rounds, because rounding is one of the things being taught', () =
   assert.equal(value('3.975*1000/44.01'), raw);
   assert.ok(String(value('1/3')).length > 5, '1/3 comes back at full precision');
   assert.equal(value('2/3'), 2 / 3);
+});
+
+test('what it SHOWS carries no binary noise, though what it computes stays exact', () => {
+  // The reported case: a reader multiplied 3.49 by 8.39 in the calculator, put
+  // the result in the answer box, and the working log recorded
+  // 29.281100000000002 — seventeen figures, in an app that teaches significant
+  // figures. Every handheld calculator in the room says 29.2811.
+  assert.equal(3.49 * 8.39 === 29.2811, false, 'the double really is not 29.2811, so this is a display problem');
+  assert.equal(asWritten(3.49 * 8.39), 29.2811);
+  assert.equal(String(asWritten(3.49 * 8.39)), '29.2811');
+
+  // AND IT IS NOT THE ROUNDING THE APP REFUSES. Fifteen significant digits is
+  // far past anything a step asks for, so nothing a reader is being asked to do
+  // is done for them.
+  assert.equal(String(asWritten(2 / 3)).replace('0.', '').length, 15);
+  assert.equal(asWritten(0.1 + 0.2), 0.3);
+
+  // `evaluate` is untouched: the value stays exact.
+  const raw = (3.975 * 1000) / 44.01;
+  assert.equal(value('3.975*1000/44.01'), raw);
 });

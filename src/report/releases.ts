@@ -48,10 +48,24 @@ export const NOTES_PAGE = '/whats-new';
  * it non-zero, which is also the first release on which that branch had ever
  * been reachable.
  */
-export const OLDER_THAN_SHOWN: number = 16;
+export const OLDER_THAN_SHOWN: number = 17;
 
 /** Newest first. */
 export const RELEASES: readonly Release[] = [
+  {
+    version: '1.1.0',
+    kind: 'CAPABILITY',
+    lines: [
+      'It was telling you your method was right when it had no idea. A wrong answer that happened to be near the correct one got the message "has the right method and a slip in the arithmetic" — and it was chosen purely by how close the number was, not by working anything out. On a step asking what multiplying does to two powers of ten, using the wrong operation is exactly what puts you near, so the one message you got was the opposite of what happened. It now says only what is true: that the answer is close, and that it cannot tell which move produced it.',
+      'And almost any number was getting that message. The way it measured "close" was wrong for a step that asks for a whole number like an exponent, and it ignored minus signs entirely — so against a correct −9, both −10 and 10 counted as equally close, and 1 counted as close too. A count is close now when it is out by one or two, and a flipped sign is never close.',
+      'The step that asked for the exponent was filed under significant figures. Shifting the front number into range and saying what the exponent becomes has nothing to do with rounding, so if you got it wrong it was recorded as a significant-figures problem — and that is what a teacher\'s page would have shown. It is counted as arithmetic now, which is what it is.',
+      'The list of what you have done says what each step WAS. It used to name the skill each step counts towards, so a scientific-notation question read "choosing the move, doing the arithmetic, significant figures and rounding, doing the arithmetic". Now it says "what multiplying does to the exponents", "the front numbers", "the exponent after shifting", "the whole answer in scientific notation".',
+      'The calculator gave you 29.281100000000002. That is 3.49 × 8.39, which every handheld calculator in the room calls 29.2811 — the extra digits are an artefact of how computers store numbers, not precision you have. It shows the number you would write down. It still does not round your answer for you, because that is a step you are being asked to do.',
+      'The calculator says what you are working on, so opening it no longer covers the question you opened it for. And on a step that asks for a number, a line under the box points out that the calculator is there — it has been in the bar on every screen for two releases and that is not the same as being noticed.',
+      'The opening screen is short now, and the fuller explanation of what this is and is not lives in the ⓘ, where it can be read whenever. The ⓘ also has a close in its top corner, so leaving it no longer means scrolling the whole panel first.',
+    ],
+    stillMissing: 'each step tells you the mechanics of the move without saying what the move is FOR in that question. That is the next thing.',
+  },
   {
     version: '1.0.0',
     kind: 'VERSION',
@@ -93,18 +107,6 @@ export const RELEASES: readonly Release[] = [
     lines: [
       'The version you are running is on screen now, quietly, next to the name at the top. It was only inside the ⓘ panel before, which is no use for the thing a version is actually for: when you send a screenshot of something going wrong, the number has to be IN the screenshot. Without it there is no way to tell a problem that still exists from one already fixed, or from an old copy the device had kept.',
       'It is small, it is selectable so it can be copied rather than typed out, and it is the real running number rather than one written down twice.',
-    ],
-    stillMissing: 'nothing new.',
-  },
-  {
-    version: '0.14.2',
-    kind: 'ITERATION',
-    lines: [
-      'Three more of the same, two of them found by reading how MoleBridge — the sibling app, same room, same students — had already solved them.',
-      'The keyboard was coming back up over the reason. Get a step wrong and the app put the cursor back in the answer box, which on a tablet raises the keyboard and scrolls the box into view — pushing the explanation of what went wrong off the bottom of the screen. So you got the "wrong" and not the "why", which is the whole point of this app. Nothing takes the cursor back now: it goes to the explanation instead, the keyboard drops, and retyping costs the one tap you were about to make anyway.',
-      'There was no way out of a set. Once you had started, the only ways out were answering every question or reloading the page — no help at all if you picked the wrong topic or just wanted to go and read something. There is a Stop this set button now. In practice that is one tap, because practice records nothing. In a set somebody gave you it asks twice, and the second time it says what leaving costs: Stop — you will not get a code.',
-      'The scratch line only existed on one screen. Practising one move on its own had no way to do the arithmetic, which is absurd when one of the moves you can practise IS doing the arithmetic. It follows you onto that screen now, and stays away on steps that ask you to choose rather than to work something out.',
-      'Also: when a mistake keeps happening, the note during a run and the summary at the end used to say what the mistake was CALLED — "what fixes it is undoing an operation on both sides". They now say the same thing the panel says, which is what to actually do about it.',
     ],
     stillMissing: 'nothing new.',
   },

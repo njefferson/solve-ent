@@ -29,6 +29,22 @@ export const DISTINGUISHABLE_RELATIVE = 1e-6;
  */
 export const ORDER_OF_MAGNITUDE_LIMIT = 1;
 /**
+ * How far out a COUNTED answer can be and still be called near.
+ *
+ * **A COUNT STAGE MUST NOT BE MEASURED IN ORDERS OF MAGNITUDE.** An exponent
+ * and a number of significant figures are already counts; taking a log ratio of
+ * one against another asks how many times bigger a count is than a count, which
+ * is not a question about the step. It also throws the sign away, so on a step
+ * whose correct answer was -9 the entries -10 and 10 came back with the SAME
+ * distance, and 1 came back inside an order of magnitude of -9. Practically
+ * every whole number in either sign read as near.
+ *
+ * Two, because a count is wrong by one when a digit is miscounted or an
+ * exponent is off by a step, and by two when that happens at both ends. Beyond
+ * that a different move was used, and this must not pretend to know which.
+ */
+export const COUNT_NEAR_LIMIT = 2;
+/**
  * An arithmetic slip bigger than about a factor of three is a decimal-place
  * mistake rather than a miscount, and gets the magnitude help rather than the
  * "check your arithmetic" help. Below E-UNCLASSIFIED's cutoff by construction.

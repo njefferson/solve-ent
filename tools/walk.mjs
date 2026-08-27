@@ -31,6 +31,7 @@ import { chromium } from 'playwright';
 import { serve } from './serve.mjs';
 import { TOPIC_NAMES } from '../src/engine/problem.ts';
 import { VERSION } from '../src/version.ts';
+import { asWritten } from '../src/num/arith.ts';
 import { currentProblem, currentStage, startSession, submit } from '../src/engine/steps.ts';
 import { solve } from '../src/engine/problem.ts';
 import { COUNTER_SKILLS, correctEntryFor } from '../src/engine/taxonomy.ts';
@@ -171,7 +172,10 @@ check(diagnostic.includes('touch points'), 'the diagnostic says what the browser
 for (const leak of ['largest', 'read-aloud', 'one-step', 'open']) {
   check(!diagnostic.toLowerCase().split('\n').some((l) => l.startsWith(leak)), `the diagnostic carries no setting: ${leak}`);
 }
-await page.locator('#info button[data-close]').click();
+// TWO WAYS OUT NOW: the sticky head's ✕ and the button at the end. The head's
+// is the one a reader reaches without scrolling the whole panel, so it is the
+// one this asserts.
+await page.locator('#info .info-head button[data-close]').click();
 await page.waitForTimeout(100);
 check(!(await page.locator('#info[open]').count()), 'and it closes');
 
@@ -229,7 +233,10 @@ for (let guard = 0; guard < 200; guard += 1) {
     await page.fill('#calc-line', '3.975×1000÷44.01');
     await page.waitForTimeout(30);
     const worked = (await page.locator('#calc-result').innerText()).trim();
-    const byHand = (3.975 * 1000) / 44.01;
+    // WHAT A READER SEES, which is the value without the binary artefact. The
+    // computed value stays exact; `asWritten` is the display, and asserting the
+    // raw double here would be asserting something no reader is shown.
+    const byHand = asWritten((3.975 * 1000) / 44.01);
     check(worked === `= ${String(byHand)}`, 'a sum typed into the calculator is worked out in the app', worked);
     check(
       !worked.includes('90.32') || String(byHand).startsWith(worked.slice(2, 7)),

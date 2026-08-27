@@ -33,8 +33,8 @@
 import { TOPIC_NAMES, laddersFor, solve } from '../engine/problem.js';
 import { drillItem } from '../engine/blocked.js';
 import { MAX_ROSTER_NUMBER, SessionError, completionCounts, currentProblem, resumeSession, currentStage, startSession, submit, } from '../engine/steps.js';
-import { CLASS_MEANINGS, COUNTER_SKILLS, REMEDIES, SKILL_NAMES, stagesFor, choiceItemsFor, classify, formatUnit, readEntry, remediesFor, } from '../engine/taxonomy.js';
-import { evaluate } from '../num/arith.js';
+import { CLASS_MEANINGS, COUNTER_SKILLS, REMEDIES, SKILL_NAMES, STEP_DID, stagesFor, choiceItemsFor, classify, formatUnit, readEntry, remediesFor, } from '../engine/taxonomy.js';
+import { asWritten, evaluate } from '../num/arith.js';
 import { clearRun, readRun as readUnfinished, saveRun } from './resume.js';
 import { groupCode, writeCode } from '../report/code.js';
 import { readRun } from '../report/drill.js';
@@ -343,7 +343,7 @@ function wireCalculator() {
     const show = () => {
         const worked = evaluate(line.value);
         if (worked.kind === 'value') {
-            result.textContent = `= ${String(worked.value)}`;
+            result.textContent = `= ${String(asWritten(worked.value))}`;
             use.disabled = false;
             return;
         }
@@ -369,6 +369,16 @@ function wireCalculator() {
         $('#calc-keys').append(button);
     }
     $('#open-calc').addEventListener('click', () => {
+        // WHAT IS ALREADY ON THE SCREEN BEHIND, copied at open. Read from the
+        // rendered question and step, never from the problem or the solution — a
+        // panel that reached into either could show something the reader has not
+        // attempted, and this one has no business knowing about them at all.
+        const question = ($('#question').textContent ?? '').trim();
+        const step = ($('#step-prompt').textContent ?? '').trim();
+        const onAStep = question !== '' && !$('#question').hidden;
+        $('#calc-context').hidden = !onAStep;
+        $('#calc-question').textContent = question;
+        $('#calc-step').textContent = step;
         // WHETHER THERE IS ANYWHERE TO PUT A RESULT is a fact about the screen
         // underneath, so it is read at the moment the panel opens rather than kept
         // in a variable that some other path would have to remember to update.
@@ -389,7 +399,7 @@ function wireCalculator() {
         // THE VALUE, NOT A ROUNDED ONE. What the step asks for is a number written
         // to so many significant figures, and rounding it here would do that part
         // of the question — which is a topic in its own right — without saying so.
-        field.value = String(worked.value);
+        field.value = String(asWritten(worked.value));
         // AND THE PANEL GETS OUT OF THE WAY. Putting the number in the box and then
         // leaving a modal over the box is the friction this control exists to
         // remove: the next thing the reader wants is the answer field.
@@ -456,6 +466,8 @@ function renderWork() {
     const stage = currentStage(run.session);
     renderQuestion(problem, stage);
     renderStepPlace(problem, stage);
+    // NAMED WHERE IT IS WANTED, and only where it has something to do.
+    $('#calc-hint').hidden = stage.kind === 'CHOICE';
     renderWorking();
     renderEntry(problem, stage);
     $('#diagnosis').hidden = true;
@@ -505,8 +517,9 @@ function answer(entry) {
         const wrote = entry.kind === 'choice'
             ? ((stage.options ?? choiceItemsFor(problem))[entry.option] ?? '')
             : entry.text.trim();
+        // WHAT THE STEP WAS, not which skill it counts towards. See STEP_DID.
         if (wrote !== '')
-            run.working.push({ what: SKILL_NAMES[stage.counter], wrote });
+            run.working.push({ what: STEP_DID[stage.id] ?? SKILL_NAMES[stage.counter], wrote });
         // A NEW QUESTION STARTS AN EMPTY LIST. The working belongs to the question
         // it was done on; carrying it forward would put one question's numbers
         // beside another question's prompt, which is worse than showing nothing.

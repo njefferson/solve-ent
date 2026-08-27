@@ -66,6 +66,7 @@ import {
 import {
   DISTINGUISHABLE_RELATIVE,
   ORDER_OF_MAGNITUDE_LIMIT,
+  COUNT_NEAR_LIMIT,
   SCINOT_TRIGGER_LOG10,
 } from './tolerance.ts';
 
@@ -118,7 +119,7 @@ export type ErrorClass =
   | 'E-SIG-COUNT-ZEROS'
   | 'E-SIG-ROUND-EARLY'
   /* the two that are not misconceptions */
-  | 'E-ARITH'
+  | 'E-NEAR-UNACCOUNTED'
   | 'E-UNCLASSIFIED';
 
 /** Every class, for a test that insists each one has a fixture. */
@@ -131,7 +132,7 @@ export const ERROR_CLASSES: readonly ErrorClass[] = [
   'E-UNIT-FACTOR-INVERTED', 'E-UNIT-DROPPED', 'E-UNIT-CHAIN-INVERTED',
   'E-UNIT-MISSING', 'E-UNIT-WRONG',
   'E-SIG-FIGURES', 'E-SIG-WRONG-RULE', 'E-SIG-COUNT-ZEROS', 'E-SIG-ROUND-EARLY',
-  'E-ARITH', 'E-UNCLASSIFIED',
+  'E-NEAR-UNACCOUNTED', 'E-UNCLASSIFIED',
 ];
 
 /**
@@ -172,7 +173,14 @@ export const CLASS_MEANINGS: { readonly [K in ErrorClass]: string } = {
   'E-SIG-WRONG-RULE': 'used the decimal-places rule where the significant-figures rule applies, or the other way round',
   'E-SIG-COUNT-ZEROS': 'counted zeros that are only holding the decimal point in place',
   'E-SIG-ROUND-EARLY': 'rounded on the way through instead of once at the end',
-  'E-ARITH': 'has the right method and a slip in the arithmetic',
+  // NOT A VERDICT ON A METHOD. This class is reached from the branch commented
+  // "no mistake accounts for it" — nothing was matched, and the only fact
+  // established is that the number is near the right one. It used to read "has
+  // the right method and a slip in the arithmetic", which awards a method the
+  // app has not established and cannot see, on proximity alone. On an exponent
+  // step that sentence told a reader their method was right when using the
+  // wrong operation on the exponents is exactly what puts them near.
+  'E-NEAR-UNACCOUNTED': 'is close to the right answer, and this cannot say which move produced it',
   'E-UNCLASSIFIED': 'is not a number this can account for',
 };
 
@@ -209,6 +217,49 @@ export const SKILL_NAMES: { readonly [K in CounterSkill]: string } = {
   EVALUATE: 'doing the arithmetic',
   UNITS: 'carrying and cancelling units',
   PRECISION: 'significant figures and rounding',
+};
+
+/**
+ * What each step WAS, in the words of that step.
+ *
+ * **A COUNTER IS NOT A LABEL.** The working log used to name each finished line
+ * by its counter skill, so four steps of a scientific-notation question read
+ * "choosing the move", "doing the arithmetic", "significant figures and
+ * rounding", "doing the arithmetic" — with the third one being the exponent
+ * after normalising, which a reader correctly did not recognise as anything
+ * they had done about significant figures.
+ *
+ * The counter answers *which skill does this count towards*, which is a
+ * question about reporting. This answers *what did I just do*, which is a
+ * question about the line in front of the reader. They were one string serving
+ * both, and the reporting one won.
+ *
+ * Keyed by stage id and checked exhaustively by `taxonomy.test.ts`, so a new
+ * stage cannot arrive without one.
+ */
+export const STEP_DID: Readonly<Record<string, string>> = {
+  R1: 'choosing the rearrangement',
+  R2: 'what to divide by',
+  R3: 'working out the answer',
+  P1: 'how many times the recipe',
+  P2: 'scaling by that',
+  N1: 'what multiplying does to the exponents',
+  N2: 'the front numbers',
+  N3: 'the exponent after shifting',
+  N4: 'the whole answer in scientific notation',
+  W0: 'choosing what to work out',
+  W1: 'the power on its own',
+  W3: 'the whole thing',
+  F0: 'turning the rate over',
+  F1: 'choosing the move',
+  F2: 'working it out',
+  U1: 'which way up the conversion goes',
+  U2: 'applying the first conversion',
+  U3: 'finishing the chain',
+  Gs: 'adding the first two',
+  G1: 'counting the significant figures',
+  G2: 'how many figures the answer is entitled to',
+  G3: 'rounding once, at the end',
 };
 
 /** What a stage asks for. */
@@ -382,7 +433,14 @@ export function stagesFor(problem: Problem): Stage[] {
         {
           id: 'N3',
           kind: 'COUNT',
-          counter: 'PRECISION',
+          // NOT PRECISION. This step shifts the front number into range and
+          // asks what the exponent becomes — normalising, which is arithmetic
+          // on an exponent and has nothing to do with significant figures or
+          // rounding. The counter is not just a label: it feeds the completion
+          // code and the teacher's page, so a normalising slip was being
+          // reported as a significant-figures weakness. In an application whose
+          // product is attribution, that is a misattribution in the output.
+          counter: 'EVALUATE',
           unit: NO_UNIT,
           needsUnit: false,
           gradesSigFigs: false,
@@ -1512,10 +1570,34 @@ export function classify(
     return { ...base, correct: false, errorClass: 'E-UNCLASSIFIED', why: CLASS_MEANINGS['E-UNCLASSIFIED'] };
   }
 
+  // HOW FAR OUT, AND ONLY WHERE THAT QUESTION MEANS ANYTHING.
+  //
+  // A log ratio asks how many times bigger one number is than another. That is
+  // a real question about a NUMERIC answer and a meaningless one about a COUNT:
+  // an exponent and a number of significant figures are already counts, so the
+  // ratio of two of them is not a distance on the thing being asked. It is null
+  // for a count, and the count's own distance is used below.
+  //
+  // AND SIGNS HAVE TO AGREE. `Math.abs` on the ratio made -10 and 10 identical
+  // against a correct -9. A sign flip is a different move, not a near miss, and
+  // calling it near is how the app came to tell a reader their method was right
+  // when they had used the wrong one.
+  const sameSign = Math.sign(read.quantity.value) === Math.sign(correctValue);
   const logError =
-    read.quantity.value === 0 || correctValue === 0
+    stage.kind === 'COUNT' || read.quantity.value === 0 || correctValue === 0 || !sameSign
       ? null
       : Math.log10(Math.abs(read.quantity.value / correctValue));
+
+  /**
+   * Near enough that saying "close, and this cannot say why" is honest.
+   *
+   * NEVER near enough to award a method. Nothing has matched by the time this
+   * is read; the only established fact is the distance.
+   */
+  const near =
+    stage.kind === 'COUNT'
+      ? sameSign && Math.abs(read.quantity.value - correctValue) <= COUNT_NEAR_LIMIT
+      : logError !== null && Math.abs(logError) < ORDER_OF_MAGNITUDE_LIMIT;
 
   /* ---- the unit, before the number ---- */
   //
@@ -1614,8 +1696,8 @@ export function classify(
   }
 
   /* ---- no mistake accounts for it ---- */
-  if (logError !== null && Math.abs(logError) < ORDER_OF_MAGNITUDE_LIMIT) {
-    return { ...base, correct: false, errorClass: 'E-ARITH', matched: ['E-ARITH'], logError, why: CLASS_MEANINGS['E-ARITH'] };
+  if (near) {
+    return { ...base, correct: false, errorClass: 'E-NEAR-UNACCOUNTED', matched: ['E-NEAR-UNACCOUNTED'], logError, why: CLASS_MEANINGS['E-NEAR-UNACCOUNTED'] };
   }
   return {
     ...base,
@@ -1725,7 +1807,7 @@ export function remediesFor(errorClass: ErrorClass, logError: number | null): Re
     case 'E-SIG-ROUND-EARLY':
       out.push('A4-MAGNITUDE');
       break;
-    case 'E-ARITH':
+    case 'E-NEAR-UNACCOUNTED':
       // An arithmetic slip bigger than about a factor of three is a decimal
       // place in the wrong spot rather than a miscount, so it gets the
       // magnitude help; anything smaller gets nothing to read, because there

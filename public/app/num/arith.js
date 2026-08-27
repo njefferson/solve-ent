@@ -36,6 +36,26 @@
  *     primary    := number | "(" expression ")"
  *     number     := digits ["." digits] [("e"|"E") ["+"|"-"] digits]
  */
+/**
+ * The value as a reader would write it down.
+ *
+ * **BINARY NOISE IS NOT PRECISION.** `3.49 * 8.39` is 29.2811 in decimal and
+ * 29.281100000000002 in doubles, and the calculator handed that second number
+ * to a reader and then into their answer box — a seventeen-figure number, in an
+ * application that teaches significant figures. Every handheld calculator in
+ * the room says 29.2811.
+ *
+ * THIS IS NOT THE ROUNDING THE APP REFUSES TO DO. That refusal is about the
+ * answer's significant figures, which is a step the reader is being asked to
+ * perform; fifteen digits is far past any answer here and simply drops the
+ * artefact of how a double is stored. `evaluate` itself stays exact — the
+ * distinction is between what is computed and what is shown.
+ */
+export function asWritten(value) {
+    if (!Number.isFinite(value))
+        return value;
+    return Number(value.toPrecision(15));
+}
 /** The characters a reader can type or press. `×` and `÷` are what the keys say. */
 const OPERATORS = {
     '×': '*',
