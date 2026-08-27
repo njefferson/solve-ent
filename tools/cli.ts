@@ -190,7 +190,7 @@ switch (command) {
       line(`  that ${result.why}`);
       if (result.matched.length > 1) line(`  matched: ${result.matched.join(', ')}`);
       const remedies = remediesFor(result.errorClass ?? 'E-UNCLASSIFIED', result.logError);
-      for (const remedy of remedies) line(`  → ${remedy}: ${REMEDIES[remedy]}`);
+      for (const remedy of remedies) line(`  → ${remedy}: ${REMEDIES[remedy].how}`);
     }
     if (result.logError !== null) line(`  (log10 of the error: ${result.logError.toFixed(3)})`);
     line();

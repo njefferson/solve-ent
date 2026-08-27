@@ -9,6 +9,38 @@ release changed something you can see or do, it is described below in the words
 you would use for it. If it changed something under the surface that you cannot
 see, it says that plainly rather than dressing it up.
 
+## 0.14.1 — ITERATION
+
+Four things found by using it on a phone, which is where it will actually be
+used.
+
+**A question is several steps, and the screen never said so.** You saw a box
+with a chemistry question in it and then, underneath, a question about
+rearranging letters — with nothing to say the second was a piece of the first.
+On a phone the box scrolls away and they are simply two questions. Each step now
+says where it sits: *Step 1 of 2 in this question — choosing the move.*
+
+**When a step went wrong it read like a shout.** A panel appeared with "What
+happened at this step" at the top of it, which is a verdict in the loudest place
+on the screen at the worst moment. It says **Have another look** now.
+
+**And it did not say what to do.** It named the mistake and then named the
+topic the mistake belonged to — "the move underneath this step: undoing an
+operation on both sides" — which tells you which chapter you are in and leaves
+you holding the same wrong answer. It now says what to actually do: *to get a
+letter on its own, undo what is being done to it, and do the same to both
+sides — a letter that is multiplying the one you want is a letter you divide
+by.* And it ends by saying you get to try again, which it never did except when
+it could not work out what happened at all.
+
+**The scratch line was offered where there was nothing to work out.** On a step
+asking which of three rearrangements is right, a keypad and a "put this in the
+answer" button say the step wants a number, so you go looking for numbers that
+are not there. It only appears on steps that ask for one now.
+
+**Still missing:** nothing new. The icon and the deploy landed in the two
+releases before this.
+
 ## 0.14.0 — CAPABILITY
 
 **A set you were given is still there if you close it.** Shut the tab, let the

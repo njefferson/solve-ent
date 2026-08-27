@@ -32,9 +32,21 @@ export const NOTES_PAGE = '/whats-new';
  * it non-zero, which is also the first release on which that branch had ever
  * been reachable.
  */
-export const OLDER_THAN_SHOWN = 10;
+export const OLDER_THAN_SHOWN = 11;
 /** Newest first. */
 export const RELEASES = [
+    {
+        version: '0.14.1',
+        kind: 'ITERATION',
+        lines: [
+            'Four things found by using it on a phone, which is where it will actually be used.',
+            'A question is several steps, and the screen never said so. You saw a box with a chemistry question in it and then, underneath, a question about rearranging letters — with nothing to say the second was a piece of the first. On a phone the box scrolls away and they are simply two questions. Each step now says where it sits: Step 1 of 2 in this question — choosing the move.',
+            'When a step went wrong it read like a shout. A panel appeared with "What happened at this step" at the top of it, which is a verdict in the loudest place on the screen at the worst moment. It says Have another look now.',
+            'And it did not say what to do. It named the mistake and then named the topic the mistake belonged to — "the move underneath this step: undoing an operation on both sides" — which tells you which chapter you are in and leaves you holding the same wrong answer. It now says what to actually do: to get a letter on its own, undo what is being done to it, and do the same to both sides — a letter that is multiplying the one you want is a letter you divide by. And it ends by saying you get to try again, which it never did except when it could not work out what happened at all.',
+            'The scratch line was offered where there was nothing to work out. On a step asking which of three rearrangements is right, a keypad and a "put this in the answer" button say the step wants a number, so you go looking for numbers that are not there. It only appears on steps that ask for one now.',
+        ],
+        stillMissing: 'nothing new. The icon and the deploy landed in the two releases before this.',
+    },
     {
         version: '0.14.0',
         kind: 'CAPABILITY',
@@ -82,16 +94,5 @@ export const RELEASES = [
             'A drop-down list on the new page turned out to be painted by the browser rather than by this app: nineteen pixels tall, in system greys that had never been checked for readability in either light or dark. Both are fixed, and the sweep that checks every screen now covers twenty of them rather than fifteen.',
         ],
         stillMissing: 'the icon is still a simple drawing rather than a proper one. Codes are read one at a time, so a stack of thirty is thirty pastes. Nothing is deployed yet, so this all runs from a device that already has it.',
-    },
-    {
-        version: '0.10.0',
-        kind: 'CAPABILITY',
-        lines: [
-            'You can do the arithmetic without leaving the question. Every step that asks for a number now has a scratch line under the answer box, with a keypad, and a button that puts what it worked out straight into the answer.',
-            'The keypad is there because this gets used on a tablet by finger, and × and ÷ are two keyboard layers away on most of them — far enough that you would reach for a phone instead, which is exactly the thing worth avoiding. There is an EE key for the powers of ten, since a mole is 6.022 × 10²³ and nobody types twenty-three zeros. It takes typed input too if you have a keyboard.',
-            'It does not round, and that is deliberate. Working out how many figures an answer is entitled to is one of the seven things this teaches. A scratch line that quietly handed back 90.3 would be doing that step for you at the exact moment you were being asked to do it, so it hands back the whole number and says to round it yourself.',
-            'It also never sees the question. It multiplies the numbers you chose in the order you chose them — deciding what to multiply, and which way up, is the whole of what this is for and the scratch line has no part in it. The description in the ⓘ panel used to say this is not a calculator; it now says what is actually true, which is that it does not solve the question for you.',
-        ],
-        stillMissing: 'nothing can be handed in and there is still no page for whoever set the work. The icon is still a simple drawing rather than a proper one.',
     },
 ];

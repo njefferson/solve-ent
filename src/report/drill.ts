@@ -84,7 +84,7 @@ export const STOPPED_AFTER_CLEAN = 2;
 function whatFixesIt(errorClass: ErrorClass): string {
   const remedies = remediesFor(errorClass, null);
   const first = remedies[0];
-  return first === undefined ? '' : REMEDIES[first];
+  return first === undefined ? '' : REMEDIES[first].name;
 }
 
 /**

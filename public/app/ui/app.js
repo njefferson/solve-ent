@@ -33,7 +33,7 @@
 import { TOPIC_NAMES, laddersFor, solve } from '../engine/problem.js';
 import { drillItem } from '../engine/blocked.js';
 import { MAX_ROSTER_NUMBER, SessionError, completionCounts, currentProblem, resumeSession, currentStage, startSession, submit, } from '../engine/steps.js';
-import { CLASS_MEANINGS, COUNTER_SKILLS, REMEDIES, SKILL_NAMES, choiceItemsFor, classify, formatUnit, readEntry, remediesFor, } from '../engine/taxonomy.js';
+import { CLASS_MEANINGS, COUNTER_SKILLS, REMEDIES, SKILL_NAMES, stagesFor, choiceItemsFor, classify, formatUnit, readEntry, remediesFor, } from '../engine/taxonomy.js';
 import { evaluate } from '../num/arith.js';
 import { clearRun, readRun as readUnfinished, saveRun } from './resume.js';
 import { groupCode, writeCode } from '../report/code.js';
@@ -353,8 +353,19 @@ function wireScratch() {
     });
     show();
 }
-/** Put the scratch line away between steps, and empty it. */
-function resetScratch() {
+/**
+ * Put the scratch line away between steps, and empty it.
+ *
+ * AND HIDE IT ENTIRELY WHERE THERE IS NOTHING TO WORK OUT. On a step that asks
+ * which of three rearrangements is right, a keypad and a "put this in the
+ * answer" control say the step wants a number — so a reader looks for the
+ * numbers, and there are none. The control could not even work there: the
+ * button's own handler had a branch apologising that a choice step has nowhere
+ * to put a result, which is a control admitting it was offered in the wrong
+ * place rather than not being offered.
+ */
+function resetScratch(kind = 'NUMERIC') {
+    $('#scratch').hidden = kind === 'CHOICE';
     const line = $('#scratch-line');
     line.value = '';
     $('#scratch-result').textContent = '';
@@ -362,15 +373,41 @@ function resetScratch() {
     $('#scratch-body').hidden = true;
     $('#scratch-toggle').setAttribute('aria-expanded', 'false');
 }
+/**
+ * Where this step sits in the question.
+ *
+ * A WHOLE QUESTION IS SEVERAL STEPS AND THE SCREEN NEVER SAID SO. What a reader
+ * saw was a box with a chemistry question in it and then, underneath, a
+ * question about rearranging letters — with nothing to say the second was a
+ * piece of the first, how many pieces there were, or that answering it was not
+ * answering the whole thing. Read on a phone, where the box scrolls away, they
+ * are simply two questions.
+ *
+ * Not a score and not a target: it says where you are in a question, which is
+ * the same thing a page number does.
+ */
+function renderStepPlace(problem, stage) {
+    const stages = stagesFor(problem);
+    const at = stages.findIndex((s) => s.id === stage.id);
+    const place = $('#step-place');
+    if (at < 0 || stages.length < 2) {
+        place.hidden = true;
+        return;
+    }
+    place.textContent =
+        `Step ${String(at + 1)} of ${String(stages.length)} in this question — ${SKILL_NAMES[stage.counter]}`;
+    place.hidden = false;
+}
 function renderWork() {
     if (run === null)
         return;
     const problem = currentProblem(run.session);
     const stage = currentStage(run.session);
     renderQuestion(problem, stage);
+    renderStepPlace(problem, stage);
     renderWorking();
     renderEntry(problem, stage);
-    resetScratch();
+    resetScratch(stage.kind);
     $('#diagnosis').hidden = true;
     renderReadAloud(problem, stage);
     show('work');
@@ -433,7 +470,7 @@ function answer(entry) {
         renderWork();
         return;
     }
-    renderDiagnosis(result.classification.errorClass, result.classification.why, result.classification.logError, $('#diagnosis'));
+    renderDiagnosis(result.classification.errorClass, result.classification.why, result.classification.logError, $('#diagnosis'), stage.kind);
     // The step does NOT advance. A gate that opens on a wrong answer is a list of
     // questions rather than a thing that teaches a move.
     renderEntry(currentProblem(run.session), currentStage(run.session));
@@ -466,10 +503,22 @@ function asSentence(phrase) {
     const framed = whole ? text : `That answer ${text}`;
     return `${framed.charAt(0).toUpperCase()}${framed.slice(1)}.`;
 }
-function renderDiagnosis(errorClass, why, logError, panel = $('#diagnosis')) {
+/** What to do now, in the words of the step the reader is on. */
+const NEXT_ACTION = {
+    CHOICE: 'Read the options again and pick another one.',
+    NUMERIC: 'Work it through again and put the new number in.',
+    COUNT: 'Count it again and put the new number in.',
+};
+function renderDiagnosis(errorClass, why, logError, panel = $('#diagnosis'), stageKind = 'NUMERIC') {
+    const nextAction = NEXT_ACTION[stageKind] ?? NEXT_ACTION['NUMERIC'];
     clear(panel);
     panel.hidden = false;
-    panel.append(make('h3', {}, 'What happened at this step'));
+    // "HAVE ANOTHER LOOK", not "what happened at this step". The panel appears
+    // only after a wrong answer, so its heading is the loudest thing on the
+    // screen at the worst moment; a verdict there reads as a shout whatever the
+    // words underneath say. This one is the next action, which is also the thing
+    // the panel used to be missing entirely.
+    panel.append(make('h3', {}, 'Have another look'));
     if (errorClass === null || errorClass === 'E-UNCLASSIFIED') {
         // THE APP'S LIMIT, NEVER A VERDICT. When attribution fails, say so — the
         // alternative is picking something plausible and telling somebody they hold
@@ -481,7 +530,7 @@ function renderDiagnosis(errorClass, why, logError, panel = $('#diagnosis')) {
         // sound tidier.
         const specific = asSentence(why);
         const general = 'This app cannot work out which move produces that number. ' +
-            'That is a limit of the app and not a reading of the work. Try the step again.';
+            `That is a limit of the app and not a reading of the work. ${nextAction}`;
         const said = specific === '' || specific.startsWith('That answer is not a number this')
             ? general
             : `${specific} ${general}`;
@@ -497,13 +546,30 @@ function renderDiagnosis(errorClass, why, logError, panel = $('#diagnosis')) {
         // bullet reading "undoing an operation on both sides" is not a sentence
         // either. This is the move to go and practise, which is the thing a
         // diagnosis is for.
-        panel.append(make('h4', {}, 'The move underneath this step'));
-        const list = make('ul', { class: 'remedies' });
-        for (const remedy of remedies)
-            list.append(make('li', {}, REMEDIES[remedy]));
-        panel.append(list);
+        // WHAT TO DO, not what to go and study. This was the remedy's NAME under a
+        // heading reading "the move underneath this step" — a category label, which
+        // told a reader which topic their mistake belonged to and left them holding
+        // the same wrong answer with nothing to try.
+        // A BULLET FOR ONE THING IS NOISE. There is usually exactly one move to
+        // make, and a single-item list dresses a sentence up as a checklist.
+        const only = remedies.length === 1 ? remedies[0] : undefined;
+        if (only !== undefined) {
+            panel.append(make('p', { class: 'remedy' }, REMEDIES[only].how));
+        }
+        else {
+            const list = make('ul', { class: 'remedies' });
+            for (const remedy of remedies)
+                list.append(make('li', {}, REMEDIES[remedy].how));
+            panel.append(list);
+        }
     }
-    say(sentence);
+    // AND THEN THE NEXT ACTION, in the words of the step in front of them. The
+    // step does not advance on a wrong answer, so without this the panel ends
+    // having named a mistake and never said the one thing a reader needs, which
+    // is that they get to try again. The unclassified branch above has said it
+    // all along; the classified branch — the common one — never did.
+    panel.append(make('p', { class: 'next' }, nextAction));
+    say(`${sentence} ${nextAction}`);
 }
 /**
  * The three-times note, said during the run, once.
@@ -647,7 +713,7 @@ function answerDrill(item, entry) {
         nextDrillItem();
         return;
     }
-    renderDiagnosis(result.errorClass, result.why, result.logError, $('#drill-diagnosis'));
+    renderDiagnosis(result.errorClass, result.why, result.logError, $('#drill-diagnosis'), item.stage.kind);
     // THE MOVE DOES NOT ADVANCE ON A WRONG ANSWER, same as a whole question: a
     // gate that opens on a wrong answer is a list of questions.
     renderDrillEntry(item);

@@ -1345,12 +1345,39 @@ export function classify(problem, solution, stage, entry) {
         why: CLASS_MEANINGS['E-UNCLASSIFIED'],
     };
 }
-/** What each remediation teaches. */
+/**
+ * What each remediation teaches, in the two registers it has to be said in.
+ *
+ * `name` is a noun phrase, because it is dropped into a sentence: "What fixes
+ * it is undoing an operation on both sides." `how` is what to actually DO, and
+ * it is the one a reader needs at the moment they have got something wrong.
+ *
+ * **ONE ENTRY, TWO FIELDS, rather than two tables.** A screen was showing the
+ * noun phrase under a heading reading "the move underneath this step", which is
+ * a category label where an instruction belongs: it names the topic and leaves
+ * the reader holding the same wrong answer with nothing to do about it.
+ */
 export const REMEDIES = {
-    'A1-ISOLATE': 'undoing an operation on both sides to get one letter on its own',
-    'A2-PROPORTION': 'setting two ratios equal and cross-multiplying',
-    'A3-UNITS': 'writing a conversion so the unit you are carrying cancels',
-    'A4-MAGNITUDE': 'checking the size of an answer before writing it down',
+    'A1-ISOLATE': {
+        name: 'undoing an operation on both sides to get one letter on its own',
+        how: 'To get a letter on its own, undo what is being done to it — and do the same thing to both sides. ' +
+            'A letter that is MULTIPLYING the one you want is a letter you divide by.',
+    },
+    'A2-PROPORTION': {
+        name: 'setting two ratios equal and cross-multiplying',
+        how: 'Write the two ratios the same way round: what you have over what the recipe takes, ' +
+            'and what you want over what the recipe makes. Then cross-multiply.',
+    },
+    'A3-UNITS': {
+        name: 'writing a conversion so the unit you are carrying cancels',
+        how: 'Write each conversion with the unit you are carrying on the BOTTOM, so it cancels the one above it. ' +
+            'If a unit does not cancel, that factor is the wrong way up.',
+    },
+    'A4-MAGNITUDE': {
+        name: 'checking the size of an answer before writing it down',
+        how: 'Before writing a number down, ask roughly how big it ought to be. ' +
+            'An answer out by a factor of ten is usually a decimal point rather than the method.',
+    },
 };
 /**
  * The remediations for one class, in the order to offer them.

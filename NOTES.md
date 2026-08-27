@@ -1513,6 +1513,46 @@ that never offered it back.** Nothing failed; the screen was simply never
 reached. The a11y gate said so, by not arriving at a state it had been told to
 measure — the assertion added two sessions ago, earning its keep a third time.
 
+## Session 8: four things a phone found that every gate had passed
+
+The application was opened on a phone and used, which had not happened before —
+every previous check was a gate, a walk or a screenshot taken by something that
+already knew what it was looking at. All four findings were things no gate here
+asks about, and none of them is a bug in the sense of something behaving other
+than as written.
+
+- **A whole question is several steps and the screen never said so.** A box with
+  a chemistry question in it, then a question about rearranging letters, and
+  nothing joining them. On a phone the box scrolls away and they read as two
+  questions — so answering the second feels like answering the whole thing.
+  Every step now says where it sits. It is not a score: it says where you are in
+  a question, which is what a page number does.
+- **The diagnosis read as a shout.** "What happened at this step" is a verdict
+  in the loudest place on the screen at the moment somebody has just got
+  something wrong. The heading is the NEXT ACTION now — "Have another look" —
+  which is also the thing the panel was missing.
+- **It named the topic where an instruction belonged.** The remedy was rendered
+  as its NAME: "the move underneath this step: undoing an operation on both
+  sides to get one letter on its own". That tells a reader which chapter their
+  mistake is in and leaves them holding the same wrong answer. `REMEDIES` now
+  carries `name` AND `how` in one entry — two registers, one definition, because
+  the noun phrase is still what fits "what fixes it is …" in the run summary.
+  **And the panel now ends by saying they can try again**, which the classified
+  branch never did. The unclassified branch had said it all along, so the rarer
+  path was the kinder one.
+- **The scratch line was offered where there was nothing to work out.** On a
+  choice step a keypad says the step wants a number. The tell was in the code
+  the whole time: the "put this in the answer" handler had a branch apologising
+  that a choice step has nowhere to put a result — **a control admitting it had
+  been offered in the wrong place, rather than not being offered.**
+
+**The general form, and it is the one worth keeping: every gate here measures
+whether a surface is correct, and none of them asks whether it is
+comprehensible.** Contrast, target size, focus, axe, the collision sweep, the
+algebra verifier — all green on a screen that read as two unrelated questions
+followed by a shout. That gap does not close with another gate. It closes by
+somebody opening the app on the device it is for.
+
 ## What is NOT built, and it is most of the app
 
 Named here so nobody has to discover it by looking:
