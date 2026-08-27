@@ -275,8 +275,9 @@ owes a local run.
 
 ## Branches
 
-**Work commits to `staging`. `main` is production**, and will be the Cloudflare
-Pages production branch once there is anything to deploy. Promotion is a merge;
+**Work commits to `staging`. `main` is production** — it is the Cloudflare Pages
+production branch, the repository's default branch, and pushing to it deploys
+to solve-ent.pages.dev. Promotion is a merge;
 a commit made directly on `main` needs `SOLVENT_PROMOTE=1` in front of it. The
 harness's own `claude/*` branch is kept pointing at the same commit so nothing
 is stranded on it.
