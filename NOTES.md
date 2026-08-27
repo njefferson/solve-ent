@@ -1427,6 +1427,66 @@ vanishes the first time anybody touches the panel. It is held in a variable and
 the whole text is rebuilt from scratch, so what is on screen is always exactly
 what a copy produces.
 
+### Conformance is not reachability, and now there is a gate for it — 0.16.0
+
+`tools/fold-check.mjs`. Every other browser gate here runs at 390x844, a phone
+with nothing covering it, and **that is not the device this app is on when
+something goes wrong.** A phone or tablet with the keyboard up has roughly 380
+usable pixels of height, and in that viewport this app has twice shipped a
+control that was correct, measured, contrast-checked, target-checked, axe-clean
+and completely invisible.
+
+The gate opens the app at 390x380 and holds a DECLARED LIST of moments — not
+surfaces — to two strengths. **`pressed`**: the whole box inside the usable
+area, because half a button is not a button. **`seen`**: the top edge inside it,
+because a long diagnosis may run past the fold and a reader who can see it start
+will scroll, while a reader who cannot see it at all does not know it is there.
+
+**It failed on its first run, which is the only reason to trust it.** After a
+wrong answer the page scrolls to the diagnosis on purpose; the chrome went with
+it, putting the calculator 533px above the top of the screen — unreachable at
+precisely the moment a reader has got something wrong and most wants to work
+something out. The bar is sticky now, with `--page-alt` behind it because the
+body is a gradient and a transparent sticky bar has the page scrolling visibly
+through it.
+
+**Then the gate certified something hidden behind the header.** Sticky put an
+opaque strip over the top 65px, and the scroll landed the diagnosis at 8px:
+fully on screen by the arithmetic, fully invisible. **A gate with the same blind
+spot as the defect it hunts is worse than no gate** — it certifies the thing it
+was built to find. The usable area is measured from the chrome's own box on the
+page under test rather than assumed to start at zero.
+
+**And `scroll-margin-top` alone did not fix it**, which is worth keeping.
+Declared at 69.6px, it landed the panel at 43px: `focus()` scrolls with the user
+agent's `block: nearest` heuristic, which stops the moment the element is
+technically inside the viewport. The two halves are separated now —
+`focus({ preventScroll: true })`, then an explicit
+`scrollIntoView({ block: 'start' })`, which does honour the margin. Guessing at
+a margin and hoping the heuristic lands right is not a fix; it is a fix-shaped
+thing that measures as one until somebody looks.
+
+**The list is the limitation, and it is deliberate.** A control absent from
+MOMENTS is a control this gate cannot fail on, exactly as a surface absent from
+the a11y gate's list ships unmeasured. Writing it down where it can be seen
+beats deriving it and being wrong quietly. The first version of the list was
+itself short two moments — the drill's diagnosis and the completion code — which
+is §169 landing on the gate written to answer §169.
+
+### Spacing stops widening what is read one character at a time
+
+Adopted from MoleBridge, which states it plainly: an equation, a number being
+typed, a value already written down and a report copied by hand are read one
+character at a time, and loosening the tracking makes them harder rather than
+easier — the setting working backwards.
+
+**Only where the WHOLE element is the string**, and the limit is deliberate
+rather than missed. The equations inside a question's prose are not covered:
+the engine produces that sentence as plain text, and wrapping its symbols would
+put presentation inside the one part of this app that must not carry any. The
+completion code needed no entry — it sets its own tracking and never reads
+`--track`.
+
 ### The words gate had never read the screen
 
 `tools/copy-check.mjs` declared `ROOTS = ['src', 'tools']` with a comment saying

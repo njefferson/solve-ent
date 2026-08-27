@@ -48,10 +48,21 @@ export const NOTES_PAGE = '/whats-new';
  * it non-zero, which is also the first release on which that branch had ever
  * been reachable.
  */
-export const OLDER_THAN_SHOWN: number = 14;
+export const OLDER_THAN_SHOWN: number = 15;
 
 /** Newest first. */
 export const RELEASES: readonly Release[] = [
+  {
+    version: '0.16.0',
+    kind: 'CAPABILITY',
+    lines: [
+      'The bar stays with you now. The calculator and the report used to scroll off the top of the screen the moment anything moved — and getting a step wrong scrolls the page on purpose, to put the reason in front of you. So the two things you most want after a mistake were gone at exactly the moment you wanted them. They stay at the top of the screen now, wherever you are on the page.',
+      'And the reason no longer hides behind that bar. Making the bar stay put covered the top of the explanation with it, on a small screen. It sits clear of it now.',
+      'Letter spacing stops widening the things that are read one character at a time. If you have the wider spacing switched on, it still applies to sentences, where it helps — but not to a rearrangement you are choosing between, a number you are typing, a value you have already written down, or the problem report. Those are read character by character, and spreading them out makes them harder, which is the setting working backwards.',
+      'Under the surface: there is a new check that opens the app at the size of a small phone with the keyboard up, and fails if anything you need is off the screen or behind the bar. Both of the last two faults reported here were things that existed, worked, and could not be seen on the device this is used on. Every other check ran on a taller screen where they were all perfectly visible.',
+    ],
+    stillMissing: 'the check knows about a fixed list of moments. A new control has to be added to that list, or it is not measured — the list is written down where it can be seen rather than worked out automatically.',
+  },
   {
     version: '0.15.0',
     kind: 'CAPABILITY',
@@ -98,18 +109,5 @@ export const RELEASES: readonly Release[] = [
       'The scratch line was offered where there was nothing to work out. On a step asking which of three rearrangements is right, a keypad and a "put this in the answer" button say the step wants a number, so you go looking for numbers that are not there. It only appears on steps that ask for one now.',
     ],
     stillMissing: 'nothing new. The icon and the deploy landed in the two releases before this.',
-  },
-  {
-    version: '0.14.0',
-    kind: 'CAPABILITY',
-    lines: [
-      'A set you were given is still there if you close it. Shut the tab, let the device sleep, come back later — the app offers to pick it up at the step it stopped on, with everything already done still counted.',
-      'Only a set somebody gave you is remembered. Practice is not, because practice records nothing, and there is nothing in a practice run to lose.',
-      'It says whose set it is. The offer names the number, which matters most on a shared device: if it is not your number, you can see that before carrying on and finishing somebody else\'s work under it. Hiding the number would have been the same disclosure with a wrong record on the end of it.',
-      'It does not sit there forever. An unfinished set is forgotten after twelve hours — long enough for a lesson, a break, a bus and a battery, short enough that yesterday\'s set does not surface for whoever picks the device up tomorrow. It is also forgotten the moment a set finishes and its code exists, and one button forgets it on the spot. Forgotten means gone rather than blank.',
-      'A set that was left across an update is not picked up. The questions come from the key, the topic and the difficulty, so a release that changes how a question is built changes what sits at that place in the set — and carrying on would mean counting answers to questions that no longer exist.',
-      'One thing that was quietly broken and is fixed: pressing through the opening screen went straight to the topics without checking for an unfinished set. The one route a person who had lost their place is most likely to take was the one route that never offered it back. Everything goes through the same check now.',
-    ],
-    stillMissing: 'nothing is deployed yet, so this all runs from a device that already has it.',
   },
 ];

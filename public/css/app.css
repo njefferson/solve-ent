@@ -25,6 +25,29 @@
 /* Letter and line spacing, for readers who need it and nobody who does not. */
 :root[data-spacing='open'] { --track: 0.06em; --leading: 1.9; }
 
+/* AND SWITCHED OFF WHERE THE SETTING WOULD WORK BACKWARDS.
+ *
+ * Loosened tracking helps a sentence and hurts a string that is read character
+ * by character — an equation, a number being typed, a value written down, a
+ * report copied by hand. MoleBridge reached this first and states it plainly:
+ * those are read one character at a time, and loosening them makes them harder
+ * rather than easier, which is the whole setting backwards.
+ *
+ * ONLY WHERE THE WHOLE ELEMENT IS THE STRING. The equations inside a question's
+ * prose — "n × M = m relates moles, molar mass and mass" — are NOT covered, and
+ * that is deliberate rather than missed: the engine produces that sentence as
+ * plain text, and wrapping its symbols would put presentation inside the part of
+ * this app that must not carry any. The completion code needs no entry here; it
+ * sets its own tracking and never reads `--track`. */
+:root[data-spacing='open'] .choice,
+:root[data-spacing='open'] .wrote,
+:root[data-spacing='open'] .calc-result,
+:root[data-spacing='open'] .diagnostic,
+:root[data-spacing='open'] input[type='text'] {
+  letter-spacing: normal;
+  word-spacing: normal;
+}
+
 *, *::before, *::after { box-sizing: border-box; }
 
 html { -webkit-text-size-adjust: 100%; }
@@ -37,7 +60,12 @@ body {
   font: var(--base)/var(--leading) system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   letter-spacing: var(--track);
   min-height: 100svh;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  /* A TAIL, so `scroll-margin-top` can actually be honoured. A browser cannot
+     scroll past the end of the document, so an element near the bottom lands
+     wherever the last scroll position puts it — under the sticky bar, with the
+     margin ignored because there is nowhere further to go. The floor is the
+     bar's height with air, which is what the diagnosis needed. */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) max(env(safe-area-inset-bottom), 5rem) env(safe-area-inset-left);
 }
 
 /* ---------- focus ----------
@@ -70,7 +98,27 @@ body {
 main:focus { outline: none; }
 
 /* ---------- the bar ---------- */
+/* THE TOOLS GO WHERE THE READER GOES.
+ *
+ * The bar was static, so the moment anything scrolled — and a wrong answer
+ * scrolls the page to the diagnosis on purpose — the calculator and the report
+ * went off the top with it. `tools/fold-check.mjs` measured the calculator at
+ * 533px above the screen at the exact moment a reader has just got something
+ * wrong and most wants to work something out. Putting a control in the chrome
+ * only makes it always-available if the chrome is always there.
+ *
+ * IT NEEDS ITS OWN BACKGROUND. The body is a gradient, so a sticky bar with a
+ * transparent background has the page scrolling visibly THROUGH it. `--page-alt`
+ * is the gradient's own far end, so the bar reads as part of the same surface
+ * rather than as a panel laid over it.
+ *
+ * The cost is about 52px of a 380px screen, and it is worth it: that screen is
+ * where both of this app's reachability defects lived. */
 .bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--page-alt);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -99,6 +147,28 @@ main:focus { outline: none; }
   font-weight: 650;
   letter-spacing: 0.01em;
   margin: 0;
+}
+
+/* ROOM FOR THE BAR WHEN SOMETHING SCROLLS ITSELF INTO VIEW.
+ *
+ * `focus()` and `scrollIntoView` put an element at the top of the viewport,
+ * which under a sticky header means BEHIND it. The diagnosis landed with its
+ * first 57px covered — on screen by arithmetic, invisible to a reader, and in
+ * an app whose thesis is attribution that is the product being hidden by the
+ * fix that was meant to keep the tools reachable. `scroll-margin-top` is the
+ * one-property answer, and it belongs on everything anything ever scrolls to.
+ *
+ * The value is the bar's height plus a little air, expressed the same way the
+ * bar is built so the two move together. */
+:target,
+#main,
+#diagnosis,
+#drill-diagnosis,
+#entry,
+#drill-entry,
+#working,
+#run-note {
+  scroll-margin-top: calc(var(--tap) + 1.6rem);
 }
 
 .icon {

@@ -254,6 +254,24 @@ function renderEntry(problem, stage, takeFocus = true) {
     if (takeFocus)
         field.focus();
 }
+/**
+ * Move focus to a panel AND put it where a reader can see it.
+ *
+ * `focus()` alone scrolls with the user agent's `block: nearest` heuristic,
+ * which stops as soon as the element is technically inside the viewport — and
+ * under a sticky bar "inside the viewport" includes "behind an opaque strip".
+ * Measured at 390x380 it landed the diagnosis 22px under the chrome, with a
+ * `scroll-margin-top` of 69.6px declared and only partly honoured.
+ *
+ * So the two halves are separated: focus without scrolling, then scroll
+ * deliberately with `block: 'start'`, which does honour the margin. In an app
+ * whose thesis is attribution, the reason being behind the header is the
+ * product being hidden by the fix that kept the tools reachable.
+ */
+function focusPanel(panel) {
+    panel.focus({ preventScroll: true });
+    panel.scrollIntoView({ block: 'start', behavior: 'auto' });
+}
 /** Say something in the live region. Never praise, never blame; what happened. */
 function say(text) {
     const live = $('#said');
@@ -508,7 +526,7 @@ function answer(entry) {
     // The step does NOT advance. A gate that opens on a wrong answer is a list of
     // questions rather than a thing that teaches a move.
     renderEntry(currentProblem(run.session), currentStage(run.session), false);
-    $('#diagnosis').focus();
+    focusPanel($('#diagnosis'));
     renderDuringRunNote();
 }
 /**
@@ -757,7 +775,7 @@ function answerDrill(item, entry) {
     //
     // AND THE KEYBOARD DOES NOT COME BACK OVER THE REASON. See `renderEntry`.
     renderDrillEntry(item, false);
-    $('#drill-diagnosis').focus();
+    focusPanel($('#drill-diagnosis'));
     renderDrillNote();
 }
 function renderDrillNote() {

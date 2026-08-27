@@ -177,6 +177,13 @@ jobs:
       - name: Accessibility, every surface in both modes
         run: npm run a11y
 
+      # ON THE SCREEN RATHER THAN IN THE DOCUMENT. Every other browser gate here
+      # runs at 390x844, a phone with nothing covering it — and this app has
+      # twice shipped a control that was correct, measured and completely
+      # invisible on the device it is used on. Conformance is not reachability.
+      - name: Reachable at 390x380, with the keyboard up
+        run: npm run fold
+
       - name: The walk
         run: npm run walk
 

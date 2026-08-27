@@ -9,6 +9,35 @@ release changed something you can see or do, it is described below in the words
 you would use for it. If it changed something under the surface that you cannot
 see, it says that plainly rather than dressing it up.
 
+## 0.16.0 — CAPABILITY
+
+**The bar stays with you now.** The calculator and the report used to scroll off
+the top of the screen the moment anything moved — and getting a step wrong
+scrolls the page on purpose, to put the reason in front of you. So the two
+things you most want after a mistake were gone at exactly the moment you wanted
+them. They stay at the top of the screen now, wherever you are on the page.
+
+**And the reason no longer hides behind that bar.** Making the bar stay put
+covered the top of the explanation with it, on a small screen. It sits clear of
+it now.
+
+**Letter spacing stops widening the things that are read one character at a
+time.** If you have the wider spacing switched on, it still applies to
+sentences, where it helps — but not to a rearrangement you are choosing between,
+a number you are typing, a value you have already written down, or the problem
+report. Those are read character by character, and spreading them out makes them
+harder, which is the setting working backwards.
+
+**Under the surface:** there is a new check that opens the app at the size of a
+small phone with the keyboard up, and fails if anything you need is off the
+screen or behind the bar. Both of the last two faults reported here were things
+that existed, worked, and could not be seen on the device this is used on. Every
+other check ran on a taller screen where they were all perfectly visible.
+
+**Still missing:** the check knows about a fixed list of moments. A new control
+has to be added to that list, or it is not measured — the list is written down
+where it can be seen rather than worked out automatically.
+
 ## 0.15.0 — CAPABILITY
 
 **The calculator is in the bar at the top now, on every screen.** It was there
