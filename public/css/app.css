@@ -193,6 +193,21 @@ button {
 .primary:hover { background: var(--surface-raised); }
 .primary:active { background: var(--surface-pressed); }
 
+/* `hidden` HAS TO MEAN HIDDEN, and in this sheet it did not.
+ *
+ * The user agent hides the attribute with `[hidden] { display: none }` from its
+ * OWN stylesheet, which any author rule setting `display` beats regardless of
+ * specificity — so `.ghost { display: inline-flex }` below quietly made the
+ * attribute inert on every ghost button in the app. The calculator's "put this
+ * in the answer" control was set hidden on a step with nowhere to put a number
+ * and painted anyway, directly above the sentence explaining that it was not
+ * being offered.
+ *
+ * `!important` is right here rather than sloppy: this is the one declaration
+ * that must outrank every layout rule in the file, and the alternative is
+ * remembering, at each new control, that hiding it needs a class as well. */
+[hidden] { display: none !important; }
+
 /* Also used on links. `min-height` does nothing to an inline box, so this is
    inline-flex — a 138x20 link was the target the gate caught. */
 .ghost {

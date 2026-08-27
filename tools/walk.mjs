@@ -202,12 +202,67 @@ let shadow = startSession(
 // problem 0 because of the wrong answers above, which do not advance it. So
 // they are still on the same stage.
 let stepsDriven = 0;
+// Both kinds of step get the calculator checked once, and the walk says so at
+// the end if either kind never came up.
+let calcNumericSeen = false;
+let calcChoiceSeen = false;
 for (let guard = 0; guard < 200; guard += 1) {
   if (await page.locator('[data-surface="done"]').isVisible()) break;
   if (shadow.finished) break;
   const problem = currentProblem(shadow);
   const stage = currentStage(shadow);
   const entry = correctEntryFor(problem, solve(problem), stage, SCRATCH_SIG_FIGS);
+
+  /* ---- the arithmetic can be done without leaving the question ---- */
+  //
+  // ON WHICHEVER KIND OF STEP HAS NOT BEEN SEEN YET, rather than on a fixed
+  // one. The first version of this sat inside the working-log block, which only
+  // runs once the first step is answered — and the first step is the CHOICE, so
+  // the branch checking what the calculator does on a choice step could never
+  // be selected. It passed on every run without executing, which is the same
+  // green-that-measured-nothing as a state nothing ever reached.
+  if (entry.kind === 'choice' ? !calcChoiceSeen : !calcNumericSeen) {
+    if (entry.kind === 'choice') calcChoiceSeen = true;
+    else calcNumericSeen = true;
+    check(await page.locator('#calc').isHidden(), 'the calculator is put away until it is asked for');
+    await page.click('#open-calc');
+    await page.fill('#calc-line', '3.975×1000÷44.01');
+    await page.waitForTimeout(30);
+    const worked = (await page.locator('#calc-result').innerText()).trim();
+    const byHand = (3.975 * 1000) / 44.01;
+    check(worked === `= ${String(byHand)}`, 'a sum typed into the calculator is worked out in the app', worked);
+    check(
+      !worked.includes('90.32') || String(byHand).startsWith(worked.slice(2, 7)),
+      'and it is not rounded — significant figures are a step the reader is asked to do',
+    );
+    if (entry.kind === 'choice') {
+      // NOWHERE TO PUT A NUMBER, and the panel says so rather than dropping a
+      // control with no explanation.
+      check(
+        await page.locator('#calc-use').isHidden(),
+        'on a step that asks for a choice, it does not offer to put a number anywhere',
+      );
+      check(
+        await page.locator('#calc-nowhere').isVisible(),
+        'and it says why, rather than leaving a missing control to be read as a fault',
+      );
+      await page.locator('#calc [data-close]').click();
+    } else {
+      check(
+        await page.locator('#calc-nowhere').isHidden(),
+        'on a step with an answer box, the nowhere-to-put-it note is not shown',
+      );
+      await page.click('#calc-use');
+      await page.waitForTimeout(30);
+      const carried = await page.locator('#answer').inputValue();
+      check(carried === String(byHand), 'and the number lands in the answer box rather than being copied by hand', carried);
+      check(
+        await page.locator('#calc').isHidden(),
+        'and the panel gets out of the way, since the next thing wanted is the box underneath it',
+      );
+      await page.fill('#answer', '');
+    }
+  }
 
   // What the reader is about to write, in the words they write it in — so the
   // working can be checked for THAT rather than for something like it.
@@ -251,51 +306,6 @@ for (let guard = 0; guard < 200; guard += 1) {
       'with a line for each step done and none for a step nobody has answered',
     );
 
-    /* ---- and the arithmetic can be done without leaving the question ---- */
-    if ((await page.locator('#answer').count()) > 0) {
-      // FROM THE BAR, on this screen and every other one. The control it
-      // replaced sat below the button that checks the step, which on a tablet
-      // with the keyboard up is off the bottom of the screen — so this asserts
-      // the route a finger actually has rather than that the markup exists.
-      check(await page.locator('#calc').isHidden(), 'the calculator is put away until it is asked for');
-      await page.click('#open-calc');
-      await page.fill('#calc-line', '3.975×1000÷44.01');
-      await page.waitForTimeout(30);
-      const worked = (await page.locator('#calc-result').innerText()).trim();
-      const byHand = (3.975 * 1000) / 44.01;
-      check(worked === `= ${String(byHand)}`, 'a sum typed into the calculator is worked out in the app', worked);
-      check(
-        !worked.includes('90.32') || String(byHand).startsWith(worked.slice(2, 7)),
-        'and it is not rounded — significant figures are a step the reader is asked to do',
-      );
-      check(
-        await page.locator('#calc-use').isVisible(),
-        'and on a step with an answer box, it offers to put the number in it',
-      );
-      await page.click('#calc-use');
-      await page.waitForTimeout(30);
-      const carried = await page.locator('#answer').inputValue();
-      check(carried === String(byHand), 'and it lands in the answer box rather than being copied by hand', carried);
-      check(
-        await page.locator('#calc').isHidden(),
-        'and the panel gets out of the way, since the next thing wanted is the box underneath it',
-      );
-      // Put it back, so the run carries on from where it was.
-      await page.fill('#answer', '');
-    } else {
-      // A CHOICE STEP HAS NOWHERE TO PUT A NUMBER, and the panel says so rather
-      // than dropping a control with no explanation.
-      await page.click('#open-calc');
-      check(
-        await page.locator('#calc-use').isHidden(),
-        'on a step that asks for a choice, the calculator does not offer to put a number anywhere',
-      );
-      check(
-        await page.locator('#calc-nowhere').isVisible(),
-        'and it says why, rather than leaving a missing control to be read as a fault',
-      );
-      await page.locator('#calc [data-close]').click();
-    }
   }
   if (shadow.problemIndex !== wasOn && !shadow.finished) {
     check(
@@ -305,6 +315,10 @@ for (let guard = 0; guard < 200; guard += 1) {
   }
 }
 check(stepsDriven > 0, 'correct answers are accepted and carry the run forward', `${String(stepsDriven)} step(s)`);
+// NO SILENT SKIP. A check that never ran is not a check that passed, which is
+// the whole reason the block above moved out of the working-log guard.
+check(calcNumericSeen, 'the calculator was checked on a step that asks for a number');
+check(calcChoiceSeen, 'and on a step that asks for a choice');
 check((await visibleSurface(page)).join() === 'done', 'the run finishes');
 const closing = await page.locator('#closing').innerText();
 check(closing.trim().length > 0, 'and says what happened', closing.slice(0, 70).replace(/\n/g, ' | '));

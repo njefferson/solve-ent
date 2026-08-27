@@ -1362,6 +1362,39 @@ own `dialog:not([open]) { display: none }`, and an id selector outranks it, so
 laying the panel out as a grid without the attribute selector would have put the
 calculator permanently on screen over everything, with no way to close it.
 
+#### And the same cascade rule bit the other way, in the same release
+
+**The withheld control rendered anyway, directly above the sentence saying it
+was not being offered.** `hidden` was set on it and `getComputedStyle().display`
+read `flex` in the same reading. The user agent hides the attribute with
+`[hidden] { display: none }` from its OWN stylesheet, and every author
+declaration beats every user-agent one regardless of specificity — so
+`.ghost { display: inline-flex }`, one line written to give a button a touch
+floor, had made `hidden` inert on every ghost button in this app for as long as
+that class had existed.
+
+The remedy is `[hidden] { display: none !important; }` once, near the top of the
+sheet. `!important` is right there rather than sloppy: it is the one declaration
+that must outrank every layout rule in the file, and the alternative is
+remembering at each new control that hiding it needs a class as well.
+
+**Two gates were green over it, for two different reasons.** The a11y sweep
+opened the panel in both modes and measured that button's contrast and its
+target size — it was asked whether what is rendered is legible, never whether it
+should be rendered at all. And the walk's own check for this exact case had been
+written INSIDE the working-log block, which only runs once the first step is
+answered; the first step of that topic is the choice, so the branch checking a
+choice step could never be selected. It reported `ok` on every run without
+executing.
+
+**A check that cannot be selected reports the same green as one that passes** —
+the same shape as the `done` state that had never once been reached while every
+reading was taken on `work`. The checks are keyed on the kind of step now,
+whichever comes first, and the walk asserts at the end that BOTH kinds came up
+rather than letting a skipped case pass silently. Hub LESSONS §168.
+
+It was found by looking at a screenshot.
+
 ### Two releases were pushed and no CI run was created
 
 0.9.0 and 0.10.0 both went to `staging`, both were verified against the remote —
