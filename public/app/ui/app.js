@@ -191,7 +191,21 @@ function renderQuestion(problem, stage) {
     unitNode.textContent = unit === '' ? '' : `Answer in ${unit}.`;
     unitNode.hidden = unit === '';
 }
-function renderEntry(problem, stage) {
+/**
+ * The answer controls.
+ *
+ * `takeFocus` is FALSE after a wrong answer, and that is not a detail. The
+ * reflex — they got it wrong, put the cursor back in the box — calls `focus()`,
+ * which on iOS re-raises the keyboard and scrolls the field into view, taking
+ * the diagnosis with it. The reader is then looking at the box that was wrong
+ * with the explanation of why pushed off the bottom of the screen.
+ *
+ * Focus goes to the panel instead: it is where a rejection should land, it is
+ * better for somebody on a keyboard, and it lets the keyboard drop. Retyping
+ * costs one tap, which is the tap they were about to make anyway.
+ * (MoleBridge found this on a photograph of a real iPad; every gate was green.)
+ */
+function renderEntry(problem, stage, takeFocus = true) {
     const entryNode = $('#entry');
     clear(entryNode);
     if (stage.kind === 'CHOICE') {
@@ -237,7 +251,8 @@ function renderEntry(problem, stage) {
         }
     });
     entryNode.append(label, field, go);
-    field.focus();
+    if (takeFocus)
+        field.focus();
 }
 /** Say something in the live region. Never praise, never blame; what happened. */
 function say(text) {
@@ -339,9 +354,11 @@ function wireScratch() {
         const worked = evaluate(line.value);
         if (worked.kind !== 'value')
             return;
-        const field = document.querySelector('#answer');
+        // WHICHEVER ANSWER FIELD IS ON SCREEN. The scratch line serves the work
+        // screen and the drill, and they name their fields differently.
+        const field = document.querySelector('#answer, #drill-answer');
         if (field === null) {
-            say('This step is a choice rather than a number, so there is nothing to put it in.');
+            say('There is nowhere to put it on this step.');
             return;
         }
         // THE VALUE, NOT A ROUNDED ONE. What the step asks for is a number written
@@ -364,8 +381,16 @@ function wireScratch() {
  * to put a result, which is a control admitting it was offered in the wrong
  * place rather than not being offered.
  */
-function resetScratch(kind = 'NUMERIC') {
-    $('#scratch').hidden = kind === 'CHOICE';
+function resetScratch(kind = 'NUMERIC', after = $('#entry')) {
+    const scratch = $('#scratch');
+    // MOVED, NEVER COPIED. A drill on "doing the arithmetic" had no way to do any
+    // arithmetic: the scratch line was built into the work screen and the drill
+    // is a different screen, so the whole point of it — that nothing else needs
+    // to be in front of you — held on one screen and not the other. Appending
+    // MOVES the node, so there is one of it and one set of listeners rather than
+    // two blocks to keep in step.
+    after.after(scratch);
+    scratch.hidden = kind === 'CHOICE';
     const line = $('#scratch-line');
     line.value = '';
     $('#scratch-result').textContent = '';
@@ -473,7 +498,8 @@ function answer(entry) {
     renderDiagnosis(result.classification.errorClass, result.classification.why, result.classification.logError, $('#diagnosis'), stage.kind);
     // The step does NOT advance. A gate that opens on a wrong answer is a list of
     // questions rather than a thing that teaches a move.
-    renderEntry(currentProblem(run.session), currentStage(run.session));
+    renderEntry(currentProblem(run.session), currentStage(run.session), false);
+    $('#diagnosis').focus();
     renderDuringRunNote();
 }
 /**
@@ -654,10 +680,11 @@ function renderDrill(item) {
     unitNode.textContent = unit === '' ? '' : `Answer in ${unit}.`;
     unitNode.hidden = unit === '';
     $('#drill-diagnosis').hidden = true;
+    resetScratch(item.stage.kind, $('#drill-entry'));
     renderDrillEntry(item);
     show('drill');
 }
-function renderDrillEntry(item) {
+function renderDrillEntry(item, takeFocus = true) {
     const holder = $('#drill-entry');
     clear(holder);
     const answer = (entry) => answerDrill(item, entry);
@@ -698,7 +725,10 @@ function renderDrillEntry(item) {
         }
     });
     holder.append(label, field, go);
-    field.focus();
+    // NOT AFTER A WRONG ANSWER. See `renderEntry` — the keyboard comes back up
+    // over the reason the answer was wrong.
+    if (takeFocus)
+        field.focus();
 }
 function answerDrill(item, entry) {
     if (drill === null)
@@ -716,7 +746,10 @@ function answerDrill(item, entry) {
     renderDiagnosis(result.errorClass, result.why, result.logError, $('#drill-diagnosis'), item.stage.kind);
     // THE MOVE DOES NOT ADVANCE ON A WRONG ANSWER, same as a whole question: a
     // gate that opens on a wrong answer is a list of questions.
-    renderDrillEntry(item);
+    //
+    // AND THE KEYBOARD DOES NOT COME BACK OVER THE REASON. See `renderEntry`.
+    renderDrillEntry(item, false);
+    $('#drill-diagnosis').focus();
     renderDrillNote();
 }
 function renderDrillNote() {
@@ -1175,6 +1208,36 @@ export function boot(storeForTests) {
         const code = $('#completion-code').textContent ?? '';
         void navigator.clipboard?.writeText(code).then(() => say('The code is copied.'), () => say('Copying is not available here, so write it down instead.'));
     });
+    /**
+     * Leaving a set.
+     *
+     * TWO TAPS IN AN ASSIGNMENT, ONE IN PRACTICE. Leaving an assigned set throws
+     * away the code, which is worth one deliberate second tap; practice records
+     * nothing and has nothing to lose. **The armed state changes the WORDS**, not
+     * the colour — a red button says only that something is dangerous, and what
+     * this needs to say is exactly what is lost.
+     */
+    let armed = false;
+    const leave = $('#leave');
+    const disarm = () => {
+        armed = false;
+        leave.textContent = 'Stop this set';
+    };
+    leave.addEventListener('click', () => {
+        const assignedRun = run !== null && run.session.config.mode === 'assignment';
+        if (assignedRun && !armed) {
+            armed = true;
+            leave.textContent = 'Stop — you will not get a code';
+            say('Stopping now means no code for this set. Press again to stop.');
+            return;
+        }
+        disarm();
+        run = null;
+        assigned = null;
+        clearRun(store);
+        renderStart();
+    });
+    $('#topics').addEventListener('click', disarm);
     $('#difficulty-back').addEventListener('click', () => {
         renderStart();
     });

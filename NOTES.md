@@ -1553,6 +1553,43 @@ algebra verifier — all green on a screen that read as two unrelated questions
 followed by a shout. That gap does not close with another gate. It closes by
 somebody opening the app on the device it is for.
 
+## Reading MoleBridge's notes found three live defects here in ten minutes
+
+MoleBridge is the sibling — same teacher, same students, same room — and it has
+had a screen in front of people for longer. Its `NOTES.md` was read looking for
+anything about being COMPREHENSIBLE rather than correct, which is the category
+this application had just been caught failing in. Three of its findings were
+sitting here unfixed, and one of its decisions had already been re-derived.
+
+**The keyboard came back over the reason.** MoleBridge found it on a photograph
+of a real iPad: a wrong answer called `focus()` on the field — the reflex, *they
+got it wrong, let them retype* — which on iOS re-raises the keyboard and scrolls
+the field into view, taking the diagnosis with it. This application did exactly
+the same thing, in two places. Focus goes to the panel now; retyping costs the
+one tap the reader was about to make.
+
+**There was no way out of a set.** Theirs said: *nothing in this repository had
+ever asked the question "can you get out of here", and no gate asks it now
+either.* Nothing here had asked it either — the drill had a stop control and a
+whole run had none, so the only exits were finishing five questions or reloading
+the page. Their two-tap design is copied wholesale, including the reason the
+armed state changes the WORDS rather than the colour: a red button says only
+that something is dangerous, where this needs to say what is lost.
+
+**Their calculator rules, and the one test worth stealing.** MoleBridge's
+calculator refuses letters *structurally* and proves it by feeding all 118
+element symbols and seven real formulas through it — "a blocklist is a list
+somebody forgets to extend". The reasoning is the same one written here
+independently: no `eval` (it would ACCEPT what has to be refused), and no
+rounding, because rounding makes the significant-figures decision that is itself
+a graded step. Two apps reaching the same three rules separately is worth more
+than either of them stating it.
+
+**The general form, and it is the reason to read a sibling at all: a defect
+another app in this family has already found is a defect this one probably has,
+and their NOTES is where it is written down.** Ten minutes of reading against
+several sessions of finding these the hard way.
+
 ## What is NOT built, and it is most of the app
 
 Named here so nobody has to discover it by looking:

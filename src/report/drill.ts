@@ -80,11 +80,17 @@ export const NAME_IN_CLOSING_AT = 2;
  */
 export const STOPPED_AFTER_CLEAN = 2;
 
-/** What fixes a mistake, in words, with no number in it. */
+/**
+ * What to DO about a mistake, in words, with no number in it.
+ *
+ * THE `how`, NOT THE `name`. These sentences used to read "What fixes it is
+ * undoing an operation on both sides to get one letter on its own" — which
+ * names the topic the mistake belongs to and leaves the reader holding it.
+ */
 function whatFixesIt(errorClass: ErrorClass): string {
   const remedies = remediesFor(errorClass, null);
   const first = remedies[0];
-  return first === undefined ? '' : REMEDIES[first].name;
+  return first === undefined ? '' : REMEDIES[first].how;
 }
 
 /**
@@ -128,7 +134,7 @@ export function readRun(attempts: readonly Attempt[]): DrillOutcome {
         // ONCE, and never again. A second telling of the same thing is nagging,
         // and the reader already knows.
         text: `That is the third time this one has gone the same way — it ${CLASS_MEANINGS[errorClass]}.${
-          fix === '' ? '' : ` What fixes it is ${fix}.`
+          fix === '' ? '' : ` ${fix}`
         }`,
       });
     }
@@ -180,7 +186,7 @@ function closingFor(
       const fix = whatFixesIt(dominant);
       return [
         `Those all went the same way — each one ${CLASS_MEANINGS[dominant]}.`,
-        `That is one move to fix, not a list of problems to redo.${fix === '' ? '' : ` What fixes it is ${fix}.`}`,
+        `That is one move to fix, not a list of problems to redo.${fix === '' ? '' : ` ${fix}`}`,
       ];
     }
     const last = [...attempts]
@@ -210,7 +216,7 @@ function closingFor(
       lines.push(`You were getting these wrong the same way — each one ${CLASS_MEANINGS[errorClass]} — and then you were not.`);
     } else {
       lines.push(
-        `This one kept happening: it ${CLASS_MEANINGS[errorClass]}.${fix === '' ? '' : ` What fixes it is ${fix}.`}`,
+        `This one kept happening: it ${CLASS_MEANINGS[errorClass]}.${fix === '' ? '' : ` ${fix}`}`,
       );
     }
   }

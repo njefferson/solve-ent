@@ -32,9 +32,21 @@ export const NOTES_PAGE = '/whats-new';
  * it non-zero, which is also the first release on which that branch had ever
  * been reachable.
  */
-export const OLDER_THAN_SHOWN = 11;
+export const OLDER_THAN_SHOWN = 12;
 /** Newest first. */
 export const RELEASES = [
+    {
+        version: '0.14.2',
+        kind: 'ITERATION',
+        lines: [
+            'Three more of the same, two of them found by reading how MoleBridge — the sibling app, same room, same students — had already solved them.',
+            'The keyboard was coming back up over the reason. Get a step wrong and the app put the cursor back in the answer box, which on a tablet raises the keyboard and scrolls the box into view — pushing the explanation of what went wrong off the bottom of the screen. So you got the "wrong" and not the "why", which is the whole point of this app. Nothing takes the cursor back now: it goes to the explanation instead, the keyboard drops, and retyping costs the one tap you were about to make anyway.',
+            'There was no way out of a set. Once you had started, the only ways out were answering every question or reloading the page — no help at all if you picked the wrong topic or just wanted to go and read something. There is a Stop this set button now. In practice that is one tap, because practice records nothing. In a set somebody gave you it asks twice, and the second time it says what leaving costs: Stop — you will not get a code.',
+            'The scratch line only existed on one screen. Practising one move on its own had no way to do the arithmetic, which is absurd when one of the moves you can practise IS doing the arithmetic. It follows you onto that screen now, and stays away on steps that ask you to choose rather than to work something out.',
+            'Also: when a mistake keeps happening, the note during a run and the summary at the end used to say what the mistake was CALLED — "what fixes it is undoing an operation on both sides". They now say the same thing the panel says, which is what to actually do about it.',
+        ],
+        stillMissing: 'nothing new.',
+    },
     {
         version: '0.14.1',
         kind: 'ITERATION',
@@ -81,18 +93,5 @@ export const RELEASES = [
             'And the moves are added up across the whole stack, ordered by how much went wrong. That is the part worth taking back to the next lesson: it says what to teach again, not who to talk to.',
         ],
         stillMissing: 'the icon is still a simple drawing rather than a proper one, and nothing is deployed yet, so this runs from a device that already has it.',
-    },
-    {
-        version: '0.11.0',
-        kind: 'CAPABILITY',
-        lines: [
-            'A set can be handed in now. If somebody gave you a key and a number, there is a way in from the front screen, and at the end you get a code — sixteen characters in four groups — to give back.',
-            'The code says which number you are, how many steps you did, how many were right first time, which kinds of move went wrong and how many times, and roughly how long it took. That is everything in it. No name, nothing you typed, and nothing about the settings you were using: text size, spacing, one step at a time and read-aloud stay on the device, and there is nowhere in a code for them to go. Nobody should have to tell a room something about themselves just by handing work back.',
-            'And there is a page for reading them. Whoever set the work opens /teacher, types in the set as they gave it out, and pastes the code. It reads on the device, with no connection and nothing to sign in to, because the page doing the reading is the same code that did the writing.',
-            'The characters are chosen for handwriting: there is no I, L, O or U in a code, and if you write O for zero or l for one it still reads. A code from a different key, a different topic or an easier difficulty than the one that was set does not read at all, and the page says which way it is wrong rather than just refusing.',
-            'One thing said plainly, because it would be easy to imply otherwise: the check on a code catches a character copied wrong, or last week\'s code, or the wrong set. It cannot stop somebody who reads the source of the page and writes their own — there is no server here, so there is no secret to keep one out. The page says so itself.',
-            'A drop-down list on the new page turned out to be painted by the browser rather than by this app: nineteen pixels tall, in system greys that had never been checked for readability in either light or dark. Both are fixed, and the sweep that checks every screen now covers twenty of them rather than fifteen.',
-        ],
-        stillMissing: 'the icon is still a simple drawing rather than a proper one. Codes are read one at a time, so a stack of thirty is thirty pastes. Nothing is deployed yet, so this all runs from a device that already has it.',
     },
 ];

@@ -1348,9 +1348,11 @@ export function classify(problem, solution, stage, entry) {
 /**
  * What each remediation teaches, in the two registers it has to be said in.
  *
- * `name` is a noun phrase, because it is dropped into a sentence: "What fixes
- * it is undoing an operation on both sides." `how` is what to actually DO, and
- * it is the one a reader needs at the moment they have got something wrong.
+ * `name` is a noun phrase, for a sentence that needs one. `how` is what to
+ * actually DO, in ONE sentence so it fits everywhere a reader meets it — the
+ * panel after a wrong step, the note during a run, and the closing summary.
+ * Those three used to say the NAME, which tells somebody which chapter their
+ * mistake is in and leaves them holding the same wrong answer.
  *
  * **ONE ENTRY, TWO FIELDS, rather than two tables.** A screen was showing the
  * noun phrase under a heading reading "the move underneath this step", which is
@@ -1360,23 +1362,23 @@ export function classify(problem, solution, stage, entry) {
 export const REMEDIES = {
     'A1-ISOLATE': {
         name: 'undoing an operation on both sides to get one letter on its own',
-        how: 'To get a letter on its own, undo what is being done to it — and do the same thing to both sides. ' +
-            'A letter that is MULTIPLYING the one you want is a letter you divide by.',
+        how: 'To get a letter on its own, undo what is being done to it on BOTH sides — ' +
+            'a letter that is multiplying the one you want is a letter you divide by.',
     },
     'A2-PROPORTION': {
         name: 'setting two ratios equal and cross-multiplying',
-        how: 'Write the two ratios the same way round: what you have over what the recipe takes, ' +
-            'and what you want over what the recipe makes. Then cross-multiply.',
+        how: 'Write both ratios the same way round — what you have over what the recipe takes, ' +
+            'what you want over what it makes — and then cross-multiply.',
     },
     'A3-UNITS': {
         name: 'writing a conversion so the unit you are carrying cancels',
-        how: 'Write each conversion with the unit you are carrying on the BOTTOM, so it cancels the one above it. ' +
-            'If a unit does not cancel, that factor is the wrong way up.',
+        how: 'Write each conversion with the unit you are carrying on the BOTTOM so it cancels; ' +
+            'if a unit does not cancel, that factor is upside down.',
     },
     'A4-MAGNITUDE': {
         name: 'checking the size of an answer before writing it down',
-        how: 'Before writing a number down, ask roughly how big it ought to be. ' +
-            'An answer out by a factor of ten is usually a decimal point rather than the method.',
+        how: 'Ask roughly how big the answer ought to be before writing it — ' +
+            'out by a factor of ten is usually a decimal point rather than the method.',
     },
 };
 /**

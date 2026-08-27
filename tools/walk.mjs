@@ -275,6 +275,34 @@ check(closing.trim().length > 0, 'and says what happened', closing.slice(0, 70).
 check(!/\b\d+\s*(?:\/|out of)\s*\d+\b/.test(closing), 'with no fraction of right answers');
 check(!/\b(?:streak|badge|great job|well done)\b/i.test(closing), 'and nothing congratulating anybody');
 
+/* ---- there is a way out of a set, and it says what leaving costs ---- */
+//
+// ONCE STARTED, THE ONLY EXITS WERE FINISHING OR RELOADING. Somebody who picked
+// the wrong topic, or wanted to go and read something, was stuck.
+{
+  // ITS OWN RUN, because leaving one is the thing being checked and the run
+  // above has already finished by this point.
+  await page.goto(`${server.origin}/`);
+  await page.waitForTimeout(150);
+  if (await page.locator('[data-surface="welcome"]').isVisible()) await page.click('#begin');
+  await page.locator('#topics button').first().click();
+  await page.waitForTimeout(80);
+  await page.locator('#difficulties button').first().click();
+  await page.waitForTimeout(120);
+  check((await visibleSurface(page)).join() === 'work', 'a set is running');
+  check(await page.locator('#leave').isVisible(), 'and there is a way out of it');
+  const before = (await page.locator('#leave').innerText()).trim();
+  await page.click('#leave');
+  await page.waitForTimeout(80);
+  // Practice records nothing and has nothing to lose, so one tap is the whole
+  // of it. An assigned set arms first, because leaving throws the code away.
+  check(
+    (await visibleSurface(page)).join() === 'start',
+    'and leaving a practice set takes one tap, since practice records nothing',
+    before,
+  );
+}
+
 /* ---- blocked practice: one move, again ----
  *
  * A whole question is interleaved practice. A move somebody does not have yet
@@ -310,6 +338,20 @@ check(
   (await page.locator('#drill-question').innerText()).trim().length > 0,
   'with the question around it for context, since a move with nothing to hold on to is not a move',
 );
+// THE SAME SCRATCH LINE, on this screen too. The whole point of it is that
+// nothing else has to be in front of you, and it held on the work screen only —
+// a drill on doing the arithmetic had no way to do any.
+{
+  const numeric = (await page.locator('#drill-answer').count()) > 0;
+  const scratchHere = (await page.locator('#drill-entry ~ #scratch').count()) > 0;
+  check(scratchHere, 'the scratch line follows the reader onto the drill screen rather than living on one screen');
+  check(
+    numeric !== (await page.locator('#scratch').isHidden()),
+    numeric
+      ? 'and it is offered on a drill step that asks for a number'
+      : 'and it stays away on a drill step that asks for a choice',
+  );
+}
 
 // Wrong on purpose: the move must not advance, exactly as a whole question.
 let drillDiagnosed = false;

@@ -9,6 +9,38 @@ release changed something you can see or do, it is described below in the words
 you would use for it. If it changed something under the surface that you cannot
 see, it says that plainly rather than dressing it up.
 
+## 0.14.2 — ITERATION
+
+Three more of the same, two of them found by reading how MoleBridge — the
+sibling app, same room, same students — had already solved them.
+
+**The keyboard was coming back up over the reason.** Get a step wrong and the
+app put the cursor back in the answer box, which on a tablet raises the keyboard
+and scrolls the box into view — pushing the explanation of what went wrong off
+the bottom of the screen. So you got the "wrong" and not the "why", which is the
+whole point of this app. Nothing takes the cursor back now: it goes to the
+explanation instead, the keyboard drops, and retyping costs the one tap you were
+about to make anyway.
+
+**There was no way out of a set.** Once you had started, the only ways out were
+answering every question or reloading the page — no help at all if you picked
+the wrong topic or just wanted to go and read something. There is a **Stop this
+set** button now. In practice that is one tap, because practice records nothing.
+In a set somebody gave you it asks twice, and the second time it says what
+leaving costs: *Stop — you will not get a code.*
+
+**The scratch line only existed on one screen.** Practising one move on its own
+had no way to do the arithmetic, which is absurd when one of the moves you can
+practise IS doing the arithmetic. It follows you onto that screen now, and stays
+away on steps that ask you to choose rather than to work something out.
+
+**Also:** when a mistake keeps happening, the note during a run and the summary
+at the end used to say what the mistake was CALLED — "what fixes it is undoing an
+operation on both sides". They now say the same thing the panel says, which is
+what to actually do about it.
+
+**Still missing:** nothing new.
+
 ## 0.14.1 — ITERATION
 
 Four things found by using it on a phone, which is where it will actually be

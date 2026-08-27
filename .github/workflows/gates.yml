@@ -37,7 +37,7 @@ env:
   # canonical gates AT THIS SHA, so leaving it behind would mean every gate
   # going green while running a check that had never heard of the rule it is
   # supposed to enforce.
-  HUB_SHA: ee102b6ddc177698d39d345d5bf6e97122d91ca7
+  HUB_SHA: 6db8213a822e7772fab48c945acfbc4abdba2a45
 
 jobs:
   gates:

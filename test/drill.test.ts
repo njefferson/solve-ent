@@ -18,7 +18,7 @@ import {
   readRun,
   type Attempt,
 } from '../src/report/drill.ts';
-import { CLASS_MEANINGS, type ErrorClass } from '../src/engine/taxonomy.ts';
+import { CLASS_MEANINGS, REMEDIES, type ErrorClass } from '../src/engine/taxonomy.ts';
 
 const wrong = (errorClass: ErrorClass): Attempt => ({ skill: 'SCALE', errorClass });
 const right = (): Attempt => ({ skill: 'SCALE', errorClass: null });
@@ -61,7 +61,13 @@ test('three times is said during the run, once, with what fixes it — and never
   assert.equal(note?.afterAttempt, NAME_DURING_RUN_AT - 1, 'said at the wrong point in the run');
   assert.equal(note?.errorClass, 'E-PROP-INVERTED');
   assert.ok((note?.text ?? '').includes('third time'), 'the note does not say what it is about');
-  assert.ok((note?.text ?? '').includes('What fixes it'), 'the note names a mistake and no way out of it');
+  // WHAT TO DO, not what the mistake is called. This asserted the phrase
+  // "What fixes it", which the note carried in front of the remedy's NAME —
+  // and a name is the topic a mistake belongs to rather than a way out of it.
+  assert.ok(
+    (note?.text ?? '').includes(REMEDIES['A2-PROPORTION'].how),
+    'the note names a mistake and no way out of it',
+  );
 });
 
 test('the change sentence is said ONLY where the run shows the change', () => {

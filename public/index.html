@@ -123,7 +123,7 @@
     <p id="drill-step" class="step"></p>
     <p id="drill-unit" class="unit-hint" hidden></p>
     <div id="drill-entry" class="entry"></div>
-    <div id="drill-diagnosis" class="diagnosis" hidden></div>
+    <div id="drill-diagnosis" class="diagnosis" tabindex="-1" hidden></div>
     <div id="drill-note" class="run-note" hidden></div>
     <button type="button" id="drill-stop" class="ghost">Stop and see what happened</button>
   </section>
@@ -173,8 +173,14 @@
         <button type="button" id="scratch-use" class="ghost" disabled>Put this in the answer</button>
       </div>
     </div>
-    <div id="diagnosis" class="diagnosis" hidden></div>
+    <div id="diagnosis" class="diagnosis" tabindex="-1" hidden></div>
     <div id="run-note" class="run-note" hidden></div>
+    <!-- A WAY OUT. Once a set had started the only exits were finishing it or
+         reloading the page — so somebody who picked the wrong topic, or wanted
+         to go and read something, was stuck. Leaving an assigned set throws
+         away the code, so that one arms first and the WORDS change rather than
+         the colour: a red button says only that something is dangerous. -->
+    <button type="button" id="leave" class="ghost">Stop this set</button>
   </section>
 
   <!-- ============ the end of a run ============ -->
