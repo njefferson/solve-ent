@@ -1527,11 +1527,16 @@ Named here so nobody has to discover it by looking:
   `pages project create` first and that is a no-op once it exists, exactly as
   the hub has been doing for its own project the whole time. It was written down
   here as the owner's job for several releases and that was simply wrong.
-  **WHAT HAS NOT BEEN VERIFIED FROM A SESSION: that the address answers.** This
-  environment's egress policy refuses `*.pages.dev`, so the deploy log is the
-  end of what a session can see. A log saying `Deployment complete` is not a
-  page — same family as hub LESSONS §53, one step further out — so the website
-  field in the hub's `METADATA.md` stays `proposed` until somebody opens it.
+  **The address answers** — confirmed by the owner opening it, because a session
+  cannot. This environment's egress policy refuses `*.pages.dev`, so a session
+  that curls the deployed site gets a 403 from the proxy gateway rather than a
+  page.
+  **THAT 403 IS A NETWORK POLICY AND NOT AN OUTAGE.** A future session will try
+  to check the live site, get nothing, and have every reason to conclude the
+  deploy is broken — which is hub LESSONS §162 exactly, and is why this is
+  written down rather than left to be re-diagnosed. The deploy log is the end of
+  what a session can see from here; confirmation comes from somebody with a
+  browser.
 
 ## The first CI run, read rather than trusted
 
