@@ -1405,12 +1405,27 @@ function draftProportion(rng, tier, seed) {
     return problem;
 }
 /** Where a number in scientific notation comes from, for the wording. */
+/**
+ * What the first number IS, so the unit the last step wants has a source.
+ *
+ * **THE LABEL WAS DRAWN AND THEN DROPPED.** A subject was picked, its unit was
+ * attached to the answer, and the prompt was built as bare arithmetic — "Work
+ * out (3.02 × 10^-2) × (4.88 × 10^6)". The final step then asked for the answer
+ * in particles. **Thirty-five of sixty problems demanded a unit the question
+ * never mentioned**, which cannot be answered except by guessing, and a guess
+ * is then attributed to the reader as a units error.
+ *
+ * `countable` is the second half of the same honesty. A mass, a volume, a
+ * concentration and a rate are fine at any magnitude; a NUMBER OF PARTICLES is
+ * not, and "3.02 × 10^-2 particles" is not a quantity anybody has. A countable
+ * subject is only drawn where the number it labels is at least one.
+ */
 const SCINOT_SUBJECTS = [
-    { label: 'a number of particles', unit: 'particles' },
-    { label: 'a concentration', unit: 'mol/L' },
-    { label: 'a mass', unit: 'g' },
-    { label: 'a volume', unit: 'L' },
-    { label: 'a rate', unit: 'mol/(L·s)' },
+    { label: 'A number of particles', unit: 'particles', countable: true },
+    { label: 'A concentration', unit: 'mol/L', countable: false },
+    { label: 'A mass', unit: 'g', countable: false },
+    { label: 'A volume', unit: 'L', countable: false },
+    { label: 'A rate', unit: 'mol/(L·s)', countable: false },
 ];
 function draftScinot(rng, tier, seed) {
     const operation = nextInt(rng, 0, 1) === 0 ? 'MULTIPLY' : 'DIVIDE';
@@ -1421,7 +1436,9 @@ function draftScinot(rng, tier, seed) {
     const span = tier === 1 ? 6 : tier === 2 ? 12 : MAX_EXPONENT;
     const firstExponent = nextInt(rng, Math.max(MIN_EXPONENT, -span), Math.min(MAX_EXPONENT, span));
     const secondExponent = nextInt(rng, Math.max(MIN_EXPONENT, -span), Math.min(MAX_EXPONENT, span));
-    const subject = pick(rng, SCINOT_SUBJECTS);
+    // A COUNT CANNOT BE A FRACTION OF ONE. Drawn from the subjects this magnitude
+    // can honestly carry, rather than drawn and hoped for.
+    const subject = pick(rng, SCINOT_SUBJECTS.filter((candidate) => !candidate.countable || firstExponent >= 0));
     const problem = {
         topic: 'SCINOT',
         tier,
@@ -1435,10 +1452,17 @@ function draftScinot(rng, tier, seed) {
         firstLabel: subject.label,
         secondLabel: operation === 'MULTIPLY' ? 'the other number' : 'what you are dividing by',
         answerUnit: parseUnit(operation === 'MULTIPLY' ? subject.unit : ''),
-        prompt: `Work out (${formatSigFigs(firstMantissa, mantissaFigures)} × 10^${firstExponent}) ` +
-            `${operation === 'MULTIPLY' ? '×' : '÷'} ` +
-            `(${formatSigFigs(secondMantissa, mantissaFigures)} × 10^${secondExponent}), ` +
-            `and write it in scientific notation to ${answerSigFigs} significant figures.`,
+        // THE QUANTITY IS NAMED, so the unit the last step asks for has a source in
+        // the question. Multiplying by a bare number keeps the unit; dividing two of
+        // the same thing cancels it, which is why only one of them names one.
+        prompt: operation === 'MULTIPLY'
+            ? `${subject.label} of ${formatSigFigs(firstMantissa, mantissaFigures)} × 10^${firstExponent} ${subject.unit} ` +
+                `is multiplied by ${formatSigFigs(secondMantissa, mantissaFigures)} × 10^${secondExponent}. ` +
+                `Give the answer in scientific notation, to ${answerSigFigs} significant figures, with its unit.`
+            : `${subject.label} of ${formatSigFigs(firstMantissa, mantissaFigures)} × 10^${firstExponent} ${subject.unit} ` +
+                `is divided by ${formatSigFigs(secondMantissa, mantissaFigures)} × 10^${secondExponent} ${subject.unit}. ` +
+                `The units cancel, so the answer is a bare number. ` +
+                `Give it in scientific notation, to ${answerSigFigs} significant figures.`,
     };
     return problem;
 }
@@ -1465,8 +1489,13 @@ function draftPowers(rng, tier, seed) {
             exponent,
             answerUnit: parseUnit('mol/L'),
             baseName: '[A]',
-            prompt: `K = [A]^${exponent}, and K = ${formatSigFigs(value, baseFigures + 2)}. ` +
-                `Work out [A] to ${answerSigFigs} significant figures.`,
+            // THE UNIT HAS TO HAVE A SOURCE. This asked for [A] in mol/L while naming
+            // neither mol nor L anywhere — the same defect as scientific notation,
+            // found by the gate written for that one. `[A]` is a concentration, so
+            // the question says so.
+            prompt: `[A] is a concentration, in mol/L. ` +
+                `K = [A]^${exponent}, and K = ${formatSigFigs(value, baseFigures + 2)}. ` +
+                `Work out [A] to ${answerSigFigs} significant figures, with its unit.`,
         };
         return problem;
     }

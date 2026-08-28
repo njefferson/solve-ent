@@ -397,3 +397,74 @@ test('and the symbol a problem asks for is one of that relation\'s own', () => {
     );
   }
 });
+
+/**
+ * A question has to carry the numbers it is asking about.
+ *
+ * ## Why this exists
+ *
+ * `statedValues` has existed since the engine did, and `tools/cli.ts` prints
+ * it. **Nothing on the screen rendered it.** A rearranging question reached a
+ * reader as "n × M = m relates moles, molar mass and mass. Rearrange it for n
+ * and work out moles, to 3 significant figures" and then asked them to work out
+ * moles — with no value for m or M anywhere on the page. Not hard: not
+ * answerable, by anybody.
+ *
+ * **Every gate was green**, because the walk gets its answers from the engine
+ * rather than off the screen, so it could always answer what a reader could
+ * not.
+ *
+ * This is the engine half — that what a reader is shown contains everything a
+ * step needs. `tools/walk.mjs` holds the other half, that the screen actually
+ * renders it.
+ */
+test('everything a step needs is in the question or in the values beside it', () => {
+  for (const topic of TOPICS) {
+    for (const difficulty of laddersFor(topic)) {
+      for (let index = 0; index < 12; index += 1) {
+        let problem;
+        try {
+          problem = generateProblem('TEST-SHOWN', topic, difficulty.tier, index);
+        } catch {
+          continue;
+        }
+        const stated = statedValues(problem);
+        const shown = [
+          problem.prompt,
+          ...stated.map((value) => `${value.symbol} ${value.written} ${formatUnit(value.unit)} ${value.label}`),
+        ].join(' ');
+
+        // A NUMBER TO WORK WITH. A question whose prompt states no figure at all
+        // is relying entirely on the values beside it, and if there are none
+        // there is nothing to compute from.
+        assert.ok(
+          /\d/.test(problem.prompt) || stated.length > 0,
+          `${topic} tier ${String(difficulty.tier)} index ${String(index)} shows no number anywhere: ${problem.prompt}`,
+        );
+
+        // AND THE UNIT IT WANTS HAS A SOURCE. Not the whole unit as written —
+        // deriving g/mL from a mass in g and a volume in mL is the skill — but
+        // every FACTOR of it has to be somewhere a reader can see by then.
+        //
+        // WHAT THEY CAN SEE INCLUDES THE STEPS BEHIND THEM. A conversion chain
+        // names its first factor in step one ("one mole of H₂O weighs 18.02 g")
+        // and asks for moles in step two; the working log keeps step one on the
+        // screen. Reading only the question would call that unanswerable and it
+        // is not — the first version of this check did exactly that, on a topic
+        // whose whole point is carrying a unit forward.
+        const stages = stagesFor(problem);
+        for (const [at, stage] of stages.entries()) {
+          const unit = formatUnit(stage.unit);
+          if (!stage.needsUnit || unit === '') continue;
+          const bySoFar = [shown, ...stages.slice(0, at + 1).map((earlier) => earlier.prompt)].join(' ');
+          for (const part of unit.split(/[/()·]/).map((piece) => piece.trim()).filter((piece) => piece !== '')) {
+            assert.ok(
+              bySoFar.includes(part),
+              `${topic} tier ${String(difficulty.tier)} wants "${unit}" at ${stage.id} and a reader is never shown "${part}": ${problem.prompt}`,
+            );
+          }
+        }
+      }
+    }
+  }
+});

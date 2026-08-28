@@ -1427,6 +1427,81 @@ vanishes the first time anybody touches the panel. It is held in a variable and
 the whole text is rebuilt from scratch, so what is on screen is always exactly
 what a copy produces.
 
+### The questions were missing their numbers — 1.2.0
+
+**The worst defect found in this application, and it was live in 1.0.0.**
+
+A rearranging question reached a reader as *"n × M = m relates moles, molar mass
+and mass. Rearrange it for n and work out moles, to 3 significant figures"* —
+and then step two asked them to work out moles. **No value for m. No value for
+M. No number anywhere on the screen.** It was not a hard question. It was not a
+question anybody could answer.
+
+`statedValues` has existed since the engine did, and `tools/cli.ts` prints it
+under every problem. Nothing on the page ever rendered it.
+
+**EVERY GATE WAS GREEN, and the reason is exact: the walk gets its answers from
+the engine rather than off the screen.** It could always answer what a reader
+could not, on every run, for the whole life of the application. The a11y sweep
+measured the contrast of a question with no numbers in it and found nothing
+wrong, because there was nothing wrong with how it was rendered — only with what
+was missing from it. This is the reachability family again (§95, §174), one
+level further in: not a control nobody can see, but *data nobody was given*.
+
+The fix is four lines of rendering. Finding it took reading the screen as a
+reader, which is the only instrument that has ever caught this class.
+
+**Two gates now, because it has two halves.** `problem.test.ts` holds that
+everything a step needs is in the question or the values beside it — including
+that any unit a step demands has a source. `tools/walk.mjs` holds that the
+screen actually renders those values, which is the half that was missing.
+
+**The engine-side check took two tries to get honest**, and both misses are
+worth keeping. Reading only `problem.prompt` flagged 291 correct problems,
+because deriving g/mL from a mass in g and a volume in mL is the skill rather
+than a defect. Then reading prompt-plus-values flagged the conversion chain,
+whose first factor is named in step one and wanted in step two — with the
+working log keeping step one on the screen. **A check that calls honest work
+broken teaches people to route around it** (hub LESSONS §108); the instrument
+has to model what a reader can actually see BY THEN, which is the question, the
+values, and the steps behind them.
+
+**And the walk-side check did not run on its first version.** It was guarded on
+`stepsDriven === 0` and placed after that counter was raised. That is the same
+dead branch this file already carries a lesson about, committed by the same
+session that wrote the lesson down, four releases later.
+
+### Two questions asked for a unit they never named
+
+Scientific notation drew a subject — *a mass*, *a concentration*, *a number of
+particles* — attached its unit to the answer, and then **built the prompt as
+bare arithmetic and dropped the label on the floor**. Thirty-five of sixty
+problems demanded a unit the question never mentioned. The reader's report was
+"Answer in g." above a question containing no grams.
+
+The label is rendered now: *"A mass of 3.02 × 10⁻² g is multiplied by 4.88 ×
+10⁶."* Dividing two of the same quantity cancels the unit and says so.
+
+**And a count cannot be a fraction of one.** The subject was drawn independently
+of the magnitude, so the app could describe 3 × 10⁻² particles. A countable
+subject is only drawn where the number it labels is at least one.
+
+**The gate written for that one immediately found another.** The
+equilibrium-constant questions asked for [A] to so many figures and wanted mol/L,
+having never said [A] was a concentration. That is the value of a gate over a
+fix: the fix closes one hole, the gate finds the rest.
+
+### A way back to what a step asked
+
+The working log kept the value and not the question, so a reader who wanted to
+check what a step had actually wanted had no way to look — the wording went with
+the step. Each line is a `<details>` now: the summary stays short, and the
+question is one tap away, with no navigation and no way to answer it again.
+
+It is its own a11y state, because prose behind a disclosure is prose a resting
+sweep never reads — and this is prose a reader goes to when they are already
+unsure, which is the worst place for unmeasured contrast.
+
 ### The fallback class was handing out a verdict — 1.1.0
 
 **Six findings from one reader working one question**, and the first is the

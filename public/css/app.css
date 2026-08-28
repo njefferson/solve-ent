@@ -349,6 +349,24 @@ a.ghost { color: var(--accent); }
   letter-spacing: 0.02em;
   margin-bottom: 0.3rem;
 }
+/* THE NUMBERS THE QUESTION IS ABOUT. A list rather than a sentence, because a
+ * reader looks these up one at a time while working rather than reading them
+ * through — and because the symbol has to be findable next to the equation
+ * above it. */
+.working-line summary { cursor: pointer; min-height: var(--tap); display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; }
+.working-asked { color: var(--text-2); font-size: 0.94em; margin: 0.2rem 0 0.4rem 1rem; }
+
+.givens {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.3rem;
+}
+.givens li { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: baseline; }
+.given-symbol { font-weight: 600; }
+.given-label { color: var(--text-2); font-size: 0.94em; }
+
 .step { font-weight: 600; margin-bottom: 0.35rem; }
 .unit-hint { color: var(--text-2); font-size: 0.95em; }
 

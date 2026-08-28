@@ -288,6 +288,23 @@ const STATES = [
     arrived: '#result',
   },
   {
+    // A FINISHED STEP, OPENED BACK UP. The question each line answered sits
+    // behind a disclosure, so a resting sweep never reads a word of it — and it
+    // is prose a reader goes to when they are already unsure, which is the
+    // worst place for unmeasured contrast.
+    name: 'work-reviewing',
+    surface: 'work',
+    path: '/',
+    async reach(page) {
+      await page.click('#begin');
+      await page.locator('#topics button').first().click();
+      await page.locator('#difficulties button').first().click();
+      await driveCorrect(page, 1);
+      await page.locator('#working-list summary').first().click();
+    },
+    arrived: '#working-list details[open]',
+  },
+  {
     // THE CALCULATOR, open. The keypad is behind a control, so a resting sweep
     // never sees a single one of its keys — twenty targets and their contrast,
     // in both modes, invisible to this gate unless the panel is opened.

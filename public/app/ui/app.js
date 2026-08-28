@@ -30,7 +30,7 @@
  * hub LESSONS §28, and it has cost a release elsewhere. **Add a surface here and
  * to `tools/a11y.mjs` in the same commit.**
  */
-import { TOPIC_NAMES, laddersFor, solve } from '../engine/problem.js';
+import { TOPIC_NAMES, laddersFor, solve, statedValues } from '../engine/problem.js';
 import { drillItem } from '../engine/blocked.js';
 import { MAX_ROSTER_NUMBER, SessionError, completionCounts, currentProblem, resumeSession, currentStage, startSession, submit, } from '../engine/steps.js';
 import { CLASS_MEANINGS, COUNTER_SKILLS, REMEDIES, SKILL_NAMES, STEP_DID, stagesFor, choiceItemsFor, classify, formatUnit, readEntry, remediesFor, } from '../engine/taxonomy.js';
@@ -176,10 +176,38 @@ function renderQuestion(problem, stage) {
     const body = make('p', { class: 'question-body', id: 'question-body' }, problem.prompt);
     body.hidden = prefs.oneStepAtATime;
     questionNode.append(body);
+    // THE NUMBERS THE QUESTION IS ABOUT.
+    //
+    // **THEY WERE NEVER ON THE SCREEN.** `statedValues` has existed since the
+    // engine did and `tools/cli.ts` prints it; nothing rendered it. So a
+    // rearranging question reached a reader as "n × M = m relates moles, molar
+    // mass and mass. Rearrange it for n and work out moles" and then asked them
+    // to work out moles — with no value for m or M anywhere. Not hard: not
+    // answerable, by anybody.
+    //
+    // EVERY GATE WAS GREEN because the walk gets its answers from the engine
+    // rather than off the screen, so it could always answer what a reader could
+    // not. Naming a value is not showing an answer — these are the question's own
+    // terms, which is why `Problem` carries them and no intermediate.
+    const stated = statedValues(problem);
+    if (stated.length > 0) {
+        const list = make('ul', { class: 'givens', id: 'givens' });
+        for (const value of stated) {
+            const unit = formatUnit(value.unit);
+            const item = make('li', {});
+            item.append(make('span', { class: 'given-symbol' }, `${value.symbol} = ${value.written}${unit === '' ? '' : ` ${unit}`}`), make('span', { class: 'given-label' }, value.label));
+            list.append(item);
+        }
+        list.hidden = prefs.oneStepAtATime;
+        questionNode.append(list);
+    }
     if (prefs.oneStepAtATime) {
         const reveal = make('button', { type: 'button', class: 'ghost', id: 'reveal' }, 'Show the question');
         reveal.addEventListener('click', () => {
             body.hidden = false;
+            const givens = document.getElementById('givens');
+            if (givens !== null)
+                givens.hidden = false;
             reveal.remove();
         });
         questionNode.append(reveal);
@@ -284,8 +312,17 @@ function renderWorking() {
     const lines = run?.working ?? [];
     holder.hidden = lines.length === 0;
     for (const line of lines) {
+        // A WAY BACK TO WHAT WAS SAID. The log used to carry the value only, so a
+        // reader who wanted to check what a step had actually asked had no way to
+        // look — the wording was gone the moment the step was. A `<details>` keeps
+        // the summary short and puts the question one tap away, with no navigation
+        // and no way to answer it again.
         const item = make('li', {});
-        item.append(make('span', { class: 'what' }, `${line.what}: `), make('span', { class: 'wrote' }, line.wrote));
+        const box = make('details', { class: 'working-line' });
+        const head = make('summary', {});
+        head.append(make('span', { class: 'what' }, `${line.what}: `), make('span', { class: 'wrote' }, line.wrote));
+        box.append(head, make('p', { class: 'working-asked' }, line.asked));
+        item.append(box);
         list.append(item);
     }
 }
@@ -519,7 +556,7 @@ function answer(entry) {
             : entry.text.trim();
         // WHAT THE STEP WAS, not which skill it counts towards. See STEP_DID.
         if (wrote !== '')
-            run.working.push({ what: STEP_DID[stage.id] ?? SKILL_NAMES[stage.counter], wrote });
+            run.working.push({ what: STEP_DID[stage.id] ?? SKILL_NAMES[stage.counter], wrote, asked: stage.prompt });
         // A NEW QUESTION STARTS AN EMPTY LIST. The working belongs to the question
         // it was done on; carrying it forward would put one question's numbers
         // beside another question's prompt, which is worse than showing nothing.

@@ -29,7 +29,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { serve } from './serve.mjs';
-import { TOPIC_NAMES } from '../src/engine/problem.ts';
+import { TOPIC_NAMES, statedValues } from '../src/engine/problem.ts';
 import { VERSION } from '../src/version.ts';
 import { asWritten } from '../src/num/arith.ts';
 import { currentProblem, currentStage, startSession, submit } from '../src/engine/steps.ts';
@@ -208,6 +208,7 @@ let shadow = startSession(
 let stepsDriven = 0;
 // Both kinds of step get the calculator checked once, and the walk says so at
 // the end if either kind never came up.
+let shownChecked = false;
 let calcNumericSeen = false;
 let calcChoiceSeen = false;
 for (let guard = 0; guard < 200; guard += 1) {
@@ -216,6 +217,30 @@ for (let guard = 0; guard < 200; guard += 1) {
   const problem = currentProblem(shadow);
   const stage = currentStage(shadow);
   const entry = correctEntryFor(problem, solve(problem), stage, SCRATCH_SIG_FIGS);
+
+  /* ---- the numbers the question is about are ON THE SCREEN ---- */
+  //
+  // THE OTHER HALF OF THE ENGINE CHECK. `problem.test.ts` holds that everything
+  // a step needs is in the question or the values beside it; this holds that the
+  // screen renders them. It is the half that was missing: the values existed,
+  // the CLI printed them, and nothing on the page did — so a rearranging
+  // question asked for moles with no m and no M anywhere, and this walk answered
+  // it anyway, because it asks the engine rather than reading the screen.
+  //
+  // AT THE TOP OF THE LOOP, AND FLAGGED. The first version guarded on
+  // `stepsDriven === 0` and sat after that counter had been raised, so it never
+  // once ran — the same dead branch this file already carries a lesson about.
+  if (!shownChecked) {
+    shownChecked = true;
+    const seen = await page.locator('#question').innerText();
+    for (const value of statedValues(problem)) {
+      check(
+        seen.includes(value.written),
+        `the question shows ${value.symbol}, which a reader cannot work without`,
+        `${value.symbol} = ${value.written}`,
+      );
+    }
+  }
 
   /* ---- the arithmetic can be done without leaving the question ---- */
   //

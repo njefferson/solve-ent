@@ -48,10 +48,22 @@ export const NOTES_PAGE = '/whats-new';
  * it non-zero, which is also the first release on which that branch had ever
  * been reachable.
  */
-export const OLDER_THAN_SHOWN: number = 17;
+export const OLDER_THAN_SHOWN: number = 18;
 
 /** Newest first. */
 export const RELEASES: readonly Release[] = [
+  {
+    version: '1.2.0',
+    kind: 'CAPABILITY',
+    lines: [
+      'Rearranging questions were missing their numbers. A question said "n × M = m relates moles, molar mass and mass. Rearrange it for n and work out moles" — and then asked you to work out moles, with no value for m or M anywhere on the screen. It was not a hard question; it was not a question anybody could answer. The values existed the whole time and simply were never shown. They are on the screen now, under the question, with their units.',
+      'Two questions asked for a unit they never mentioned. Scientific notation gave you two bare numbers and then wanted the answer in grams, or particles, or mol/L — with no quantity named anywhere, so the only way to get it right was to guess. Those questions now say what the first number IS: "A mass of 3.02 × 10⁻² g is multiplied by 4.88 × 10⁶." The same fault was in the equilibrium-constant questions, which asked for a concentration without ever saying [A] was one.',
+      'A number of particles is no longer a fraction of one. Scientific notation used to attach "particles" to any magnitude it drew, so it could describe 3 × 10⁻² particles, which is not a quantity anybody has.',
+      'You can look back at what a step asked. Each line in the list of what you have done opens up to show the question it answered. The value alone was all that was kept before, so the wording went with the step.',
+      'Under the surface: two new checks. One holds that everything a step needs is in the question or the values beside it, and that any unit it asks for has a source a reader can see. The other holds that the screen actually shows those values — which is the half that was missing, because the checks that walk the app get their answers from the engine and could always answer what a reader could not.',
+    ],
+    stillMissing: 'each step tells you the mechanics of the move without saying what it is FOR in that question. That is next.',
+  },
   {
     version: '1.1.0',
     kind: 'CAPABILITY',
@@ -100,14 +112,5 @@ export const RELEASES: readonly Release[] = [
       'Under the surface: the check that keeps score-and-praise language out of this app had only ever been reading the code, never the screen. It reads both now, which is most of the words you actually see.',
     ],
     stillMissing: 'the calculator does not keep a history of what you worked out — only the line you are on. The working log above the question is what keeps your finished steps. And the report cannot be sent from inside the app; it has to be copied and pasted, because nothing here reaches the internet.',
-  },
-  {
-    version: '0.14.3',
-    kind: 'ITERATION',
-    lines: [
-      'The version you are running is on screen now, quietly, next to the name at the top. It was only inside the ⓘ panel before, which is no use for the thing a version is actually for: when you send a screenshot of something going wrong, the number has to be IN the screenshot. Without it there is no way to tell a problem that still exists from one already fixed, or from an old copy the device had kept.',
-      'It is small, it is selectable so it can be copied rather than typed out, and it is the real running number rather than one written down twice.',
-    ],
-    stillMissing: 'nothing new.',
   },
 ];
