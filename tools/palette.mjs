@@ -194,7 +194,39 @@ function cascade(css) {
 }
 
 /* ---- the palette must have passed the hub's gate ---- */
+/**
+ * Does the gates workflow hand the floors to the hub's own job?
+ *
+ * NOT A SKIP, AND NOT A FLAG. CI stopped checking the hub out into `.hub` when
+ * the shared gates became a CALL rather than a copy, so this file could no
+ * longer run the hub's palette gate itself on a runner. The floors are still
+ * measured there — `palette-path:` makes hub-gates.yml run exactly this gate on
+ * exactly this file, from the hub at the pinned commit — but that happens in a
+ * different job and nothing in this process can see it.
+ *
+ * So this reads the workflow and requires POSITIVE EVIDENCE: the call must be
+ * present, pinned to a commit, and naming THIS palette file. Absent, unpinned,
+ * or naming something else and the answer is no, and the check fails exactly as
+ * it did when the hub was missing. The failure this refuses to become is the
+ * one its own comment names: a colour reaching a screen unmeasured.
+ */
+function floorsRunInTheHubJob() {
+  let workflow;
+  try {
+    workflow = readFileSync(join(REPO, '.github/workflows/gates.yml'), 'utf8');
+  } catch {
+    return false;
+  }
+  const call = /uses:\s*njefferson\/noahjefferson\/\.github\/workflows\/hub-gates\.yml@[0-9a-f]{40}([\s\S]*?)(?=\n  \w|\n\S|$)/.exec(workflow);
+  if (!call) return false;
+  const declared = /^\s*palette-path:\s*(\S+)\s*$/m.exec(call[1])?.[1];
+  return declared === 'palettes/solve-ent.json';
+}
+
 function measured() {
+  if (HUB_GATE === null && floorsRunInTheHubJob()) {
+    return { ok: true, worst: null, elsewhere: true };
+  }
   if (HUB_GATE === null) {
     // NOT A SKIP. The hub absent means this could not be measured, and a colour
     // reaching a screen unmeasured is the whole failure.
@@ -205,7 +237,9 @@ function measured() {
         '  could not be measured against the shared floors. It is not skipped: a colour\n' +
         '  reaching a screen unmeasured is the whole thing this exists to prevent.\n' +
         '  Check njefferson/noahjefferson out beside this repository — every session here\n' +
-        '  needs it anyway, for doctrine-sync and the shared gates.',
+        '  needs it anyway, for doctrine-sync and the shared gates. On a runner the\n' +
+        '  floors are measured by the hub-gates job instead, which requires\n' +
+        '  `palette-path: palettes/solve-ent.json` on the call in gates.yml.',
     };
   }
   const run = spawnSync(process.execPath, [HUB_GATE, SOURCE], { encoding: 'utf8' });
@@ -239,8 +273,15 @@ if (process.argv.includes('--check')) {
 
   console.log('\n=== the palette · Solve-ent ===\n');
   if (failures.length === 0) {
-    console.log(`  ok    palettes/solve-ent.json clears every hard floor (worst text ${gate.worst})`);
-    console.log(`  ok    measured by ${relative(REPO, HUB_GATE)}, the hub's canonical gate`);
+    if (gate.elsewhere) {
+      console.log('  ok    palettes/solve-ent.json is measured against the hard floors by the');
+      console.log("        hub-gates job, which runs the hub's palette gate on this exact file");
+      console.log('        at the commit gates.yml pins. Not measured in THIS process, and not');
+      console.log('        skipped: the call and its palette-path were read out of the workflow.');
+    } else {
+      console.log(`  ok    palettes/solve-ent.json clears every hard floor (worst text ${gate.worst})`);
+      console.log(`  ok    measured by ${relative(REPO, HUB_GATE)}, the hub's canonical gate`);
+    }
     console.log('  ok    public/css/tokens.css matches the palette it was generated from');
     console.log('  ok    all four cascade cases present, read off the generated text');
     console.log('\nOne source, so what was measured and what is painted are the same values.\n');

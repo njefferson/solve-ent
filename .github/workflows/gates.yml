@@ -40,10 +40,17 @@ jobs:
   # catch, one level up. There is one pin now, in the line under this comment,
   # and `hub-pin-check.mjs` reads it from there.
   hub-gates:
-    uses: njefferson/noahjefferson/.github/workflows/hub-gates.yml@1de7828224ca881480deb5980e362bfb949eb682
+    uses: njefferson/noahjefferson/.github/workflows/hub-gates.yml@4cd365e5cb422e6136cca6741c9d2cf09fa7d11f
     with:
       pwa: true
       zizmor: true
+      # THE COLOUR FLOORS, and this line is load-bearing rather than tidy.
+      # `tools/palette.mjs --check` used to run the hub's palette gate itself,
+      # out of the `.hub` checkout this job no longer makes. It now reads this
+      # file and requires exactly this line before it will accept that the
+      # floors were measured somewhere else — so removing it does not quietly
+      # drop the gate, it turns the local check red.
+      palette-path: palettes/solve-ent.json
 
   gates:
     name: Gates
