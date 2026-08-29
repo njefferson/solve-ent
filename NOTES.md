@@ -1995,7 +1995,7 @@ Named here so nobody has to discover it by looking:
   so. **Creating the Pages project was never a manual step**; the job runs
   `pages project create` first and that is a no-op once it exists, exactly as
   the hub has been doing for its own project the whole time. It was written down
-  here as the owner's job for several releases and that was simply wrong.
+  here as a manual step for several releases and that was simply wrong.
   **The address answers** — confirmed by the owner opening it, because a session
   cannot. This environment's egress policy refuses `*.pages.dev`, so a session
   that curls the deployed site gets a 403 from the proxy gateway rather than a

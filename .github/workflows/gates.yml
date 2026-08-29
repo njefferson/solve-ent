@@ -31,15 +31,20 @@ concurrency:
   group: gates-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  # The hub commit this repository has reconciled with. Moved by
-  # `doctrine-sync.mjs --adopt`, and this pin moves with it — CI runs the hub's
-  # canonical gates AT THIS SHA, so leaving it behind would mean every gate
-  # going green while running a check that had never heard of the rule it is
-  # supposed to enforce.
-  HUB_SHA: ac9fcd2866166ab03f5fc27d47c24148a26b09d1
-
 jobs:
+  # EVERY HUB GATE, CALLED RATHER THAN COPIED.
+  #
+  # These were nine steps and a second checkout inside the job below, pinned by
+  # a HUB_SHA of its own. That was TWO references to the hub in one repository,
+  # free to drift apart — the same defect `hub-pin-check.mjs` was written to
+  # catch, one level up. There is one pin now, in the line under this comment,
+  # and `hub-pin-check.mjs` reads it from there.
+  hub-gates:
+    uses: njefferson/noahjefferson/.github/workflows/hub-gates.yml@1de7828224ca881480deb5980e362bfb949eb682
+    with:
+      pwa: true
+      zizmor: true
+
   gates:
     name: Gates
     runs-on: ubuntu-latest
@@ -50,14 +55,6 @@ jobs:
 
       # The hub, at an untracked path, pinned by SHA. `.hub` is the name the
       # hub's own gates know to skip when they walk a sibling's tree.
-      - name: Check the hub out for the shared gates
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: njefferson/noahjefferson
-          ref: ${{ env.HUB_SHA }}
-          path: .hub
-          persist-credentials: false
-
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
@@ -65,36 +62,6 @@ jobs:
 
       - name: Install
         run: npm ci
-
-      # ---- the doctrine gates ----
-      #
-      # FIRST, deliberately. A step that fails stops the job, so anything after
-      # it is skipped — and a privacy gate sitting behind a long test run is a
-      # HARD gate that silently does not run on the day the tests break.
-      # Cheapest and most important first.
-
-      - name: The owner's person is not repo material
-        run: node .hub/privacy-check.mjs --repo .
-
-      - name: Every set-apart quotation says whose words it is
-        run: node .hub/quote-check.mjs --repo .
-
-      - name: No grids in anything the owner reads
-        run: node .hub/docs-check.mjs .
-
-      - name: npm hygiene
-        run: node .hub/pin-check.mjs --repo .
-
-      # --artefact, NOT the plain check. The plain check also asserts that
-      # `.git/hooks/pre-commit` is installed, which is a fact about ONE CLONE,
-      # and `actions/checkout` leaves `.git/hooks` empty by definition — so a
-      # runner can never satisfy it and the step would fail on every push. What
-      # a runner CAN check is that the tracked hook still matches what
-      # `.branch-guard` declares, which is the drift that matters. Never
-      # `--install` here instead: that WRITES the tracked file and repairs the
-      # one defect the step exists to find. (Hub LESSONS 107.)
-      - name: The branch guard has not drifted from what it declares
-        run: node .hub/branch-guard.mjs --repo . --artefact
 
       # ---- the engine's own checks ----
 
@@ -138,10 +105,6 @@ jobs:
       # everyone who has the app keeps the old shell forever.
       - name: The service worker and the manifest
         run: npm run pwa:check
-
-      # Doctrine §7h, from the hub, at the pinned commit.
-      - name: An app that caches itself can say it is stale
-        run: node .hub/pwa-check.mjs --repo .
 
       - name: The words
         run: npm run copy
@@ -194,16 +157,3 @@ jobs:
       - name: The stale-app path, with a real second worker
         run: npm run update-walk
 
-      - name: Install zizmor (version- and hash-pinned by the hub)
-        run: |
-          python3 -m venv "$RUNNER_TEMP/zizmor"
-          "$RUNNER_TEMP/zizmor/bin/pip" install --quiet --only-binary=:all: \
-            --require-hashes -r .hub/.github/requirements-ci.txt
-
-      # --strict-collection is not optional. Without it an unparseable workflow
-      # is logged, skipped, and the audit still exits 0 with "No findings" — the
-      # file most likely to be wrong is the one excused.
-      - name: Workflow security audit
-        run: |
-          "$RUNNER_TEMP/zizmor/bin/zizmor" --offline --strict-collection \
-            .github/workflows/

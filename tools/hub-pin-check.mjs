@@ -7,10 +7,11 @@
  *
  * `.doctrine-sync` records the hub commit this repository has RECONCILED with;
  * `doctrine-sync.mjs --adopt` moves it, and moving it is an assertion that
- * somebody read the drift. `HUB_SHA` in the gates workflow is the commit CI
- * CHECKS THE HUB OUT AT, because the shared gates — privacy, quotes, the
- * no-grid rule, the branch guard's artefact check — are the hub's files and a
- * runner has to fetch them from somewhere.
+ * somebody read the drift. The pin in the gates workflow's
+ * `uses: .../hub-gates.yml@<sha>` line is the commit CI RUNS THE HUB'S GATES
+ * FROM, because the shared gates — privacy, quotes, the no-grid rule, the
+ * branch guard's artefact check — are the hub's files and a runner has to
+ * fetch them from somewhere.
  *
  * **They are the same fact and they drift silently.** Adopting is one command
  * and editing a workflow is another, and the second one is easy to skip because
@@ -33,7 +34,7 @@
  * The hub's shared gates live in the hub and take `--repo .`, precisely so five
  * divergent copies cannot exist. This one cannot follow that rule, and the
  * reason is the same circularity it exists to break: **CI fetches the hub AT
- * `HUB_SHA`, so a gate that validates `HUB_SHA` would be fetched at the very pin
+ * that pin, so a gate that validates the pin would be fetched at the very commit
  * it is checking.** A pin left behind far enough would check out a hub that does
  * not contain this file, and the step would fail with a missing module rather
  * than a diagnosis — which is hub LESSONS §117 one level up, wearing the costume
@@ -78,14 +79,21 @@ if (workflowSource === null) failures.push(`${WORKFLOW} is missing — nothing r
 
 if (failures.length === 0) {
   const marker = markerSource.trim();
-  const pin = /^\s*HUB_SHA:\s*([0-9a-f]{40})\s*$/m.exec(workflowSource)?.[1];
+  // THE PIN MOVED HOUSE ON 2026-08-29. It used to be `HUB_SHA:`, an env var
+  // feeding a hand-written `actions/checkout` of the hub inside the gates job.
+  // The gates are now CALLED — `uses: .../hub-gates.yml@<sha>` — so the ref
+  // after the `@` is the same fact in its new place, and the hub works out
+  // which commit to run the gates from by reading that ref off its own
+  // `github.workflow_ref`. One pin instead of two, which is this file's own
+  // argument applied to itself.
+  const pin = /hub-gates\.yml@([0-9a-f]{40})\s*$/m.exec(workflowSource)?.[1];
 
   if (!/^[0-9a-f]{40}$/.test(marker)) {
     failures.push(`${MARKER} reads "${marker}", which is not a full commit SHA`);
   } else if (pin === undefined) {
     // Anchored on a full 40-character SHA on its own line, so an abbreviated
     // pin or a branch name fails LOUDLY rather than being read as absent.
-    failures.push(`${WORKFLOW} has no HUB_SHA set to a full 40-character commit SHA`);
+    failures.push(`${WORKFLOW} does not call hub-gates.yml at a full 40-character commit SHA`);
   } else if (pin !== marker) {
     failures.push(
       `the doctrine marker is ${marker.slice(0, 7)} and CI checks the hub out at ${pin.slice(0, 7)}`,
@@ -101,10 +109,11 @@ if (failures.length === 0) {
 for (const failure of failures) console.log(`  FAIL  ${failure}`);
 console.error(
   '\nThe hub commit is written in two places and they have drifted. CI checks the hub\n' +
-    'out at HUB_SHA to run the shared gates, so a pin left behind means those gates go\n' +
+    'out at the pin in the `uses:` line to run the shared gates, so a pin left behind\n' +
+    'means those gates go\n' +
     'green while running checks that never heard of the rules this repository has\n' +
     'already adopted. Move them together:\n\n' +
     '  node ../noahjefferson/doctrine-sync.mjs --repo . --adopt\n' +
-    `  then set HUB_SHA in ${WORKFLOW} to the same commit\n`,
+    `  then move the hub-gates.yml pin in ${WORKFLOW} to the same commit\n`,
 );
 process.exit(1);
