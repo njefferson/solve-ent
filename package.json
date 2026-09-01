@@ -39,7 +39,7 @@
     "generate": "npm run palette && npm run notes && npm run web && npm run pwa"
   },
   "devDependencies": {
-    "@types/node": "22.19.4",
+    "@types/node": "26.4.0",
     "axe-core": "4.12.1",
     "playwright": "1.56.1",
     "typescript": "7.0.2"
