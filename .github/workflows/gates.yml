@@ -40,7 +40,7 @@ jobs:
   # catch, one level up. There is one pin now, in the line under this comment,
   # and `hub-pin-check.mjs` reads it from there.
   hub-gates:
-    uses: njefferson/noahjefferson/.github/workflows/hub-gates.yml@d356e24663de63f8bb0258b1b521c56cb79152ab
+    uses: njefferson/noahjefferson/.github/workflows/hub-gates.yml@3f2a37374fd7fb9fa5671f6c6b79e1c95d660b06
     with:
       pwa: true
       zizmor: true
