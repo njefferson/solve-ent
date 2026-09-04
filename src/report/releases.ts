@@ -48,10 +48,21 @@ export const NOTES_PAGE = '/whats-new';
  * it non-zero, which is also the first release on which that branch had ever
  * been reachable.
  */
-export const OLDER_THAN_SHOWN: number = 18;
+export const OLDER_THAN_SHOWN: number = 19;
 
 /** Newest first. */
 export const RELEASES: readonly Release[] = [
+  {
+    version: '1.3.0',
+    kind: 'CAPABILITY',
+    lines: [
+      'When something goes wrong, it now says why the move works, not only what the move is. "Undo what is being done to it on both sides" is a procedure to remember; underneath it now sits the reason it is true — an equation says two things are equal, and it stays true only if whatever you do happens to both sides. The instruction comes first and the reason second, because somebody who has just got a step wrong wants the thing to do first.',
+      'You can ask whether there is a newer version, and you get an answer either way. The ⓘ panel says which version you are running and has a button that checks. If you are on the newest one it says so — which is the answer you usually want, and a button that speaks only when there is news leaves you unsure it did anything. If there is a newer one it points at the strip that takes it, and if it cannot check it says that instead of pretending.',
+      'The three buttons in the bar are drawn now. The ⓘ and the close ✕ were typed characters, which a typeface places by its own rules inside a button sized for a fingertip — so they sat off-centre and small, and no amount of adjusting the spacing could fix both. They are drawn marks, centred, and the buttons are round rather than very slightly oval.',
+      'Under the surface: a check that measures every button in the bar — that its mark is drawn rather than typed, that it is centred within a pixel, that it fills enough of the button to read as a mark, and that the button clears the minimum size in both directions. The old ⓘ was put back on purpose to watch the check refuse it.',
+    ],
+    stillMissing: 'the question still opens with an instruction rather than saying what kind of problem it is or where the move gets used. That is next.',
+  },
   {
     version: '1.2.0',
     kind: 'CAPABILITY',
@@ -98,19 +109,5 @@ export const RELEASES: readonly Release[] = [
       'Under the surface: there is a new check that opens the app at the size of a small phone with the keyboard up, and fails if anything you need is off the screen or behind the bar. Both of the last two faults reported here were things that existed, worked, and could not be seen on the device this is used on. Every other check ran on a taller screen where they were all perfectly visible.',
     ],
     stillMissing: 'the check knows about a fixed list of moments. A new control has to be added to that list, or it is not measured — the list is written down where it can be seen rather than worked out automatically.',
-  },
-  {
-    version: '0.15.0',
-    kind: 'CAPABILITY',
-    lines: [
-      'The calculator is in the bar at the top now, on every screen. It was there before, but it sat underneath the answer box below the button that checks the step — which on a tablet, with the keyboard up, is off the bottom of the screen. Somebody working through a question read the whole screen and reported that there was no calculator, and they were right: a control you cannot see is not a control you have.',
-      'Tap the keypad icon next to the ⓘ and it opens over whatever you are doing. It is in the same place during practice, during an assigned set and while you are drilling one move on its own, so it is not something to find again each time.',
-      'It still puts the number straight into the answer box, and it closes itself when it does, because the next thing you want is the box it just filled. On a step that asks you to choose between rearrangements there is nowhere to put a number, so that button is not offered and the panel says why — the keys still work if you want to check something before choosing.',
-      'It still never rounds and it still never sees the question. It multiplies the numbers you chose in the order you chose them. Working out how many figures an answer is entitled to is one of the seven things this is for, so that part is left to you.',
-      'Reporting a problem is in the bar too, next to it. It was five headings down inside the ⓘ panel before, which is where you look when you are curious about the app — not when it has just done something wrong and you want to say so. Tap the flag, pick whichever line is closest to what happened, and copy the report.',
-      'There is nowhere in that panel to type anything, and that is the point. It means there is nothing in the report about you. It carries the version, the size of the screen, the kind of device and whether anything is stored — and it does not carry your settings. If you have text size, spacing, one-step-at-a-time or read-aloud switched on, none of that goes in, so reporting a fault never tells anybody how you have the app set up. The report says so in its own last line rather than asking you to take it on trust.',
-      'Under the surface: the check that keeps score-and-praise language out of this app had only ever been reading the code, never the screen. It reads both now, which is most of the words you actually see.',
-    ],
-    stillMissing: 'the calculator does not keep a history of what you worked out — only the line you are on. The working log above the question is what keeps your finished steps. And the report cannot be sent from inside the app; it has to be copied and pasted, because nothing here reaches the internet.',
   },
 ];

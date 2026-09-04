@@ -175,6 +175,60 @@ for (const leak of ['largest', 'read-aloud', 'one-step', 'open']) {
 // TWO WAYS OUT NOW: the sticky head's ✕ and the button at the end. The head's
 // is the one a reader reaches without scrolling the whole panel, so it is the
 // one this asserts.
+/* ---- every mark in the bar is DRAWN, square and centred ---- */
+//
+// Hub LESSONS §235: a character standing in for an icon is placed by FONT
+// METRICS — its ink sits where the typeface puts it relative to the baseline —
+// inside a box sized by the tap-target floor, and nothing relates the two. Two
+// complaints, "too small" and "not centred", with one cause. Measured rather
+// than eyeballed, because that is what makes which symptom is the cause a
+// reading rather than a guess.
+{
+  const marks = await page.evaluate(() =>
+    [...document.querySelectorAll('.bar .icon')].map((button) => {
+      const box = button.getBoundingClientRect();
+      const svg = button.querySelector('svg');
+      const mark = svg === null ? null : svg.getBoundingClientRect();
+      return {
+        id: button.id,
+        drawn: svg !== null,
+        square: Math.abs(box.width - box.height) < 1,
+        floor: Math.min(box.width, box.height) >= 44,
+        off: mark === null ? 99 : Math.max(
+          Math.abs(mark.x + mark.width / 2 - (box.x + box.width / 2)),
+          Math.abs(mark.y + mark.height / 2 - (box.y + box.height / 2)),
+        ),
+        cover: mark === null ? 0 : (mark.width * mark.height) / (box.width * box.height),
+      };
+    }),
+  );
+  check(marks.length > 0, 'the bar carries icon controls at all', `${String(marks.length)} found`);
+  for (const mark of marks) {
+    check(mark.drawn, `${mark.id}'s mark is drawn rather than a typed character`);
+    check(mark.square, `${mark.id} is a square box, so a round button is round`);
+    check(mark.floor, `${mark.id} clears the 44px tap floor in both directions`);
+    check(mark.off <= 1, `${mark.id}'s mark is centred on its button`, `off by ${mark.off.toFixed(2)}px`);
+    // A speck in a large target reads as an empty button. The floor is well
+    // under what these draw at, and well over what a character managed.
+    check(mark.cover >= 0.15, `${mark.id}'s mark fills enough of it to read as a mark`, `${(mark.cover * 100).toFixed(0)}%`);
+  }
+}
+
+// §7h.6 — THE READER CAN ASK, and is answered whatever the answer is. An app
+// opened rarely may never be told by the browser, so a control that only speaks
+// when there is news is a control somebody cannot trust. In the walk's own
+// browser there is a worker and nothing newer, so the expected reply is the
+// boring one — which is the one this rule is actually about.
+check((await page.locator('#info-version').innerText()).trim() === VERSION, 'the panel says which version is running', VERSION);
+await page.click('#check-updates');
+await page.waitForFunction(() => (document.getElementById('check-updates-said')?.textContent ?? '') !== 'Checking…');
+const answered = (await page.locator('#check-updates-said').innerText()).trim();
+check(answered !== '', 'asking for a newer version is answered rather than silently doing nothing', answered);
+check(
+  /newest|newer version is ready|cannot be checked/.test(answered),
+  'and the answer is one of the three, including the boring one',
+);
+
 await page.locator('#info .info-head button[data-close]').click();
 await page.waitForTimeout(100);
 check(!(await page.locator('#info[open]').count()), 'and it closes');

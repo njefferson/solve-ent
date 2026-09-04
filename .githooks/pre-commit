@@ -5,86 +5,86 @@
 # Committing on the wrong branch looks exactly like committing on the right
 # one, which is why an instruction in a file never caught it and this does.
 
-if [ ! -x "tools/version-check.mjs" ]; then
+if [ ! -x "./tools/version-check.mjs" ]; then
   echo "" >&2
   echo "  REFUSED — .branch-guard declares also=tools/version-check.mjs and it is missing or not executable." >&2
   echo "  A declared check that silently stops running is worse than no check." >&2
   echo "" >&2
   exit 1
 fi
-"tools/version-check.mjs" || exit 1
+"./tools/version-check.mjs" || exit 1
 
-if [ ! -x "tools/copy-check.mjs" ]; then
+if [ ! -x "./tools/copy-check.mjs" ]; then
   echo "" >&2
   echo "  REFUSED — .branch-guard declares also=tools/copy-check.mjs and it is missing or not executable." >&2
   echo "  A declared check that silently stops running is worse than no check." >&2
   echo "" >&2
   exit 1
 fi
-"tools/copy-check.mjs" || exit 1
+"./tools/copy-check.mjs" || exit 1
 
-if [ ! -x "tools/notes-check.mjs" ]; then
+if [ ! -x "./tools/notes-check.mjs" ]; then
   echo "" >&2
   echo "  REFUSED — .branch-guard declares also=tools/notes-check.mjs and it is missing or not executable." >&2
   echo "  A declared check that silently stops running is worse than no check." >&2
   echo "" >&2
   exit 1
 fi
-"tools/notes-check.mjs" || exit 1
+"./tools/notes-check.mjs" || exit 1
 
-if [ ! -x "tools/hub-pin-check.mjs" ]; then
+if [ ! -x "./tools/hub-pin-check.mjs" ]; then
   echo "" >&2
   echo "  REFUSED — .branch-guard declares also=tools/hub-pin-check.mjs and it is missing or not executable." >&2
   echo "  A declared check that silently stops running is worse than no check." >&2
   echo "" >&2
   exit 1
 fi
-"tools/hub-pin-check.mjs" || exit 1
+"./tools/hub-pin-check.mjs" || exit 1
 
-if [ ! -x "tools/palette-check.mjs" ]; then
+if [ ! -x "./tools/palette-check.mjs" ]; then
   echo "" >&2
   echo "  REFUSED — .branch-guard declares also=tools/palette-check.mjs and it is missing or not executable." >&2
   echo "  A declared check that silently stops running is worse than no check." >&2
   echo "" >&2
   exit 1
 fi
-"tools/palette-check.mjs" || exit 1
+"./tools/palette-check.mjs" || exit 1
 
-if [ ! -x "tools/web-check.mjs" ]; then
+if [ ! -x "./tools/web-check.mjs" ]; then
   echo "" >&2
   echo "  REFUSED — .branch-guard declares also=tools/web-check.mjs and it is missing or not executable." >&2
   echo "  A declared check that silently stops running is worse than no check." >&2
   echo "" >&2
   exit 1
 fi
-"tools/web-check.mjs" || exit 1
+"./tools/web-check.mjs" || exit 1
 
-if [ ! -x "tools/coverage-check.mjs" ]; then
+if [ ! -x "./tools/coverage-check.mjs" ]; then
   echo "" >&2
   echo "  REFUSED — .branch-guard declares also=tools/coverage-check.mjs and it is missing or not executable." >&2
   echo "  A declared check that silently stops running is worse than no check." >&2
   echo "" >&2
   exit 1
 fi
-"tools/coverage-check.mjs" || exit 1
+"./tools/coverage-check.mjs" || exit 1
 
-if [ ! -x "tools/icon-check.mjs" ]; then
+if [ ! -x "./tools/icon-check.mjs" ]; then
   echo "" >&2
   echo "  REFUSED — .branch-guard declares also=tools/icon-check.mjs and it is missing or not executable." >&2
   echo "  A declared check that silently stops running is worse than no check." >&2
   echo "" >&2
   exit 1
 fi
-"tools/icon-check.mjs" || exit 1
+"./tools/icon-check.mjs" || exit 1
 
-if [ ! -x "tools/pwa-check.mjs" ]; then
+if [ ! -x "./tools/pwa-check.mjs" ]; then
   echo "" >&2
   echo "  REFUSED — .branch-guard declares also=tools/pwa-check.mjs and it is missing or not executable." >&2
   echo "  A declared check that silently stops running is worse than no check." >&2
   echo "" >&2
   exit 1
 fi
-"tools/pwa-check.mjs" || exit 1
+"./tools/pwa-check.mjs" || exit 1
 
 branch=$(git symbolic-ref --short HEAD 2>/dev/null || echo '')
 

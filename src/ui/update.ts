@@ -54,6 +54,43 @@ export function canCache(): boolean {
   return typeof globalThis.navigator !== 'undefined' && 'serviceWorker' in globalThis.navigator;
 }
 
+/** What an on-demand check found. Three answers, and all three are said. */
+export type CheckOutcome = 'waiting' | 'newest' | 'cannot';
+
+/**
+ * The reader ASKS, rather than waiting to be told (Doctrine §7h.6).
+ *
+ * Rule 2 is the app speaking when the browser happens to notice, and an
+ * installed app opened rarely — or left open for days — may not check at all.
+ * So there is a control, and it answers in all three cases.
+ *
+ * **THE BORING ANSWER IS THE LOAD-BEARING ONE.** *You are on the newest
+ * version* is what somebody actually needs to hear, and a control that speaks
+ * only when there is news leaves them unsure it did anything at all.
+ *
+ * `cannot` covers the honest failures rather than hiding them: a browser with
+ * no service worker, a first visit with nothing registered yet, and being
+ * offline — where `update()` rejects because checking genuinely requires the
+ * network. Saying so beats a silent control or a false all-clear.
+ */
+export async function checkForUpdate(): Promise<CheckOutcome> {
+  if (!canCache()) return 'cannot';
+  try {
+    const registration = await globalThis.navigator.serviceWorker.getRegistration();
+    if (registration === undefined) return 'cannot';
+    await registration.update();
+    // A worker WAITING beside an active one is a newer release held back; a
+    // worker still INSTALLING is one on its way. Both are "there is a newer
+    // one", which is what was asked.
+    if (registration.active !== null && (registration.waiting !== null || registration.installing !== null)) {
+      return 'waiting';
+    }
+    return 'newest';
+  } catch {
+    return 'cannot';
+  }
+}
+
 /**
  * Which copies of the app this device is holding.
  *

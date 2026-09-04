@@ -172,6 +172,14 @@ main:focus { outline: none; }
 }
 
 .icon {
+  /* A SQUARE BOX, so `border-radius: 50%` is a circle rather than an ellipse.
+   * The base `button` rule adds 1rem of side padding, which pushed these to
+   * 52x44 — round-ish, and visibly not round beside each other. Doctrine §7e
+   * names this control by its SHAPE, so the shape has to be the shape. The tap
+   * floor is unchanged: the box is exactly `--tap` in both directions. */
+  padding: 0;
+  width: var(--tap);
+  height: var(--tap);
   min-width: var(--tap);
   min-height: var(--tap);
   display: grid;
@@ -191,8 +199,11 @@ main:focus { outline: none; }
  * it to the same text token as everything else rather than meeting a stroke
  * colour it has never heard of. */
 .icon-glyph {
-  width: 1.15rem;
-  height: 1.15rem;
+  /* Half the button, which is what a drawn mark wants: smaller reads as a speck
+   * in a large target, and this is the ratio the calculator and flag were
+   * already drawn to look right at. */
+  width: 1.375rem;
+  height: 1.375rem;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.6;
@@ -355,6 +366,10 @@ a.ghost { color: var(--accent); }
  * above it. */
 .working-line summary { cursor: pointer; min-height: var(--tap); display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; }
 .working-asked { color: var(--text-2); font-size: 0.94em; margin: 0.2rem 0 0.4rem 1rem; }
+
+/* The reason under the instruction. Quieter than the move itself: somebody who
+ * has just got a step wrong reads the thing to do first. */
+.remedy-why { color: var(--text-2); }
 
 .givens {
   list-style: none;

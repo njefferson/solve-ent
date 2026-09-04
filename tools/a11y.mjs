@@ -419,6 +419,22 @@ const STATES = [
     arrived: '#report[open]',
   },
   {
+    // THE READER ASKED, AND WAS ANSWERED (§7h.6). The reply is a live-region
+    // line that only exists after a press, so a resting sweep never reads it —
+    // and it is the surface that tells somebody whether they are running the
+    // release a defect was fixed in.
+    name: 'info-checked',
+    surface: null,
+    path: '/',
+    async reach(page) {
+      await page.click('#begin');
+      await page.click('#open-info');
+      await page.click('#check-updates');
+      await page.waitForFunction(() => (document.getElementById('check-updates-said')?.textContent ?? '') !== 'Checking…');
+    },
+    arrived: '#check-updates-said',
+  },
+  {
     name: 'info-dialog',
     surface: null,
     path: '/',

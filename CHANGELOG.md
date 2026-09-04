@@ -9,6 +9,37 @@ release changed something you can see or do, it is described below in the words
 you would use for it. If it changed something under the surface that you cannot
 see, it says that plainly rather than dressing it up.
 
+## 1.3.0 — CAPABILITY
+
+**When something goes wrong, it now says why the move works**, not only what the
+move is. "Undo what is being done to it on both sides" is a procedure to
+remember; underneath it now sits the reason it is true — an equation says two
+things are equal, and it stays true only if whatever you do happens to both
+sides. The instruction comes first and the reason second, because somebody who
+has just got a step wrong wants the thing to do first.
+
+**You can ask whether there is a newer version, and you get an answer either
+way.** The ⓘ panel says which version you are running and has a button that
+checks. If you are on the newest one it says so — which is the answer you
+usually want, and a button that speaks only when there is news leaves you unsure
+it did anything. If there is a newer one it points at the strip that takes it,
+and if it cannot check it says that instead of pretending.
+
+**The three buttons in the bar are drawn now.** The ⓘ and the close ✕ were
+typed characters, which a typeface places by its own rules inside a button sized
+for a fingertip — so they sat off-centre and small, and no amount of adjusting
+the spacing could fix both. They are drawn marks, centred, and the buttons are
+round rather than very slightly oval.
+
+**Under the surface:** a check that measures every button in the bar — that its
+mark is drawn rather than typed, that it is centred within a pixel, that it
+fills enough of the button to read as a mark, and that the button clears the
+minimum size in both directions. The old ⓘ was put back on purpose to watch the
+check refuse it.
+
+**Still missing:** the question still opens with an instruction rather than
+saying what kind of problem it is or where the move gets used. That is next.
+
 ## 1.2.0 — CAPABILITY
 
 **Rearranging questions were missing their numbers.** A question said "n × M = m

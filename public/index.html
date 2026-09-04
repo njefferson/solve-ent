@@ -81,7 +81,15 @@
     </svg>
   </button>
   <button type="button" id="open-info" class="icon" aria-label="About Solve-ent, settings and what changed">
-    <span aria-hidden="true">i</span>
+    <!-- Doctrine §7e names this control by its SHAPE, an (i) in a circle, so the
+         circle is drawn here rather than left to a font's idea of a letter.
+         Hub LESSONS §235: the italic character sat where the typeface put it
+         inside a box sized by the tap floor, and nothing related the two. -->
+    <svg class="icon-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="9"/>
+      <line x1="12" y1="11" x2="12" y2="16.5"/>
+      <line x1="12" y1="7.6" x2="12" y2="7.6"/>
+    </svg>
   </button>
 </header>
 
@@ -336,7 +344,15 @@
   <div class="info-head">
     <h2 id="info-title">Solve-ent <span id="version"></span></h2>
     <button type="button" data-close class="icon" aria-label="Close">
-      <span aria-hidden="true">✕</span>
+      <!-- DRAWN, NOT TYPED (hub LESSONS §235). A character in a box is placed by
+           font metrics — its ink sits where the typeface puts it relative to the
+           baseline — and the tap-size floor forces a box far larger than the
+           ink, with nothing relating the two. A drawn mark is centred on the
+           button because it is centred in its own viewBox. -->
+      <svg class="icon-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <line x1="6.5" y1="6.5" x2="17.5" y2="17.5"/>
+        <line x1="17.5" y1="6.5" x2="6.5" y2="17.5"/>
+      </svg>
     </button>
   </div>
   <div class="info-body">
@@ -383,6 +399,17 @@
       <button type="button" data-pref="readAloud">Read questions aloud</button>
     </span>
   </fieldset>
+
+  <!-- §7h.6 — THE READER CAN ASK. Rule 2 is the app speaking when the browser
+       happens to notice, and an app opened rarely may not check at all. The
+       version is in the bar at the top on every screen; this is the other half.
+       All three answers are said, and the boring one is the load-bearing one:
+       a control that speaks only when there is news leaves somebody unsure it
+       did anything. -->
+  <h3>The version you are running</h3>
+  <p>You are on <strong><span id="info-version"></span></strong>. It works offline, so a newer one arrives only when this checks.</p>
+  <button type="button" id="check-updates" class="ghost">Check for a newer version</button>
+  <p id="check-updates-said" class="aside" role="status" aria-live="polite"></p>
 
   <h3>What it is, and what it is not</h3>
   <p>Free tools already solve these and already show the steps. What this adds is looking at a wrong answer and working out which mistake produces that exact number — the ratio used upside down, the exponent multiplied instead of raised, a conversion factor turned the wrong way — and telling you that.</p>

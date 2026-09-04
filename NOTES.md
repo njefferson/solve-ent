@@ -1427,6 +1427,59 @@ vanishes the first time anybody touches the panel. It is held in a variable and
 the whole text is rebuilt from scratch, so what is on screen is always exactly
 what a copy produces.
 
+### Three doctrine obligations, and a character that was not an icon — 1.3.0
+
+The hub moved a long way while this repository was not being worked, and
+reconciling it produced three obligations rather than a reading exercise.
+
+**§7h.6 — THE READER CAN ASK.** Rule 2 is the app speaking when the browser
+happens to notice, and an installed app opened rarely may not check at all. The
+version on screen was already here; the control that checks on demand was not.
+It answers in all three cases, and **the boring answer is the load-bearing
+one** — *you are on the newest version* is what somebody actually needs to hear,
+and a control that speaks only when there is news leaves them unsure it did
+anything. `cannot` is said rather than hidden: checking needs the network, and
+this app does not.
+
+**Hub LESSONS §235 — a character is not an icon.** The ⓘ and the panel's close
+were single characters inside boxes sized by the tap floor. A character is
+placed by FONT METRICS: its ink sits where the typeface puts it relative to the
+baseline, the box is sized by a rule that knows nothing about the ink, and
+nothing relates the two. Measured before touching either: the marks were off
+centre and covered 14.7% of their buttons.
+
+**And the buttons were not round.** `border-radius: 50%` on a 52x44 box is an
+ellipse, and the 52 came from the base button rule's side padding — Doctrine
+§7e names this control by its SHAPE, so the shape has to be the shape. Fixed
+square at the tap floor, mark at half the button: dead centre, 25% coverage.
+
+**It is a gate, and the gate was proved by putting the defect back.** The walk
+measures every control in the bar — drawn rather than typed, centred within a
+pixel, a floor on coverage, and the tap floor in BOTH directions. The original
+character was restored on purpose and refused on three counts at once, which is
+the same shape as the two complaints having one cause.
+
+**Third-person-check, wired locally as well as in CI.** The privacy rule's third
+half was already running here through the hub's shared workflow, and hub LESSONS
+§237 is the reason that is not enough: a gate only CI runs reports the defect
+after it has shipped. It is in `npm run gates` now, watched refusing a local
+plant.
+
+### The remedy said what to do and never why
+
+*It explains the mechanics and not the step* was the reading, and it was right.
+"Undo what is being done to it on BOTH sides" is a procedure to memorise; on its
+own it makes the next question a recall problem rather than a derivable one.
+
+Each of the four remedies carries a `why` now — what makes the move correct,
+not a longer version of the move. An equation stays true only if whatever you do
+happens to both sides. A conversion factor is worth 1 either way up, so the
+units are the only thing saying which way you need.
+
+**The order is deliberate.** The instruction first, the reason second: somebody
+who has just got a step wrong wants the thing to do, and a paragraph of
+reasoning above it is a wall between them and their next attempt.
+
 ### The questions were missing their numbers — 1.2.0
 
 **The worst defect found in this application, and it was live in 1.0.0.**

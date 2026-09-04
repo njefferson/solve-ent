@@ -43,7 +43,7 @@ import { APP_NAME, VERSION } from '../version.js';
 import { NOTES_SEEN_KEY, decideNotes } from './notes.js';
 import { browserStore, documentAttributes, readPrefs, writePrefs, } from './prefs.js';
 import { canSpeak, deviceVoice } from './speech.js';
-import { heldCaches, watchForUpdate } from './update.js';
+import { checkForUpdate, heldCaches, watchForUpdate } from './update.js';
 /* ------------------------------------------------------------------ *
  * Constants. Every threshold is named, with the judgement beside it.
  * ------------------------------------------------------------------ */
@@ -655,14 +655,23 @@ function renderDiagnosis(errorClass, why, logError, panel = $('#diagnosis'), sta
         // the same wrong answer with nothing to try.
         // A BULLET FOR ONE THING IS NOISE. There is usually exactly one move to
         // make, and a single-item list dresses a sentence up as a checklist.
+        // AND THE REASON UNDER IT. The remedy says what to do, which on its own is a
+        // procedure to memorise — "it explains the mechanics and not the step" was
+        // the reading, and it was right. The `why` says what makes the move
+        // correct, so the next one is derivable rather than recalled. It goes AFTER
+        // the instruction: somebody who has just got a step wrong wants the move
+        // first, and the reason second.
         const only = remedies.length === 1 ? remedies[0] : undefined;
         if (only !== undefined) {
-            panel.append(make('p', { class: 'remedy' }, REMEDIES[only].how));
+            panel.append(make('p', { class: 'remedy' }, REMEDIES[only].how), make('p', { class: 'remedy-why' }, REMEDIES[only].why));
         }
         else {
             const list = make('ul', { class: 'remedies' });
-            for (const remedy of remedies)
-                list.append(make('li', {}, REMEDIES[remedy].how));
+            for (const remedy of remedies) {
+                const item = make('li', {}, REMEDIES[remedy].how);
+                item.append(make('span', { class: 'remedy-why' }, ` ${REMEDIES[remedy].why}`));
+                list.append(item);
+            }
             panel.append(list);
         }
     }
@@ -1405,6 +1414,26 @@ export function boot(storeForTests) {
     }
     renderReport();
     void addCacheLine();
+    // §7h.6 — THE READER CAN ASK, and all three answers are said. The boring one
+    // is the load-bearing one: a control that speaks only when there is news
+    // leaves somebody unsure it did anything at all.
+    $('#info-version').textContent = VERSION;
+    const askedAbout = $('#check-updates-said');
+    const asker = $('#check-updates');
+    asker.addEventListener('click', () => {
+        asker.disabled = true;
+        askedAbout.textContent = 'Checking…';
+        void checkForUpdate().then((outcome) => {
+            asker.disabled = false;
+            askedAbout.textContent =
+                outcome === 'waiting'
+                    ? 'A newer version is ready. The strip at the top of the screen is where you take it.'
+                    : outcome === 'newest'
+                        ? `You are on the newest version, ${VERSION}.`
+                        : 'This cannot be checked right now — that needs the network, and this app does not.';
+            say(askedAbout.textContent);
+        });
+    });
     // A NEWER VERSION IS READY. The worker waits rather than taking over under
     // this page; this puts the words on screen and the reader decides when.
     watchForUpdate({

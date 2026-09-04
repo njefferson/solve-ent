@@ -1442,21 +1442,29 @@ export const REMEDIES = {
         name: 'undoing an operation on both sides to get one letter on its own',
         how: 'To get a letter on its own, undo what is being done to it on BOTH sides — ' +
             'a letter that is multiplying the one you want is a letter you divide by.',
+        why: 'An equation is a statement that two things are equal, and it stays true only if ' +
+            'whatever you do happens to both sides. That is the whole reason for the rule.',
     },
     'A2-PROPORTION': {
         name: 'setting two ratios equal and cross-multiplying',
         how: 'Write both ratios the same way round — what you have over what the recipe takes, ' +
             'what you want over what it makes — and then cross-multiply.',
+        why: 'A balanced equation fixes a ratio that holds however much you make, so scaling ' +
+            'one side by some amount scales the other by the same amount.',
     },
     'A3-UNITS': {
         name: 'writing a conversion so the unit you are carrying cancels',
         how: 'Write each conversion with the unit you are carrying on the BOTTOM so it cancels; ' +
             'if a unit does not cancel, that factor is upside down.',
+        why: 'A conversion factor is worth 1 either way up, so the units are the only thing ' +
+            'saying which way you need — and a unit left over is the arithmetic telling you.',
     },
     'A4-MAGNITUDE': {
         name: 'checking the size of an answer before writing it down',
         how: 'Ask roughly how big the answer ought to be before writing it — ' +
             'out by a factor of ten is usually a decimal point rather than the method.',
+        why: 'A chemical amount has a size you can predict before you calculate, so a number ' +
+            'far from it is a signal you can read without checking the working.',
     },
 };
 /**
